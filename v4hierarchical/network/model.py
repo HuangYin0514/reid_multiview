@@ -35,19 +35,25 @@ class TransLayer_1(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.c4_net = nn.Sequential(nn.MaxPool2d(kernel_size=(1, 1)), nn.Conv2d(1024, 1024, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(1024), nn.BatchNorm2d(1024))
-        self.c3_net = nn.Sequential(nn.MaxPool2d(kernel_size=(2, 2)), nn.Conv2d(512, 512, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(512), nn.BatchNorm2d(512))
-        self.c2_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(256), nn.BatchNorm2d(256))
+        self.c4_net = nn.Sequential(nn.MaxPool2d(kernel_size=(1, 1)), nn.Conv2d(1024, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c3_net = nn.Sequential(nn.MaxPool2d(kernel_size=(2, 2)), nn.Conv2d(512, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c2_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
         self.c1_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+
+        self.c4_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c3_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c2_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
         assert len(xs) == 4
         c1, c2, c3, c4 = xs
         c1 = self.c1_net(c1)
-        c2 = self.c2_net(c2)
-        c3 = self.c3_net(c3)
-        c4 = self.c4_net(c4)
+        # print(c1.shape)
+        # print(c2.shape)
+        c2 = self.c2_net2(self.c2_net(c2) + c1)
+        c3 = self.c3_net2(self.c3_net(c3) + c2)
+        c4 = self.c4_net2(self.c4_net(c4) + c3)
         return (c1, c2, c3, c4)
 
 
@@ -80,9 +86,9 @@ class TransLayer_classifier(nn.Module):
             self,
         ).__init__()
 
-        self.c4_net_classifier = TransLayer_Classifier_Base(1024, config.pid_num)
-        self.c3_net_classifier = TransLayer_Classifier_Base(512, config.pid_num)
-        self.c2_net_classifier = TransLayer_Classifier_Base(256, config.pid_num)
+        self.c4_net_classifier = TransLayer_Classifier_Base(64, config.pid_num)
+        self.c3_net_classifier = TransLayer_Classifier_Base(64, config.pid_num)
+        self.c2_net_classifier = TransLayer_Classifier_Base(64, config.pid_num)
         self.c1_net_classifier = TransLayer_Classifier_Base(64, config.pid_num)
 
     def forward(self, xs):
