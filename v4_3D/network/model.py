@@ -55,7 +55,12 @@ class AuxiliaryModel(nn.Module):
             self,
         ).__init__()
         hidden_dim = 2048
-        self.net = nn.Sequential(nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(hidden_dim), nn.ReLU())
+        self.net = nn.Sequential(
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(hidden_dim),
+            nn.ReLU(),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
+        )
         # self.auxiliaryModelClassifier = AuxiliaryModelClassifier(pid_num)
 
     def forward(self, x):
@@ -72,7 +77,7 @@ class AuxiliaryModelClassifier(nn.Module):
             self,
         ).__init__()
         self.pid_num = pid_num
-        self.GAP = GeneralizedMeanPoolingP()
+        self.GAP = nn.AvgPool2d(1)
         self.BN = nn.BatchNorm1d(2048)
         self.BN.apply(weights_init_kaiming)
 

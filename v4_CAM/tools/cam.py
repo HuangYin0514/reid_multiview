@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
+from .utils import make_dirs
+
 
 class CAM:
     def __init__(self, config):
@@ -17,8 +19,7 @@ class CAM:
         self.GRID_SPACING = 10
 
         self.actmap_dir = os.path.join(config.output_path, "actmap/")
-        if not os.path.exists(self.actmap_dir):
-            os.makedirs(self.actmap_dir)
+        make_dirs(self.actmap_dir)
 
     def actmap_fn(self, images, model, classifier, pids):
         _, _, height, width = images.shape

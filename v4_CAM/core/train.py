@@ -44,9 +44,7 @@ def train(base, loaders, config):
 
             localized_bn_features, localized_cls_score = base.classifier(localized_features_map)
 
-            quantified_localized_features_map, quantified_localized_integrating_features_map, _ = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(
-                localized_features_map, localized_cls_score, pids
-            )
+            quantified_localized_features_map, quantified_localized_integrating_features_map, _ = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
             quantified_localized_integrating_bn_features, quantified_localized_integrating_cls_score = base.classifier2(quantified_localized_integrating_features_map)
 
             ide_loss = base.pid_creiteron(cls_score, pids)
