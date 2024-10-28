@@ -54,9 +54,15 @@ class AuxiliaryModel(nn.Module):
             AuxiliaryModel,
             self,
         ).__init__()
+        hidden_dim = 2048
+        self.net = nn.Sequential(nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(hidden_dim), nn.ReLU())
+        # self.auxiliaryModelClassifier = AuxiliaryModelClassifier(pid_num)
 
     def forward(self, x):
-        return x
+        auxiliary_features_map = self.net(x)
+        # bn_feats, auxiliary_score = self.auxiliaryModelClassifier(auxiliary_features_map)
+        # return auxiliary_features_map, auxiliary_score
+        return auxiliary_features_map
 
 
 class AuxiliaryModelClassifier(nn.Module):
@@ -65,9 +71,19 @@ class AuxiliaryModelClassifier(nn.Module):
             AuxiliaryModelClassifier,
             self,
         ).__init__()
+        self.pid_num = pid_num
+        self.GAP = GeneralizedMeanPoolingP()
+        self.BN = nn.BatchNorm1d(2048)
+        self.BN.apply(weights_init_kaiming)
+
+        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier.apply(weights_init_classifier)
 
     def forward(self, features_map):
-        return
+        features = self.GAP(features_map)
+        bn_features = self.BN(features.squeeze())
+        cls_score = self.classifier(bn_features)
+        return bn_features, cls_score
 
 
 class Classifier(nn.Module):

@@ -1,13 +1,4 @@
 
 
-# cd /home/hy/project/reid_multiview/v3_wL
-# sh run.sh
-
-# cd /home/hy/project/reid_multiview/v3_wQ
-# sh run.sh
-
-cd /home/hy/project/reid_multiview/v3_wQL
-sh run.sh
-
-cd /home/hy/project/reid_multiview/v4hierarchicalv2
+cd /home/hy/project/reid_multiview/v4_3D
 sh run.sh
