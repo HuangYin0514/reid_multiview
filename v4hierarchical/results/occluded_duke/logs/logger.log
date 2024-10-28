@@ -1,0 +1,163 @@
+
+
+
+
+Namespace(cuda='cuda', mode='train', module='Lucky', backbone='resnet50', occluded_duke_path='/home/hy/project/data/Occluded_Duke', occluded_reid_path='/opt/data/private/data/Occluded_REID', partial_duke_path='/opt/data/private/data/P_Duke_OURS/new', partial_reid_path='/opt/data/private/data/Partial-REID_Dataset', partial_ilids_path='/opt/data/private/data/Partial_iLIDS', market_path='/opt/data/private/data//Market-1501-v15.09.15', duke_path='/opt/data/private/data/DukeMTMC-reID', msmt_path='/opt/data/private/data/MSMT17', train_dataset='occluded_duke', test_dataset='occluded_duke', image_size=[256, 128], use_rea=True, use_colorjitor=False, seed=1, batchsize=64, num_instances=8, pid_num=702, in_dim=2048, learning_rate=0.0003, lambda1=0.007, weight_decay=0.0005, milestones=[40, 70], output_path='results/occluded_duke', max_save_model_num=1, resume_train_epoch=-1, auto_resume_training_from_lastest_step=True, total_train_epoch=120, eval_epoch=5, resume_test_model=119, test_mode='inter-camera')
+Time: 2024-10-26 10:33:53; Epoch: 0; pid_loss: 6.550656;  other_loss: 26.210468;  quantified_localized_integrating_pid_loss: 6.5467544;  quantified_localized_integrating_reasoning_loss: 367.494;  
+Time: 2024-10-26 10:34:59; Epoch: 1; pid_loss: 6.3901854;  other_loss: 26.10601;  quantified_localized_integrating_pid_loss: 6.310847;  quantified_localized_integrating_reasoning_loss: 353.54004;  
+Time: 2024-10-26 10:36:06; Epoch: 2; pid_loss: 5.7707114;  other_loss: 25.659195;  quantified_localized_integrating_pid_loss: 5.56767;  quantified_localized_integrating_reasoning_loss: 340.06937;  
+Time: 2024-10-26 10:37:12; Epoch: 3; pid_loss: 4.973542;  other_loss: 24.85105;  quantified_localized_integrating_pid_loss: 4.645984;  quantified_localized_integrating_reasoning_loss: 334.71085;  
+Time: 2024-10-26 10:38:18; Epoch: 4; pid_loss: 4.201639;  other_loss: 24.035048;  quantified_localized_integrating_pid_loss: 3.7170157;  quantified_localized_integrating_reasoning_loss: 328.84958;  
+Time: 2024-10-26 10:39:15; Test on Dataset: occluded_duke, 
+mAP: 0.2591060027302665 
+ Rank: [0.36561086 0.44751131 0.48959276 0.51855204 0.54027149 0.56470588
+ 0.5760181  0.58371041 0.59230769 0.6        0.60769231 0.61312217
+ 0.61945701 0.62669683 0.63348416 0.639819   0.64479638 0.64841629
+ 0.65294118 0.65701357]
+Time: 2024-10-26 10:40:21; Epoch: 5; pid_loss: 3.525248;  other_loss: 23.39122;  quantified_localized_integrating_pid_loss: 2.8822594;  quantified_localized_integrating_reasoning_loss: 323.43866;  
+Time: 2024-10-26 10:41:28; Epoch: 6; pid_loss: 2.947919;  other_loss: 22.82012;  quantified_localized_integrating_pid_loss: 2.193655;  quantified_localized_integrating_reasoning_loss: 317.83453;  
+Time: 2024-10-26 10:42:34; Epoch: 7; pid_loss: 2.5432115;  other_loss: 22.493153;  quantified_localized_integrating_pid_loss: 1.7780424;  quantified_localized_integrating_reasoning_loss: 309.43646;  
+Time: 2024-10-26 10:43:40; Epoch: 8; pid_loss: 2.2320783;  other_loss: 22.207605;  quantified_localized_integrating_pid_loss: 1.5160472;  quantified_localized_integrating_reasoning_loss: 299.7701;  
+Time: 2024-10-26 10:44:47; Epoch: 9; pid_loss: 2.0024042;  other_loss: 22.202745;  quantified_localized_integrating_pid_loss: 1.3736315;  quantified_localized_integrating_reasoning_loss: 287.2242;  
+Time: 2024-10-26 10:45:44; Test on Dataset: occluded_duke, 
+mAP: 0.3331471664649074 
+ Rank: [0.43393665 0.51628959 0.55746606 0.58733032 0.61312217 0.63257919
+ 0.64660633 0.660181   0.66968326 0.67782805 0.68642534 0.69547511
+ 0.70271493 0.7081448  0.71402715 0.71945701 0.72669683 0.73076923
+ 0.7361991  0.73800905]
+Time: 2024-10-26 10:46:50; Epoch: 10; pid_loss: 1.8891118;  other_loss: 22.280128;  quantified_localized_integrating_pid_loss: 1.3115923;  quantified_localized_integrating_reasoning_loss: 274.0161;  
+Time: 2024-10-26 10:47:57; Epoch: 11; pid_loss: 1.7651789;  other_loss: 22.284634;  quantified_localized_integrating_pid_loss: 1.2670352;  quantified_localized_integrating_reasoning_loss: 258.84863;  
+Time: 2024-10-26 10:49:03; Epoch: 12; pid_loss: 1.6452265;  other_loss: 22.344563;  quantified_localized_integrating_pid_loss: 1.2329705;  quantified_localized_integrating_reasoning_loss: 244.28134;  
+Time: 2024-10-26 10:50:09; Epoch: 13; pid_loss: 1.5847125;  other_loss: 22.389824;  quantified_localized_integrating_pid_loss: 1.2078635;  quantified_localized_integrating_reasoning_loss: 229.78032;  
+Time: 2024-10-26 10:51:17; Epoch: 14; pid_loss: 1.5289046;  other_loss: 22.53101;  quantified_localized_integrating_pid_loss: 1.1940813;  quantified_localized_integrating_reasoning_loss: 216.14455;  
+Time: 2024-10-26 10:52:14; Test on Dataset: occluded_duke, 
+mAP: 0.37403915119670655 
+ Rank: [0.4959276  0.57692308 0.6158371  0.64886878 0.67330317 0.6918552
+ 0.70588235 0.71538462 0.72307692 0.73257919 0.74117647 0.74705882
+ 0.75022624 0.75565611 0.760181   0.76651584 0.77104072 0.77828054
+ 0.78325792 0.78868778]
+Time: 2024-10-26 10:53:21; Epoch: 15; pid_loss: 1.5100516;  other_loss: 22.825016;  quantified_localized_integrating_pid_loss: 1.1864077;  quantified_localized_integrating_reasoning_loss: 204.47685;  
+Time: 2024-10-26 10:54:28; Epoch: 16; pid_loss: 1.4722188;  other_loss: 23.007706;  quantified_localized_integrating_pid_loss: 1.1714607;  quantified_localized_integrating_reasoning_loss: 192.92468;  
+Time: 2024-10-26 10:55:34; Epoch: 17; pid_loss: 1.461085;  other_loss: 23.233503;  quantified_localized_integrating_pid_loss: 1.1677865;  quantified_localized_integrating_reasoning_loss: 183.24837;  
+Time: 2024-10-26 10:56:40; Epoch: 18; pid_loss: 1.4525137;  other_loss: 23.49423;  quantified_localized_integrating_pid_loss: 1.1640466;  quantified_localized_integrating_reasoning_loss: 173.98036;  
+Time: 2024-10-26 10:57:47; Epoch: 19; pid_loss: 1.4250964;  other_loss: 23.732328;  quantified_localized_integrating_pid_loss: 1.1516148;  quantified_localized_integrating_reasoning_loss: 166.2839;  
+Time: 2024-10-26 10:58:44; Test on Dataset: occluded_duke, 
+mAP: 0.4041129161285193 
+ Rank: [0.51900452 0.61538462 0.64434389 0.67149321 0.6959276  0.71312217
+ 0.72579186 0.73846154 0.74705882 0.75339367 0.76199095 0.7678733
+ 0.77466063 0.77828054 0.78144796 0.78642534 0.79276018 0.8
+ 0.80361991 0.80904977]
+Time: 2024-10-26 10:59:51; Epoch: 20; pid_loss: 1.4328772;  other_loss: 23.993471;  quantified_localized_integrating_pid_loss: 1.1571313;  quantified_localized_integrating_reasoning_loss: 159.24292;  
+Time: 2024-10-26 11:00:57; Epoch: 21; pid_loss: 1.4082274;  other_loss: 24.22972;  quantified_localized_integrating_pid_loss: 1.1510602;  quantified_localized_integrating_reasoning_loss: 152.88474;  
+Time: 2024-10-26 11:02:04; Epoch: 22; pid_loss: 1.3827984;  other_loss: 24.440725;  quantified_localized_integrating_pid_loss: 1.1416312;  quantified_localized_integrating_reasoning_loss: 146.32011;  
+Time: 2024-10-26 11:03:11; Epoch: 23; pid_loss: 1.386725;  other_loss: 24.6994;  quantified_localized_integrating_pid_loss: 1.1404734;  quantified_localized_integrating_reasoning_loss: 141.30232;  
+Time: 2024-10-26 11:04:18; Epoch: 24; pid_loss: 1.3862925;  other_loss: 24.864738;  quantified_localized_integrating_pid_loss: 1.1392832;  quantified_localized_integrating_reasoning_loss: 137.13583;  
+Time: 2024-10-26 11:05:15; Test on Dataset: occluded_duke, 
+mAP: 0.4202934764097202 
+ Rank: [0.52986425 0.61266968 0.65158371 0.67782805 0.70361991 0.71900452
+ 0.73710407 0.75067873 0.760181   0.7678733  0.77692308 0.78325792
+ 0.78823529 0.79230769 0.79728507 0.80045249 0.80588235 0.8081448
+ 0.81628959 0.82036199]
+Time: 2024-10-26 11:06:23; Epoch: 25; pid_loss: 1.358092;  other_loss: 25.0509;  quantified_localized_integrating_pid_loss: 1.130963;  quantified_localized_integrating_reasoning_loss: 132.65651;  
+Time: 2024-10-26 11:07:29; Epoch: 26; pid_loss: 1.351046;  other_loss: 25.282015;  quantified_localized_integrating_pid_loss: 1.1262214;  quantified_localized_integrating_reasoning_loss: 128.84023;  
+Time: 2024-10-26 11:21:43; Epoch: 27; pid_loss: 1.3260376;  other_loss: 25.460806;  quantified_localized_integrating_pid_loss: 1.1183586;  quantified_localized_integrating_reasoning_loss: 124.658646;  
+Time: 2024-10-26 11:22:49; Epoch: 28; pid_loss: 1.33471;  other_loss: 25.650253;  quantified_localized_integrating_pid_loss: 1.1236396;  quantified_localized_integrating_reasoning_loss: 121.56619;  
+Time: 2024-10-26 11:23:55; Epoch: 29; pid_loss: 1.3403373;  other_loss: 25.763052;  quantified_localized_integrating_pid_loss: 1.1249886;  quantified_localized_integrating_reasoning_loss: 119.157135;  
+Time: 2024-10-26 11:24:53; Test on Dataset: occluded_duke, 
+mAP: 0.39750067082851065 
+ Rank: [0.49321267 0.58054299 0.62895928 0.65972851 0.68099548 0.69140271
+ 0.7040724  0.71538462 0.7280543  0.73846154 0.74751131 0.75475113
+ 0.76153846 0.76696833 0.77918552 0.78642534 0.78959276 0.79276018
+ 0.79638009 0.80226244]
+Time: 2024-10-26 11:25:59; Epoch: 30; pid_loss: 1.335345;  other_loss: 25.886734;  quantified_localized_integrating_pid_loss: 1.1209422;  quantified_localized_integrating_reasoning_loss: 116.95968;  
+Time: 2024-10-26 11:27:06; Epoch: 31; pid_loss: 1.321318;  other_loss: 25.951805;  quantified_localized_integrating_pid_loss: 1.1209493;  quantified_localized_integrating_reasoning_loss: 114.13799;  
+Time: 2024-10-26 11:28:12; Epoch: 32; pid_loss: 1.3100396;  other_loss: 26.043695;  quantified_localized_integrating_pid_loss: 1.1095011;  quantified_localized_integrating_reasoning_loss: 111.526726;  
+Time: 2024-10-26 11:29:18; Epoch: 33; pid_loss: 1.316276;  other_loss: 26.101385;  quantified_localized_integrating_pid_loss: 1.1139517;  quantified_localized_integrating_reasoning_loss: 109.88875;  
+Time: 2024-10-26 11:30:24; Epoch: 34; pid_loss: 1.3020324;  other_loss: 26.151081;  quantified_localized_integrating_pid_loss: 1.1066203;  quantified_localized_integrating_reasoning_loss: 107.93707;  
+Time: 2024-10-26 11:31:22; Test on Dataset: occluded_duke, 
+mAP: 0.43421013385867596 
+ Rank: [0.53438914 0.61447964 0.66063348 0.68823529 0.71266968 0.73167421
+ 0.74479638 0.75701357 0.76832579 0.7760181  0.78325792 0.78959276
+ 0.79457014 0.80090498 0.80542986 0.80859729 0.81357466 0.81628959
+ 0.81945701 0.82579186]
+Time: 2024-10-26 11:32:28; Epoch: 35; pid_loss: 1.283643;  other_loss: 26.175714;  quantified_localized_integrating_pid_loss: 1.105433;  quantified_localized_integrating_reasoning_loss: 105.58802;  
+Time: 2024-10-26 11:33:34; Epoch: 36; pid_loss: 1.2872319;  other_loss: 26.19803;  quantified_localized_integrating_pid_loss: 1.1059524;  quantified_localized_integrating_reasoning_loss: 103.57124;  
+Time: 2024-10-26 11:34:41; Epoch: 37; pid_loss: 1.2922434;  other_loss: 26.208773;  quantified_localized_integrating_pid_loss: 1.1077268;  quantified_localized_integrating_reasoning_loss: 103.14733;  
+Time: 2024-10-26 11:35:47; Epoch: 38; pid_loss: 1.2747638;  other_loss: 26.214663;  quantified_localized_integrating_pid_loss: 1.1000116;  quantified_localized_integrating_reasoning_loss: 101.59106;  
+Time: 2024-10-26 11:36:53; Epoch: 39; pid_loss: 1.2744527;  other_loss: 26.215631;  quantified_localized_integrating_pid_loss: 1.100108;  quantified_localized_integrating_reasoning_loss: 99.898476;  
+Time: 2024-10-26 11:37:50; Test on Dataset: occluded_duke, 
+mAP: 0.4139382364084213 
+ Rank: [0.51855204 0.59819005 0.64072398 0.67058824 0.69140271 0.70769231
+ 0.71855204 0.7280543  0.73529412 0.74208145 0.74932127 0.75701357
+ 0.76515837 0.7678733  0.77420814 0.77828054 0.78190045 0.78552036
+ 0.79049774 0.79366516]
+Time: 2024-10-26 11:51:35; Epoch: 40; pid_loss: 1.2128863;  other_loss: 26.215736;  quantified_localized_integrating_pid_loss: 1.0806509;  quantified_localized_integrating_reasoning_loss: 98.57128;  
+Time: 2024-10-26 11:52:41; Epoch: 41; pid_loss: 1.1551281;  other_loss: 26.215733;  quantified_localized_integrating_pid_loss: 1.060992;  quantified_localized_integrating_reasoning_loss: 97.088554;  
+Time: 2024-10-26 11:53:48; Epoch: 42; pid_loss: 1.1455568;  other_loss: 26.215748;  quantified_localized_integrating_pid_loss: 1.0553567;  quantified_localized_integrating_reasoning_loss: 96.00499;  
+Time: 2024-10-26 11:54:54; Epoch: 43; pid_loss: 1.138434;  other_loss: 26.215755;  quantified_localized_integrating_pid_loss: 1.0537909;  quantified_localized_integrating_reasoning_loss: 94.89193;  
+Time: 2024-10-26 12:10:45; Epoch: 44; pid_loss: 1.1300076;  other_loss: 26.215773;  quantified_localized_integrating_pid_loss: 1.0502565;  quantified_localized_integrating_reasoning_loss: 93.791;  
+Time: 2024-10-26 12:11:42; Test on Dataset: occluded_duke, 
+mAP: 0.5216105166313668 
+ Rank: [0.63076923 0.70542986 0.73755656 0.76289593 0.78190045 0.8
+ 0.81493213 0.82895928 0.83800905 0.84705882 0.8520362  0.85475113
+ 0.85701357 0.86425339 0.87013575 0.8760181  0.87692308 0.87963801
+ 0.88461538 0.88823529]
+Time: 2024-10-26 12:12:48; Epoch: 45; pid_loss: 1.1283426;  other_loss: 26.215775;  quantified_localized_integrating_pid_loss: 1.0497754;  quantified_localized_integrating_reasoning_loss: 92.981476;  
+Time: 2024-10-26 12:13:54; Epoch: 46; pid_loss: 1.1296092;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0496886;  quantified_localized_integrating_reasoning_loss: 91.99098;  
+Time: 2024-10-26 12:15:01; Epoch: 47; pid_loss: 1.1325502;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.047972;  quantified_localized_integrating_reasoning_loss: 91.217255;  
+Time: 2024-10-26 12:47:06; Epoch: 48; pid_loss: 1.1228153;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0481702;  quantified_localized_integrating_reasoning_loss: 90.42738;  
+Time: 2024-10-26 12:48:13; Epoch: 49; pid_loss: 1.1333926;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0491593;  quantified_localized_integrating_reasoning_loss: 89.8096;  
+Time: 2024-10-26 12:49:10; Test on Dataset: occluded_duke, 
+mAP: 0.5271444437466477 
+ Rank: [0.63393665 0.70769231 0.73665158 0.76470588 0.78597285 0.80633484
+ 0.82036199 0.83031674 0.83755656 0.84479638 0.85248869 0.85927602
+ 0.86289593 0.86696833 0.87104072 0.87375566 0.87782805 0.88235294
+ 0.8841629  0.88733032]
+Time: 2024-10-26 12:50:15; Epoch: 50; pid_loss: 1.1244822;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0480237;  quantified_localized_integrating_reasoning_loss: 89.187996;  
+Time: 2024-10-26 12:51:22; Epoch: 51; pid_loss: 1.1231062;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0460593;  quantified_localized_integrating_reasoning_loss: 88.60926;  
+Time: 2024-10-26 13:04:19; Epoch: 52; pid_loss: 1.1234221;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0473758;  quantified_localized_integrating_reasoning_loss: 88.12201;  
+Time: 2024-10-26 13:05:26; Epoch: 53; pid_loss: 1.1197755;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0472057;  quantified_localized_integrating_reasoning_loss: 87.61104;  
+Time: 2024-10-26 13:06:32; Epoch: 54; pid_loss: 1.1244712;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0459322;  quantified_localized_integrating_reasoning_loss: 87.26322;  
+Time: 2024-10-26 13:07:30; Test on Dataset: occluded_duke, 
+mAP: 0.5363154730901079 
+ Rank: [0.64434389 0.71628959 0.75022624 0.77873303 0.79864253 0.8158371
+ 0.83076923 0.83800905 0.84660633 0.8561086  0.86244344 0.86651584
+ 0.87239819 0.87782805 0.88099548 0.8841629  0.88642534 0.88959276
+ 0.8918552  0.89457014]
+Time: 2024-10-26 13:08:36; Epoch: 55; pid_loss: 1.1195778;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0461;  quantified_localized_integrating_reasoning_loss: 87.01446;  
+Time: 2024-10-26 13:21:26; Epoch: 56; pid_loss: 1.1189975;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0458987;  quantified_localized_integrating_reasoning_loss: 86.640564;  
+Time: 2024-10-26 13:22:33; Epoch: 57; pid_loss: 1.121887;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0472136;  quantified_localized_integrating_reasoning_loss: 86.18273;  
+Time: 2024-10-26 13:23:39; Epoch: 58; pid_loss: 1.1174682;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0453974;  quantified_localized_integrating_reasoning_loss: 85.989;  
+Time: 2024-10-26 13:24:46; Epoch: 59; pid_loss: 1.1150577;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0454223;  quantified_localized_integrating_reasoning_loss: 85.707504;  
+Time: 2024-10-26 13:25:43; Test on Dataset: occluded_duke, 
+mAP: 0.5426358564122069 
+ Rank: [0.65927602 0.72579186 0.76153846 0.78280543 0.8081448  0.82624434
+ 0.83529412 0.84705882 0.85520362 0.86425339 0.87013575 0.87556561
+ 0.87918552 0.88144796 0.88506787 0.88642534 0.88823529 0.89140271
+ 0.89366516 0.8959276 ]
+Time: 2024-10-26 13:37:52; Epoch: 60; pid_loss: 1.1191877;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0441214;  quantified_localized_integrating_reasoning_loss: 85.47976;  
+Time: 2024-10-26 13:38:58; Epoch: 61; pid_loss: 1.1171235;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0431931;  quantified_localized_integrating_reasoning_loss: 85.15481;  
+Time: 2024-10-26 13:40:04; Epoch: 62; pid_loss: 1.1119678;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0430547;  quantified_localized_integrating_reasoning_loss: 84.77382;  
+Time: 2024-10-26 13:41:10; Epoch: 63; pid_loss: 1.1152701;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.043851;  quantified_localized_integrating_reasoning_loss: 84.6097;  
+Time: 2024-10-26 13:57:32; Epoch: 64; pid_loss: 1.108755;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0425053;  quantified_localized_integrating_reasoning_loss: 84.37066;  
+Time: 2024-10-26 13:58:29; Test on Dataset: occluded_duke, 
+mAP: 0.543939504326747 
+ Rank: [0.65022624 0.72850679 0.75701357 0.78054299 0.80226244 0.81900452
+ 0.83076923 0.84298643 0.8520362  0.86063348 0.86515837 0.87104072
+ 0.87511312 0.8800905  0.8841629  0.88868778 0.89140271 0.89411765
+ 0.8959276  0.89954751]
+Time: 2024-10-26 13:59:35; Epoch: 65; pid_loss: 1.1114609;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0429614;  quantified_localized_integrating_reasoning_loss: 84.218155;  
+Time: 2024-10-26 14:00:41; Epoch: 66; pid_loss: 1.1116434;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.042099;  quantified_localized_integrating_reasoning_loss: 83.86854;  
+Time: 2024-10-26 14:01:47; Epoch: 67; pid_loss: 1.1100676;  other_loss: 26.215778;  quantified_localized_integrating_pid_loss: 1.0403255;  quantified_localized_integrating_reasoning_loss: 83.7813;  
+Time: 2024-10-26 14:14:17; Epoch: 68; pid_loss: 1.1050587;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0412122;  quantified_localized_integrating_reasoning_loss: 83.551834;  
+Time: 2024-10-26 14:15:24; Epoch: 69; pid_loss: 1.1096292;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0416362;  quantified_localized_integrating_reasoning_loss: 83.38528;  
+Time: 2024-10-26 14:16:21; Test on Dataset: occluded_duke, 
+mAP: 0.5511552501900945 
+ Rank: [0.65927602 0.73303167 0.77466063 0.79728507 0.81674208 0.83031674
+ 0.84162896 0.85067873 0.85837104 0.86696833 0.87375566 0.87963801
+ 0.88461538 0.88823529 0.89004525 0.89276018 0.89547511 0.89728507
+ 0.89819005 0.90045249]
+Time: 2024-10-26 14:17:28; Epoch: 70; pid_loss: 1.0991957;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0376686;  quantified_localized_integrating_reasoning_loss: 83.11181;  
+Time: 2024-10-26 14:45:31; Epoch: 71; pid_loss: 1.093436;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0367665;  quantified_localized_integrating_reasoning_loss: 83.0127;  
+Time: 2024-10-26 14:46:37; Epoch: 72; pid_loss: 1.0925534;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0358101;  quantified_localized_integrating_reasoning_loss: 82.940155;  
+Time: 2024-10-26 14:47:44; Epoch: 73; pid_loss: 1.0886284;  other_loss: 26.21578;  quantified_localized_integrating_pid_loss: 1.0359464;  quantified_localized_integrating_reasoning_loss: 82.92196;  
