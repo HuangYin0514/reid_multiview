@@ -1,5 +1,0 @@
-
-
-
-
-Namespace(cuda='cuda', mode='train', module='Lucky', backbone='resnet50', occluded_duke_path='/home/hy/project/data/Occluded_Duke', occluded_reid_path='/opt/data/private/data/Occluded_REID', partial_duke_path='/opt/data/private/data/P_Duke_OURS/new', partial_reid_path='/opt/data/private/data/Partial-REID_Dataset', partial_ilids_path='/opt/data/private/data/Partial_iLIDS', market_path='/opt/data/private/data//Market-1501-v15.09.15', duke_path='/opt/data/private/data/DukeMTMC-reID', msmt_path='/opt/data/private/data/MSMT17', train_dataset='occluded_duke', test_dataset='occluded_duke', image_size=[256, 128], use_rea=True, use_colorjitor=False, seed=1, batchsize=64, num_instances=8, pid_num=702, in_dim=2048, learning_rate=0.0003, lambda1=0.007, weight_decay=0.0005, milestones=[40, 70], output_path='results/occluded_duke', max_save_model_num=1, resume_train_epoch=-1, auto_resume_training_from_lastest_step=True, total_train_epoch=120, eval_epoch=5, resume_test_model=119, test_mode='inter-camera')
