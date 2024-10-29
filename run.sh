@@ -1,8 +1,15 @@
 
-# cd /home/hy/project/reid_multiview/v4_CAM
-# sh run.sh
 
 
-# rm -rf /home/hy/project/reid_multiview/v4_3D/results
-cd /home/hy/project/reid_multiview/v4_3D
+
+cd /home/hy/project/reid_multiview/v4_3D2
+sh run.sh
+
+cd /home/hy/project/reid_multiview/v4_3D3
+sh run.sh
+
+cd /home/hy/project/reid_multiview/v4_3D4
+sh run.sh
+
+cd /home/hy/project/reid_multiview/v4_3D5
 sh run.sh

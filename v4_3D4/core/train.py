@@ -42,9 +42,9 @@ def train(base, loaders, config):
 
             localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base)
 
-            localized_features_map = base.auxiliaryModel(localized_features_map)
-
             localized_bn_features, localized_cls_score = base.classifier(localized_features_map)
+
+            localized_features_map = base.auxiliaryModel(localized_features_map)
 
             quantified_localized_features_map, quantified_localized_integrating_features_map, _ = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
             quantified_localized_integrating_bn_features, quantified_localized_integrating_cls_score = base.classifier2(quantified_localized_integrating_features_map)

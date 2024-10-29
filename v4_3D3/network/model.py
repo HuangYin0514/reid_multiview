@@ -56,17 +56,19 @@ class AuxiliaryModel(nn.Module):
         ).__init__()
         hidden_dim = 2048
         self.net = nn.Sequential(
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(hidden_dim),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=1, stride=1, padding=0, bias=False),
         )
         # self.auxiliaryModelClassifier = AuxiliaryModelClassifier(pid_num)
 
     def forward(self, x):
+        x = x.unsqueeze(2)
         auxiliary_features_map = self.net(x)
         # bn_feats, auxiliary_score = self.auxiliaryModelClassifier(auxiliary_features_map)
         # return auxiliary_features_map, auxiliary_score
+        auxiliary_features_map = auxiliary_features_map.squeeze()
         return auxiliary_features_map
 
 
