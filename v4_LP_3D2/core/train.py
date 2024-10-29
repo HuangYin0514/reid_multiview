@@ -39,11 +39,10 @@ def train(base, loaders, config):
 
             features_map = base.model(imgs)
             bn_features, cls_score = base.classifier(features_map)
+
             localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base)
 
             localized_integrating_bn_features, localized_integrating_cls_score = base.classifier2(localized_integrating_features_map)
-
-            localized_integrating_bn_features = base.auxiliaryModel(localized_integrating_bn_features)
 
             ide_loss = base.pid_creiteron(cls_score, pids)
             localized_integrating_ide_loss = base.pid_creiteron(localized_integrating_cls_score, integrating_pids)

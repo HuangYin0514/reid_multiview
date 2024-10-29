@@ -72,6 +72,8 @@ class FeatureMapLocalizedIntegratingNoRelu:
 
         localized_features_map = features_map * heatmaps.unsqueeze(1).clone().detach()
 
+        localized_features_map = base.auxiliaryModel(localized_features_map)
+
         chunk_localized_features_map = torch.chunk(localized_features_map, chunk_size)
         for i in range(chunk_size):
             localized_integrating_features_map[i, :, :, :] = chunk_localized_features_map[i][0].unsqueeze(0) + chunk_localized_features_map[i][1].unsqueeze(0) + chunk_localized_features_map[i][2].unsqueeze(0) + chunk_localized_features_map[i][3].unsqueeze(0)
