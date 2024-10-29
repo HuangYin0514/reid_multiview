@@ -43,6 +43,8 @@ def train(base, loaders, config):
 
             localized_integrating_bn_features, localized_integrating_cls_score = base.classifier2(localized_integrating_features_map)
 
+            localized_integrating_bn_features = base.auxiliaryModel(localized_integrating_bn_features)
+
             ide_loss = base.pid_creiteron(cls_score, pids)
             localized_integrating_ide_loss = base.pid_creiteron(localized_integrating_cls_score, integrating_pids)
             localized_integrating_reasoning_loss = base.reasoning_creiteron(bn_features, localized_integrating_bn_features)
