@@ -23,6 +23,7 @@ class FeatureMapLocalizedIntegratingNoRelu:
 
         # Localized
         localized_features_map = features_map * heatmaps.unsqueeze(1).clone().detach()
+        localized_features_map = base.auxiliaryModel(localized_features_map)
 
         # Fusion
         localized_integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
