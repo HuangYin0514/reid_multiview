@@ -1,8 +1,4 @@
-from network.processing import (
-    FeatureMapIntegrating,
-    FeatureMapLocalizedIntegratingNoRelu,
-    FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights,
-)
+from network.processing import FeatureMapLocalizedIntegratingNoRelu
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
