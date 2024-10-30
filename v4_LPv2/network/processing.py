@@ -61,6 +61,7 @@ class FeatureMapLocalizedIntegratingNoRelu:
         integrating_pids = torch.zeros([chunk_size]).cuda()
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
 
+        # Heatmaps
         classifier_params = [param for name, param in base.classifier.named_parameters()]
         heatmaps = torch.zeros((size, h, w), device="cuda")
         for i in range(size):
@@ -70,8 +71,10 @@ class FeatureMapLocalizedIntegratingNoRelu:
             heatmap_i = heatmap_i.reshape(h, w)
             heatmaps[i] = heatmap_i
 
+        # Localized
         localized_features_map = features_map * heatmaps.unsqueeze(1).clone().detach()
 
+        # Fusion
         chunk_localized_features_map = torch.chunk(localized_features_map, chunk_size)
         for i in range(chunk_size):
             localized_integrating_features_map[i, :, :, :] = chunk_localized_features_map[i][0].unsqueeze(0) + chunk_localized_features_map[i][1].unsqueeze(0) + chunk_localized_features_map[i][2].unsqueeze(0) + chunk_localized_features_map[i][3].unsqueeze(0)
