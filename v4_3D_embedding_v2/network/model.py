@@ -54,8 +54,15 @@ class AuxiliaryModel(nn.Module):
             AuxiliaryModel,
             self,
         ).__init__()
+        self.channel = 2048
+        self.depth = 4
+
+        self.depthnet = nn.Conv2d(self.channel, self.depth + self.channel, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
+        x = self.depthnet(x)
+        depth = x[:, : self.depth].softmax(dim=1)
+        x = depth.unsqueeze(1) * x[:, self.depth : (self.depth + self.channel)].unsqueeze(2)
         return x
 
 
@@ -66,8 +73,9 @@ class AuxiliaryModelClassifier(nn.Module):
             self,
         ).__init__()
 
-    def forward(self, features_map):
-        return
+    def forward(self, x):
+
+        return x
 
 
 class Classifier(nn.Module):
@@ -101,6 +109,7 @@ class Classifier2(nn.Module):
             self,
         ).__init__()
         self.pid_num = pid_num
+        # self.GAP = nn.AvgPool3d((4, 16, 8))
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
         self.BN.apply(weights_init_kaiming)
@@ -109,7 +118,9 @@ class Classifier2(nn.Module):
         self.classifier.apply(weights_init_classifier)
 
     def forward(self, features_map):
+        # print(features_map.shape)
         features = self.GAP(features_map)
+        # print(features.shape)
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
