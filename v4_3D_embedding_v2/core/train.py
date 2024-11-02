@@ -48,10 +48,12 @@ def train(base, loaders, config):
             base.model_optimizer.zero_grad()
             base.classifier_optimizer.zero_grad()
             base.classifier2_optimizer.zero_grad()
+            base.auxiliaryModel_optimizer.zero_grad()
             total_loss.backward()
             base.model_optimizer.step()
             base.classifier_optimizer.step()
             base.classifier2_optimizer.step()
+            base.auxiliaryModel_optimizer.step()
 
             meter.update(
                 {
