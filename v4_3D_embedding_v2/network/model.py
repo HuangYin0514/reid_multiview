@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision
 
@@ -48,28 +49,6 @@ class Model(nn.Module):
         return features_map
 
 
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModel,
-            self,
-        ).__init__()
-
-    def forward(self, x):
-        return x
-
-
-class AuxiliaryModelClassifier(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModelClassifier,
-            self,
-        ).__init__()
-
-    def forward(self, features_map):
-        return
-
-
 class Classifier(nn.Module):
     def __init__(self, pid_num):
         super(
@@ -113,3 +92,49 @@ class Classifier2(nn.Module):
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
+
+
+class AuxiliaryModelClassifier(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModelClassifier,
+            self,
+        ).__init__()
+
+    def forward(self, features_map):
+        return
+
+
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return y
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModel,
+            self,
+        ).__init__()
+        self.se_att = SELayer(2048 * 4)
+
+    def forward(self, x):
+        bs, c, h, w = x.size()
+        out = x.view(int(bs / 4), 4, 2048, h, w)
+        out = torch.cat([out[:, 0], out[:, 1], out[:, 2], out[:, 3]], dim=1)
+        out = out * self.se_att(out)
+        out = out.view(bs, c, h, w)
+        return out
