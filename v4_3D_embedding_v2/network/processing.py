@@ -28,10 +28,8 @@ class FeatureMapLocalizedIntegratingNoRelu:
         localized_features_map = base.auxiliaryModel(localized_features_map)
 
         # Fusion
-        localized_integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
-        chunk_localized_features_map = torch.chunk(localized_features_map, chunk_size)
-        for i in range(chunk_size):
-            localized_integrating_features_map[i, ...] = chunk_localized_features_map[i][0].unsqueeze(0) + chunk_localized_features_map[i][1].unsqueeze(0) + chunk_localized_features_map[i][2].unsqueeze(0) + chunk_localized_features_map[i][3].unsqueeze(0)
+        localized_integrating_features_map = localized_features_map.view(chunk_size, 4, c, h, w)  # (chunk_size, 4, c, h, w)
+        localized_integrating_features_map = torch.sum(localized_integrating_features_map, dim=1)
         integrating_pids = pids[::4]
 
         return localized_features_map, localized_integrating_features_map, integrating_pids
