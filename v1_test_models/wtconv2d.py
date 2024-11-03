@@ -100,7 +100,7 @@ class _ScaleModule(nn.Module):
 
 
 if __name__ == "__main__":
-    model = WTConv2d(256, 256, 3, 1)
+    model = WTConv2d(256, 256, kernel_size=3, stride=1, bias=False)
     # model = nn.Conv2d(256, 512, 3, 3, 1)
     x = torch.rand(2, 256, 16, 16)
     y = model(x)

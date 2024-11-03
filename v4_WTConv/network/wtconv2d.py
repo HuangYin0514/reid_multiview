@@ -3,7 +3,8 @@ from functools import partial
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import wavelet
+
+from . import wavelet
 
 
 class WTConv2d(nn.Module):
@@ -100,8 +101,8 @@ class _ScaleModule(nn.Module):
 
 
 if __name__ == "__main__":
-    model = WTConv2d(256, 256, 3, 1)
+    model = WTConv2d(256, 512, 3, 1)
     # model = nn.Conv2d(256, 512, 3, 3, 1)
-    x = torch.rand(2, 256, 16, 16)
+    x = torch.rand(2, 512, 16, 16)
     y = model(x)
     print(y.shape)
