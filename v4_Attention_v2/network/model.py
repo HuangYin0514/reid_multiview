@@ -105,15 +105,34 @@ class AuxiliaryModelClassifier(nn.Module):
         return
 
 
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(AuxiliaryModel, self).__init__()
-        self.channel = 2048
-        self.depth = 8
-        self.depthnet = nn.Conv2d(self.channel, self.depth + self.channel, kernel_size=1, stride=1, padding=0)
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid(),
+        )
 
     def forward(self, x):
-        x = self.depthnet(x)
-        depth = x[:, : self.depth].softmax(dim=1)
-        out = depth.unsqueeze(1) * x[:, self.depth : (self.depth + self.channel)].unsqueeze(2)
-        return out  # torch.Size([64, 2048, 8, 16, 8])
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return y
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModel,
+            self,
+        ).__init__()
+        # self.se_att = SELayer(2048 * 4)
+        self.se_att = SELayer(2048 * 1)
+
+    def forward(self, x):
+        bs, c, h, w = x.size()
+        out = x * self.se_att(x)
+        return out
