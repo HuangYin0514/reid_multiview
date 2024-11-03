@@ -5,6 +5,11 @@
 
 #################################################################################
 
+
+rm -rf /home/hy/project/reid_multiview/v4_Custom_Resnet/results
+cd /home/hy/project/reid_multiview/v4_Custom_Resnet
+sh run.sh
+
 rm -rf /home/hy/project/reid_multiview/v4_CoNorm/results
 cd /home/hy/project/reid_multiview/v4_CoNorm
 sh run.sh
