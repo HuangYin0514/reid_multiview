@@ -32,19 +32,6 @@ def weights_init_classifier(m):
             nn.init.constant_(m.bias, 0.0)
 
 
-class CoNorm(nn.Module):
-    def __init__(self, input_channels, output_channels):
-        super(CoNorm, self).__init__()
-        self.shared = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-        self.scala = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-        self.bias = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-
-    def forward(self, x):
-        out = self.shared(x)
-        out = self.scala(out) * x + self.bias(out)
-        return out
-
-
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -62,10 +49,6 @@ class Model(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.coNorm1 = CoNorm(256, 256)
-        self.coNorm2 = CoNorm(512, 512)
-        self.coNorm3 = CoNorm(1024, 1024)
-
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
@@ -73,14 +56,8 @@ class Model(nn.Module):
         x = self.resnet_maxpool(x)
 
         x = self.resnet_layer1(x)
-        x = self.coNorm1(x)
-
         x = self.resnet_layer2(x)
-        x = self.coNorm2(x)
-
         x = self.resnet_layer3(x)
-        x = self.coNorm3(x)
-
         x = self.resnet_layer4(x)
         return x
 
