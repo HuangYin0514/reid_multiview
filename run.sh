@@ -6,12 +6,16 @@
 #################################################################################
 
 
-# rm -rf /home/hy/project/reid_multiview/v4_Custom_Resnet/results
-# cd /home/hy/project/reid_multiview/v4_Custom_Resnet
-# sh run.sh
+rm -rf /home/hy/project/reid_multiview/v4_Custom_Resnet_backbone/results
+cd /home/hy/project/reid_multiview/v4_Custom_Resnet_backbone
+sh run.sh
 
 rm -rf /home/hy/project/reid_multiview/v4_CoNorm/results
 cd /home/hy/project/reid_multiview/v4_CoNorm
+sh run.sh
+
+rm -rf /home/hy/project/reid_multiview/v4_SEAM/results
+cd /home/hy/project/reid_multiview/v4_SEAM
 sh run.sh
 
 # rm -rf /home/hy/project/reid_multiview/v4_Attention_v2/results
