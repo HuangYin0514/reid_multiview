@@ -2,6 +2,7 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
+from .resnet50 import resnet50
 
 
 def weights_init_kaiming(m):
@@ -37,7 +38,7 @@ class Model(nn.Module):
             Model,
             self,
         ).__init__()
-        resnet = torchvision.models.resnet50(pretrained=True)
+        resnet = resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
         resnet.layer4[0].downsample[0].stride = (1, 1)
 
