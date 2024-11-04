@@ -19,4 +19,6 @@ rm -rf /home/hy/project/reid_multiview/v4_hierarchical/results
 cd /home/hy/project/reid_multiview/v4_hierarchical
 sh run.sh
 
-
+rm -rf /home/hy/project/reid_multiview/v4_hierarchical_2/results
+cd /home/hy/project/reid_multiview/v4_hierarchical_2
+sh run.sh
