@@ -39,7 +39,7 @@ class Base:
         if self.config.backbone == "resnet50ibna":
             self.model = Res50IBNaBNNeck()
         else:
-            self.model = Model(self.config)
+            self.model = Model()
         self.model = nn.DataParallel(self.model).to(self.device)
 
         self.classifier = Classifier(self.pid_num)

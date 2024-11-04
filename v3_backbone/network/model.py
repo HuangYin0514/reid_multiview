@@ -33,10 +33,7 @@ def weights_init_classifier(m):
 
 class Model(nn.Module):
     def __init__(self):
-        super(
-            Model,
-            self,
-        ).__init__()
+        super(Model, self).__init__()
         resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
         resnet.layer4[0].downsample[0].stride = (1, 1)
@@ -64,10 +61,7 @@ class Model(nn.Module):
 
 class Classifier(nn.Module):
     def __init__(self, pid_num):
-        super(
-            Classifier,
-            self,
-        ).__init__()
+        super(Classifier, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
@@ -88,10 +82,7 @@ class Classifier(nn.Module):
 
 class Classifier2(nn.Module):
     def __init__(self, pid_num):
-        super(
-            Classifier2,
-            self,
-        ).__init__()
+        super(Classifier2, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
