@@ -2,7 +2,6 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
-from .resnet50 import resnet50
 
 
 def weights_init_kaiming(m):
@@ -32,79 +31,35 @@ def weights_init_classifier(m):
             nn.init.constant_(m.bias, 0.0)
 
 
-class CoNorm(nn.Module):
-    def __init__(self, input_channels, output_channels):
-        super(CoNorm, self).__init__()
-        self.shared = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-        self.scala = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-        self.bias = nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False)
-
-    def forward(self, x):
-        out = self.shared(x)
-        out = self.scala(out) * x + self.bias(out)
-        return out
-
-
 class Model(nn.Module):
     def __init__(self):
-        super(Model, self).__init__()
-        resnet = resnet50(pretrained=True)
-        # Modifiy backbone
-        resnet.layer4[0].downsample[0].stride = (1, 1)
+        super(
+            Model,
+            self,
+        ).__init__()
+        resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
+        resnet.layer4[0].downsample[0].stride = (1, 1)
+
         # Backbone structure
         self.resnet_conv1 = resnet.conv1
         self.resnet_bn1 = resnet.bn1
-        self.resnet_relu = resnet.relu
         self.resnet_maxpool = resnet.maxpool
         self.resnet_layer1 = resnet.layer1
         self.resnet_layer2 = resnet.layer2
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.coNorm1 = CoNorm(256, 256)
-        self.coNorm2 = CoNorm(512, 512)
-        self.coNorm3 = CoNorm(1024, 1024)
-
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
-        x = self.resnet_relu(x)
         x = self.resnet_maxpool(x)
 
         x = self.resnet_layer1(x)
-        x = self.coNorm1(x)
-
         x = self.resnet_layer2(x)
-        x = self.coNorm2(x)
-
         x = self.resnet_layer3(x)
-        x = self.coNorm3(x)
-
         x = self.resnet_layer4(x)
         return x
-
-
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModel,
-            self,
-        ).__init__()
-
-    def forward(self, x):
-        return x
-
-
-class AuxiliaryModelClassifier(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModelClassifier,
-            self,
-        ).__init__()
-
-    def forward(self, features_map):
-        return
 
 
 class Classifier(nn.Module):
@@ -150,3 +105,25 @@ class Classifier2(nn.Module):
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
+
+
+class AuxiliaryModelClassifier(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModelClassifier,
+            self,
+        ).__init__()
+
+    def forward(self, features_map):
+        return
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModel,
+            self,
+        ).__init__()
+
+    def forward(self, x):
+        return x
