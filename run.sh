@@ -5,8 +5,8 @@
 
 #################################################################################
 
-# rm -rf /home/hy/project/reid_multiview/v4_Custom_Resnet_backbone/results
-# cd /home/hy/project/reid_multiview/v4_Custom_Resnet_backbone
+# rm -rf /home/hy/project/reid_multiview/v3_backbone/results
+# cd /home/hy/project/reid_multiview/v3_backbone
 # sh run.sh
 
 # rm -rf /home/hy/project/reid_multiview/v4_SEAM/results
