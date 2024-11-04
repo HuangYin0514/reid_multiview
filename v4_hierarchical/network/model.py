@@ -74,20 +74,18 @@ class TransLayer_1(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.c1_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64))
         self.c2_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(256))
         self.c3_net = nn.Sequential(nn.MaxPool2d(kernel_size=(2, 2)), nn.Conv2d(512, 512, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(512))
         self.c4_net = nn.Sequential(nn.MaxPool2d(kernel_size=(1, 1)), nn.Conv2d(1024, 1024, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(1024))
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
-        assert len(xs) == 4
-        c1, c2, c3, c4 = xs
-        c1 = self.c1_net(c1)
+        assert len(xs) == 3
+        c2, c3, c4 = xs
         c2 = self.c2_net(c2)
         c3 = self.c3_net(c3)
         c4 = self.c4_net(c4)
-        return (c1, c2, c3, c4)
+        return (c2, c3, c4)
 
 
 class TransLayer_Classifier(nn.Module):
@@ -119,11 +117,11 @@ class TransLayer_classifier_layer(nn.Module):
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
-        assert len(xs) == 4
+        assert len(xs) == 3
         c2, c3, c4 = xs
-        c2_score = self.c2_net_classifier(c2)
-        c3_score = self.c3_net_classifier(c3)
-        c4_score = self.c4_net_classifier(c4)
+        _, c2_score = self.c2_net_classifier(c2)
+        _, c3_score = self.c3_net_classifier(c3)
+        _, c4_score = self.c4_net_classifier(c4)
         return (c2_score, c3_score, c4_score)
 
 
@@ -162,10 +160,7 @@ class Backbone(nn.Module):
 class Model(nn.Module):
 
     def __init__(self, config):
-        super(
-            Model,
-            self,
-        ).__init__()
+        super(Model, self).__init__()
         self.backbone = Backbone()
         self.transLayer_1 = TransLayer_1()
         self.transLayer_classifier = TransLayer_classifier_layer(config)

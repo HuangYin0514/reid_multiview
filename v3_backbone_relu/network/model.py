@@ -2,7 +2,6 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
-from .seam import SEAM
 
 
 def weights_init_kaiming(m):
@@ -88,10 +87,6 @@ class Model(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.SEAM_1 = SEAM(c1=256, c2=256, n=1)
-        self.SEAM_2 = SEAM(c1=512, c2=512, n=1)
-        self.SEAM_3 = SEAM(c1=1024, c2=1024, n=1)
-
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
@@ -99,11 +94,8 @@ class Model(nn.Module):
         x = self.resnet_maxpool(x)
 
         x = self.resnet_layer1(x)
-        x = self.SEAM_1(x)
         x = self.resnet_layer2(x)
-        x = self.SEAM_2(x)
         x = self.resnet_layer3(x)
-        x = self.SEAM_3(x)
         x = self.resnet_layer4(x)
         return x
 
