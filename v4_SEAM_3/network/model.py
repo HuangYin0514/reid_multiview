@@ -2,6 +2,7 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
+from .seam import SEAM
 
 
 def weights_init_kaiming(m):
@@ -33,7 +34,10 @@ def weights_init_classifier(m):
 
 class Model(nn.Module):
     def __init__(self):
-        super(Model, self).__init__()
+        super(
+            Model,
+            self,
+        ).__init__()
         resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
         resnet.layer4[0].downsample[0].stride = (1, 1)
@@ -47,25 +51,27 @@ class Model(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
+        self.SEAM_4 = SEAM(c1=2048, c2=2048, n=1)
+
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
         x = self.resnet_maxpool(x)
 
-        x1 = x
         x = self.resnet_layer1(x)
-        x2 = x
         x = self.resnet_layer2(x)
-        x3 = x
         x = self.resnet_layer3(x)
-        x4 = x
         x = self.resnet_layer4(x)
-        return x1, x2, x3, x4, x
+        x = self.SEAM_4(x)
+        return x
 
 
 class Classifier(nn.Module):
     def __init__(self, pid_num):
-        super(Classifier, self).__init__()
+        super(
+            Classifier,
+            self,
+        ).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
@@ -86,7 +92,10 @@ class Classifier(nn.Module):
 
 class Classifier2(nn.Module):
     def __init__(self, pid_num):
-        super(Classifier2, self).__init__()
+        super(
+            Classifier2,
+            self,
+        ).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
