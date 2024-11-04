@@ -51,6 +51,7 @@ def train(base, loaders, config):
             ide_loss = base.pid_creiteron(cls_score, pids)
             quantified_localized_integrating_ide_loss = base.pid_creiteron(quantified_localized_integrating_cls_score, integrating_pids)
             quantified_localized_integrating_reasoning_loss = base.reasoning_creiteron(bn_features, quantified_localized_integrating_bn_features)
+
             other_loss = 0
             for temp_score in hierarchical_score_list:
                 other_loss += base.pid_creiteron(temp_score, pids)

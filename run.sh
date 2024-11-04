@@ -19,4 +19,8 @@ rm -rf /home/hy/project/reid_multiview/v4_SEAM_2/results
 cd /home/hy/project/reid_multiview/v4_SEAM_2
 sh run.sh
 
+rm -rf /home/hy/project/reid_multiview/v4_hierarchical/results
+cd /home/hy/project/reid_multiview/v4_hierarchical
+sh run.sh
+
 

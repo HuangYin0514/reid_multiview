@@ -49,8 +49,6 @@ class TransLayer_1(nn.Module):
         assert len(xs) == 4
         c1, c2, c3, c4 = xs
         c1 = self.c1_net(c1)
-        # print(c1.shape)
-        # print(c2.shape)
         c2 = self.c2_net2(self.c2_net(c2) + c1)
         c3 = self.c3_net2(self.c3_net(c3) + c2)
         c4 = self.c4_net2(self.c4_net(c4) + c3)
