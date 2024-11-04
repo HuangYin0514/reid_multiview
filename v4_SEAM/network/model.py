@@ -2,7 +2,6 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
-from .resnet50 import resnet50
 
 
 def weights_init_kaiming(m):
@@ -38,38 +37,29 @@ class Model(nn.Module):
             Model,
             self,
         ).__init__()
-        # resnet = torchvision.models.resnet50(pretrained=True)
-        resnet = resnet50(pretrained=True)
+        resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
         resnet.layer4[0].downsample[0].stride = (1, 1)
 
-        self.resnet_conv = nn.Sequential(resnet.conv1, resnet.bn1, resnet.maxpool, resnet.layer1, resnet.layer2, resnet.layer3, resnet.layer4)
+        # Backbone structure
+        self.resnet_conv1 = resnet.conv1
+        self.resnet_bn1 = resnet.bn1
+        self.resnet_maxpool = resnet.maxpool
+        self.resnet_layer1 = resnet.layer1
+        self.resnet_layer2 = resnet.layer2
+        self.resnet_layer3 = resnet.layer3
+        self.resnet_layer4 = resnet.layer4
 
     def forward(self, x):
-        features_map = self.resnet_conv(x)
-        return features_map
+        x = self.resnet_conv1(x)
+        x = self.resnet_bn1(x)
+        x = self.resnet_maxpool(x)
 
-
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModel,
-            self,
-        ).__init__()
-
-    def forward(self, x):
+        x = self.resnet_layer1(x)
+        x = self.resnet_layer2(x)
+        x = self.resnet_layer3(x)
+        x = self.resnet_layer4(x)
         return x
-
-
-class AuxiliaryModelClassifier(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModelClassifier,
-            self,
-        ).__init__()
-
-    def forward(self, features_map):
-        return
 
 
 class Classifier(nn.Module):
@@ -115,3 +105,25 @@ class Classifier2(nn.Module):
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
+
+
+class AuxiliaryModelClassifier(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModelClassifier,
+            self,
+        ).__init__()
+
+    def forward(self, features_map):
+        return
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(
+            AuxiliaryModel,
+            self,
+        ).__init__()
+
+    def forward(self, x):
+        return x

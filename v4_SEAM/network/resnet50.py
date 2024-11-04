@@ -3,14 +3,8 @@ import math
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
-from .wtconv2d import WTConv2d
-
 model_urls = {
-    "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
-    "resnet34": "https://download.pytorch.org/models/resnet34-333f7ec4.pth",
-    "resnet50": "https://download.pytorch.org/models/resnet50-19c8e357.pth",
-    "resnet101": "https://download.pytorch.org/models/resnet101-5d3b4d8f.pth",
-    "resnet152": "https://download.pytorch.org/models/resnet152-b121ed2d.pth",
+    "resnet50": "https://download.pytorch.org/models/resnet50-0676ba61.pth",
 }
 
 
@@ -22,8 +16,7 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        # self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.conv2 = WTConv2d(planes, planes, kernel_size=3, stride=stride, bias=False)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
@@ -130,7 +123,7 @@ def resnet50(pretrained=False):
         pretrained_state_dict = model_zoo.load_url(model_urls["resnet50"])
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
-        model.load_state_dict(now_state_dict, strict=False)
+        model.load_state_dict(now_state_dict)
     return model
 
 
