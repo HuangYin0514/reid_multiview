@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
@@ -37,10 +38,10 @@ class Classifier(nn.Module):
         super(Classifier, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
-        self.BN = nn.BatchNorm1d(2048)
+        self.BN = nn.BatchNorm1d(256)
         self.BN.apply(weights_init_kaiming)
 
-        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier = nn.Linear(256, self.pid_num, bias=False)
         self.classifier.apply(weights_init_classifier)
 
     def forward(self, features_map):
@@ -58,10 +59,10 @@ class Classifier2(nn.Module):
         super(Classifier2, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
-        self.BN = nn.BatchNorm1d(2048)
+        self.BN = nn.BatchNorm1d(256)
         self.BN.apply(weights_init_kaiming)
 
-        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier = nn.Linear(256, self.pid_num, bias=False)
         self.classifier.apply(weights_init_classifier)
 
     def forward(self, features_map):
@@ -103,6 +104,7 @@ class TransLayer_1(nn.Module):
         p4 = self.smooth1(p4)
         p3 = self.smooth2(p3)
         p2 = self.smooth3(p2)
+
         return p2, p3, p4, p5
 
 
@@ -187,9 +189,9 @@ class Model(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, x4, features_map = self.backbone(x)
-
+        hierarchical_features_list = self.transLayer_1([x2, x3, x4, features_map])
+        features_map = hierarchical_features_list[-1]
         if self.training:
-            hierarchical_features_list = self.transLayer_1([x2, x3, x4, features_map])
             hierarchical_score_list = self.transLayer_classifier(hierarchical_features_list)
             return features_map, hierarchical_score_list
         else:
