@@ -77,24 +77,34 @@ class TransLayer_1(nn.Module):
         self.pool_net_2 = nn.MaxPool2d(kernel_size=(4, 4))
         self.pool_net_3 = nn.MaxPool2d(kernel_size=(2, 2))
         self.pool_net_4 = nn.MaxPool2d(kernel_size=(1, 1))
+        self.pool_net_5 = nn.MaxPool2d(kernel_size=(1, 1))
 
         self.c2_net = nn.Sequential(
             nn.Conv2d(256, 512, kernel_size=1, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
         )
         self.c3_net = nn.Sequential(
             nn.Conv2d(512, 1024, kernel_size=1, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(1024),
+            nn.ReLU(inplace=True),
         )
         self.c4_net = nn.Sequential(
-            nn.Conv2d(1024, 1024, kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(1024),
+            nn.Conv2d(1024, 2048, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(2048),
+            nn.ReLU(inplace=True),
+        )
+
+        self.c5_net = nn.Sequential(
+            nn.Conv2d(2048, 2048, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(2048),
+            nn.ReLU(inplace=True),
         )
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
-        assert len(xs) == 3
-        c2, c3, c4 = xs
+        assert len(xs) == 4
+        c2, c3, c4, c5 = xs
 
         c2_pool = self.pool_net_2(c2)
         c2 = self.c2_net(c2_pool)
@@ -104,7 +114,10 @@ class TransLayer_1(nn.Module):
 
         c4_pool = self.pool_net_4(c4) + c3
         c4 = self.c4_net(c4_pool)
-        return (c2, c3, c4)
+
+        c5_pool = self.pool_net_5(c5) + c4
+        c5 = self.c5_net(c5_pool)
+        return (c2, c3, c4, c5)
 
 
 class TransLayer_Classifier(nn.Module):
@@ -132,16 +145,18 @@ class TransLayer_classifier_layer(nn.Module):
 
         self.c2_net_classifier = TransLayer_Classifier(512, config.pid_num)
         self.c3_net_classifier = TransLayer_Classifier(1024, config.pid_num)
-        self.c4_net_classifier = TransLayer_Classifier(1024, config.pid_num)
+        self.c4_net_classifier = TransLayer_Classifier(2048, config.pid_num)
+        self.c5_net_classifier = TransLayer_Classifier(2048, config.pid_num)
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
-        assert len(xs) == 3
-        c2, c3, c4 = xs
+        assert len(xs) == 4
+        c2, c3, c4, c5 = xs
         _, c2_score = self.c2_net_classifier(c2)
         _, c3_score = self.c3_net_classifier(c3)
         _, c4_score = self.c4_net_classifier(c4)
-        return (c2_score, c3_score, c4_score)
+        _, c5_score = self.c5_net_classifier(c5)
+        return (c2_score, c3_score, c4_score, c5_score)
 
 
 class Backbone(nn.Module):
@@ -188,7 +203,7 @@ class Model(nn.Module):
         x1, x2, x3, x4, features_map = self.backbone(x)
 
         if self.training:
-            hierarchical_features_list = self.transLayer_1([x2, x3, x4])
+            hierarchical_features_list = self.transLayer_1([x2, x3, x4, features_map])
             hierarchical_score_list = self.transLayer_classifier(hierarchical_features_list)
             return features_map, hierarchical_score_list
         else:
