@@ -23,7 +23,21 @@ class SEAM(nn.Module):
             # nn.Conv2d(c1, c2, kernel_size=3, stride=1, padding=1, groups=c1),
             # nn.GELU(),
             # nn.BatchNorm2d(c2),
-            *[nn.Sequential(Residual(nn.Sequential(nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=3, stride=1, padding=1, groups=c2), nn.GELU(), nn.BatchNorm2d(c2))), nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=1, stride=1, padding=0, groups=1), nn.GELU(), nn.BatchNorm2d(c2)) for i in range(n)]
+            *[
+                nn.Sequential(
+                    Residual(
+                        nn.Sequential(
+                            nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=3, stride=1, padding=1, groups=c2),
+                            nn.GELU(),
+                            nn.BatchNorm2d(c2),
+                        )
+                    ),
+                    nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=1, stride=1, padding=0, groups=1),
+                    nn.GELU(),
+                    nn.BatchNorm2d(c2),
+                )
+                for i in range(n)
+            ]
         )
         self.avg_pool = torch.nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(nn.Linear(c2, c2 // reduction, bias=False), nn.ReLU(inplace=True), nn.Linear(c2 // reduction, c2, bias=False), nn.Sigmoid())
