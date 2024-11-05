@@ -12,7 +12,7 @@ class FeatureMapLocalizedIntegratingNoRelu:
         chunk_size = int(size / 4)
 
         # Heatmaps
-        classifier_params = [param for name, param in base.classifier.named_parameters()]
+        classifier_params = [param for name, param in base.model.module.transLayer_classifier.c5_net_classifier.classifier.named_parameters()]
         heatmaps = torch.zeros((size, h, w), device="cuda")
         for i in range(size):
             heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()

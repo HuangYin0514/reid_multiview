@@ -151,7 +151,7 @@ class TransLayer_classifier_layer(nn.Module):
         _, c2_score = self.c2_net_classifier(c2)
         _, c3_score = self.c3_net_classifier(c3)
         _, c4_score = self.c4_net_classifier(c4)
-        _, c5_score = self.c5_net_classifier(c5)
+        c5_features, c5_score = self.c5_net_classifier(c5)
         return (c2_score, c3_score, c4_score, c5_score)
 
 
@@ -201,7 +201,7 @@ class Model(nn.Module):
         if self.training:
             hierarchical_features_list = self.transLayer_1([x2, x3, x4, features_map])
             hierarchical_score_list = self.transLayer_classifier(hierarchical_features_list)
-            return features_map, hierarchical_score_list
+            return features_map, hierarchical_score_list, hierarchical_features_list[-1]
         else:
             return features_map
 

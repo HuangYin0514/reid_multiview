@@ -61,6 +61,7 @@ def main(config):
                 start_train_epoch = indexes[-1]
                 logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
 
+        # logger(model.model)
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
             model.classifier_lr_scheduler.step(current_epoch)
