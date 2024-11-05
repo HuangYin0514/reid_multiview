@@ -7,14 +7,6 @@
 
 #################################################################################
 
-rm -rf /home/hy/project/reid_multiview/v4_SEAM_3/results
-cd /home/hy/project/reid_multiview/v4_SEAM_3
-sh run.sh
-
-rm -rf /home/hy/project/reid_multiview/v4_SEAM_4/results
-cd /home/hy/project/reid_multiview/v4_SEAM_4
-sh run.sh
-
-rm -rf /home/hy/project/reid_multiview/v4_hierarchical_2/results
-cd /home/hy/project/reid_multiview/v4_hierarchical_2
+rm -rf /home/hy/project/reid_multiview/v4_SEAM_5/results
+cd /home/hy/project/reid_multiview/v4_SEAM_5
 sh run.sh
