@@ -2,6 +2,7 @@ import torch.nn as nn
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
+from .seam import SEAM
 
 
 def weights_init_kaiming(m):
@@ -139,6 +140,14 @@ class TransLayer_1(nn.Module):
             cv1_list.append(temp)
         self.cv1_list = cv1_list
 
+        input_channel = [256, 256, 256, 256]
+        output_channel = [256, 256, 256, 256]
+        SEAM_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = SEAM(c1=input_channel[i], c2=output_channel[i], n=1)
+            SEAM_list.append(temp)
+        self.SEAM_list = SEAM_list
+
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
         assert len(xs) == 3
@@ -147,6 +156,7 @@ class TransLayer_1(nn.Module):
         for i in range(self.num_layer):
             pool_feats = self.pool_list[i](xs[i])
             cv_feats = self.cv1_list[i](pool_feats)
+            cv_feats = self.SEAM_list[i](cv_feats)
             cv_feats_list.append(cv_feats)
 
         return cv_feats_list
