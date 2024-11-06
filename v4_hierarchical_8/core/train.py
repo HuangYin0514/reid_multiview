@@ -1,8 +1,4 @@
-from network.processing import (
-    FeatureMapIntegrating,
-    FeatureMapLocalizedIntegratingNoRelu,
-    FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights,
-)
+from network.processing import FeatureMapLocalizedIntegratingNoRelu
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -41,22 +37,18 @@ def train(base, loaders, config):
             bn_features, cls_score = base.classifier(features_map)
 
             localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base)
-
-            # auxiliary_features_map, localized_cls_score = base.auxiliaryModel(localized_features_map)
-            localized_bn_features, localized_cls_score = base.classifier(localized_features_map)
-
-            quantified_localized_features_map, quantified_localized_integrating_features_map, _ = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
-            quantified_localized_integrating_bn_features, quantified_localized_integrating_cls_score = base.classifier2(quantified_localized_integrating_features_map)
+            localized_integrating_bn_features, localized_integrating_cls_score = base.classifier2(localized_integrating_features_map)
 
             ide_loss = base.pid_creiteron(cls_score, pids)
-            quantified_localized_integrating_ide_loss = base.pid_creiteron(quantified_localized_integrating_cls_score, integrating_pids)
-            quantified_localized_integrating_reasoning_loss = base.reasoning_creiteron(bn_features, quantified_localized_integrating_bn_features)
+            localized_integrating_ide_loss = base.pid_creiteron(localized_integrating_cls_score, integrating_pids)
+            localized_integrating_reasoning_loss = base.reasoning_creiteron(bn_features, localized_integrating_bn_features)
 
+            # Hierarchical
             other_loss = 0
             for temp_score in hierarchical_score_list:
                 other_loss += base.pid_creiteron(temp_score, pids)
 
-            total_loss = ide_loss + 0.01 * other_loss + quantified_localized_integrating_ide_loss + config.lambda1 * quantified_localized_integrating_reasoning_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + config.lambda1 * localized_integrating_reasoning_loss + 0.1 * other_loss
 
             base.model_optimizer.zero_grad()
             base.classifier_optimizer.zero_grad()
@@ -71,9 +63,9 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "other_loss": other_loss.data,
-                    "quantified_localized_integrating_pid_loss": quantified_localized_integrating_ide_loss.data,
-                    "quantified_localized_integrating_reasoning_loss": quantified_localized_integrating_reasoning_loss.data,
+                    "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
+                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+                    "other_loss": other_loss,
                 }
             )
 
