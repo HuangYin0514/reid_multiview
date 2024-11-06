@@ -129,6 +129,14 @@ class TransLayer_1(nn.Module):
         self.pool_list = pool_list
 
         input_channel = [256, 512, 1024, 2048]
+        output_channel = [256, 512, 1024, 2048]
+        SEAM_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = SEAM(c1=input_channel[i], c2=output_channel[i], n=1)
+            SEAM_list.append(temp)
+        self.SEAM_list = SEAM_list
+
+        input_channel = [256, 512, 1024, 2048]
         output_channel = [256, 256, 256, 256]
         cv1_list = nn.ModuleList()
         for i in range(self.num_layer):
@@ -142,11 +150,15 @@ class TransLayer_1(nn.Module):
 
         input_channel = [256, 256, 256, 256]
         output_channel = [256, 256, 256, 256]
-        SEAM_list = nn.ModuleList()
+        cv1_list2 = nn.ModuleList()
         for i in range(self.num_layer):
-            temp = SEAM(c1=input_channel[i], c2=output_channel[i], n=1)
-            SEAM_list.append(temp)
-        self.SEAM_list = SEAM_list
+            temp = nn.Sequential(
+                nn.Conv2d(input_channel[i], output_channel[i], kernel_size=1, stride=1, padding=0, bias=True),
+                nn.BatchNorm2d(output_channel[i]),
+                nn.ReLU(inplace=True),
+            )
+            cv1_list2.append(temp)
+        self.cv1_list2 = cv1_list2
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
@@ -154,13 +166,13 @@ class TransLayer_1(nn.Module):
 
         cv_feats_list = []
         for i in range(self.num_layer):
-            pool_feats = self.pool_list[i](xs[i])
-            cv_feats = self.cv1_list[i](pool_feats)
+            cv_feats = self.SEAM_list[i](xs[i])
+            cv_feats = self.cv1_list[i](cv_feats)
+            cv_feats = self.pool_list[i](cv_feats)
             if i != 0:
                 cv_feats = cv_feats + cv_feats_list[i - 1]
-            cv_feats = self.SEAM_list[i](cv_feats)
+            cv_feats = self.cv1_list2[i](cv_feats)
             cv_feats_list.append(cv_feats)
-
         return cv_feats_list
 
 
