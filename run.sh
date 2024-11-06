@@ -19,7 +19,14 @@
 # cd /home/hy/project/reid_multiview/v4_hierarchical_3
 # sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v4_hierarchical_4/results
-cd /home/hy/project/reid_multiview/v4_hierarchical_4
-sh run.sh
+# rm -rf /home/hy/project/reid_multiview/v4_hierarchical_4/results
+# cd /home/hy/project/reid_multiview/v4_hierarchical_4
+# sh run.sh
 
+# rm -rf /home/hy/project/reid_multiview/v4_hierarchical_5/results
+# cd /home/hy/project/reid_multiview/v4_hierarchical_5
+# sh run.sh
+
+rm -rf /home/hy/project/reid_multiview/v4_hierarchical_6/results
+cd /home/hy/project/reid_multiview/v4_hierarchical_6
+sh run.sh
