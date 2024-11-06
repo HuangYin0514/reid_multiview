@@ -1,5 +1,4 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
@@ -73,37 +72,41 @@ class Classifier2(nn.Module):
 
 class TransLayer_1(nn.Module):
     def __init__(self):
-        super(TransLayer_1, self).__init__()
+        super().__init__()
 
-        # Top layer
-        self.toplayer = nn.Conv2d(2048, 256, kernel_size=1, stride=1, padding=0)  # Reduce channels
+        self.num_layer = 4
 
-        # Smooth layers
-        self.smooth1 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
-        self.smooth2 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
-        self.smooth3 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
+        kernel_size = [(4, 4), (2, 2), (1, 1), (1, 1)]
+        pool_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = nn.MaxPool2d(kernel_size=kernel_size[i])
+            pool_list.append(temp)
+        self.pool_list = pool_list
 
-        # Lateral layers
-        self.latlayer1 = nn.Conv2d(1024, 256, kernel_size=1, stride=1, padding=0)
-        self.latlayer2 = nn.Conv2d(512, 256, kernel_size=1, stride=1, padding=0)
-        self.latlayer3 = nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0)
+        input_channel = [256, 512, 1024, 2048]
+        output_channel = [64, 64, 64, 64]
+        cv1_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = nn.Sequential(
+                nn.Conv2d(input_channel[i], output_channel[i], kernel_size=1, stride=1, padding=0, bias=True),
+                nn.BatchNorm2d(output_channel[i]),
+                nn.ReLU(inplace=True),
+            )
+            cv1_list.append(temp)
+        self.cv1_list = cv1_list
 
-    def _upsample_add(self, x, y):
-        _, _, H, W = y.size()
-        return F.upsample(x, size=(H, W), mode="bilinear") + y
+    def forward(self, xs):
+        assert isinstance(xs, (tuple, list))
+        assert len(xs) == 4
+        c2, c3, c4, c5 = xs
 
-    def forward(self, c):
-        c2, c3, c4, c5 = c
-        # Top-down
-        p5 = self.toplayer(c5)
-        p4 = self._upsample_add(p5, self.latlayer1(c4))
-        p3 = self._upsample_add(p4, self.latlayer2(c3))
-        p2 = self._upsample_add(p3, self.latlayer3(c2))
-        # Smooth
-        p4 = self.smooth1(p4)
-        p3 = self.smooth2(p3)
-        p2 = self.smooth3(p2)
-        return p2, p3, p4, p5
+        cv_feats_list = []
+        for i in range(self.num_layer):
+            pool_feats = self.pool_list[i](xs[i])
+            cv_feats = self.cv1_list[i](pool_feats)
+            cv_feats_list.append(cv_feats)
+
+        return cv_feats_list
 
 
 class TransLayer_Classifier(nn.Module):
@@ -129,20 +132,26 @@ class TransLayer_classifier_layer(nn.Module):
     def __init__(self, config):
         super(TransLayer_classifier_layer, self).__init__()
 
-        self.c2_net_classifier = TransLayer_Classifier(256, config.pid_num)
-        self.c3_net_classifier = TransLayer_Classifier(256, config.pid_num)
-        self.c4_net_classifier = TransLayer_Classifier(256, config.pid_num)
-        self.c5_net_classifier = TransLayer_Classifier(256, config.pid_num)
+        self.num_layer = 4
+
+        input_channel = [64, 64, 64, 64]
+        classifier_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = TransLayer_Classifier(input_channel[i], config.pid_num)
+            classifier_list.append(temp)
+        self.classifier_list = classifier_list
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
         assert len(xs) == 4
         c2, c3, c4, c5 = xs
-        _, c2_score = self.c2_net_classifier(c2)
-        _, c3_score = self.c3_net_classifier(c3)
-        _, c4_score = self.c4_net_classifier(c4)
-        _, c5_score = self.c5_net_classifier(c5)
-        return (c2_score, c3_score, c4_score, c5_score)
+
+        score_list = []
+        for i in range(self.num_layer):
+            _, score = self.classifier_list[i](xs[i])
+            score_list.append(score)
+
+        return score_list
 
 
 class Backbone(nn.Module):

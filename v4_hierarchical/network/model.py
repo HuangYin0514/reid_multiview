@@ -35,14 +35,40 @@ class TransLayer_1(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.c4_net = nn.Sequential(nn.MaxPool2d(kernel_size=(1, 1)), nn.Conv2d(1024, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
-        self.c3_net = nn.Sequential(nn.MaxPool2d(kernel_size=(2, 2)), nn.Conv2d(512, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
-        self.c2_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
-        self.c1_net = nn.Sequential(nn.MaxPool2d(kernel_size=(4, 4)), nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c4_net = nn.Sequential(
+            nn.MaxPool2d(kernel_size=(1, 1)),
+            nn.Conv2d(1024, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
+        self.c3_net = nn.Sequential(
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Conv2d(512, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(64),
+        )
+        self.c2_net = nn.Sequential(
+            nn.MaxPool2d(kernel_size=(4, 4)),
+            nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
+        self.c1_net = nn.Sequential(
+            nn.MaxPool2d(kernel_size=(4, 4)),
+            nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
 
-        self.c4_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
-        self.c3_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
-        self.c2_net2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False), nn.BatchNorm2d(64), nn.BatchNorm2d(64))
+        self.c4_net2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
+        self.c3_net2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
+        self.c2_net2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+        )
 
     def forward(self, xs):
         assert isinstance(xs, (tuple, list))
