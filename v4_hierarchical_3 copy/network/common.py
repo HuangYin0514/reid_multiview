@@ -55,7 +55,6 @@ class TransLayer_classifier(nn.Module):
 
         self.num_layer = 3
 
-        # 自定义分类器
         input_channel = [256, 256, 256, 256]
         classifier_list = nn.ModuleList()
         for i in range(self.num_layer):
@@ -81,7 +80,14 @@ class TransLayer_1(nn.Module):
 
         self.num_layer = 3
 
-        # 池化层
+        input_channel = [256, 512, 1024, 2048]
+        output_channel = [256, 512, 1024, 2048]
+        rfem_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = RFEM(c1=input_channel[i], c2=output_channel[i], n=1)
+            rfem_list.append(temp)
+        self.rfem_list = rfem_list
+
         kernel_size = [(4, 4), (2, 2), (1, 1), (1, 1)]
         pool_list = nn.ModuleList()
         for i in range(self.num_layer):
@@ -89,7 +95,6 @@ class TransLayer_1(nn.Module):
             pool_list.append(temp)
         self.pool_list = pool_list
 
-        # 1x1卷积层
         input_channel = [256, 512, 1024, 2048]
         output_channel = [256, 256, 256, 256]
         cv1_list = nn.ModuleList()
