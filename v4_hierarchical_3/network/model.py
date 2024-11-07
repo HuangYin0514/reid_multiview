@@ -95,7 +95,7 @@ class TransLayer_classifier_layer(nn.Module):
 
         self.num_layer = 3
 
-        input_channel = [64, 64, 64, 64]
+        input_channel = [256, 256, 256, 256]
         classifier_list = nn.ModuleList()
         for i in range(self.num_layer):
             temp = TransLayer_Classifier(input_channel[i], config.pid_num)
@@ -128,7 +128,7 @@ class TransLayer_1(nn.Module):
         self.pool_list = pool_list
 
         input_channel = [256, 512, 1024, 2048]
-        output_channel = [64, 64, 64, 64]
+        output_channel = [256, 256, 256, 256]
         cv1_list = nn.ModuleList()
         for i in range(self.num_layer):
             temp = nn.Sequential(

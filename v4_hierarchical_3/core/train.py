@@ -48,7 +48,7 @@ def train(base, loaders, config):
             for temp_score in hierarchical_score_list:
                 other_loss += base.pid_creiteron(temp_score, pids)
 
-            total_loss = ide_loss + localized_integrating_ide_loss + config.lambda1 * localized_integrating_reasoning_loss + 0.1 * other_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + config.lambda1 * localized_integrating_reasoning_loss + 0.01 * other_loss
 
             base.model_optimizer.zero_grad()
             base.classifier_optimizer.zero_grad()
