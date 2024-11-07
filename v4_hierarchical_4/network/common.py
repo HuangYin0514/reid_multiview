@@ -81,6 +81,15 @@ class TransLayer_1(nn.Module):
 
         self.num_layer = 3
 
+        # 多尺度头
+        input_channel = [256, 512, 1024, 2048]
+        output_channel = [256, 512, 1024, 2048]
+        rfem_list = nn.ModuleList()
+        for i in range(self.num_layer):
+            temp = RFEM(c1=input_channel[i], c2=output_channel[i], n=1)
+            rfem_list.append(temp)
+        self.rfem_list = rfem_list
+
         # 池化层
         kernel_size = [(4, 4), (2, 2), (1, 1), (1, 1)]
         pool_list = nn.ModuleList()
@@ -106,13 +115,13 @@ class TransLayer_1(nn.Module):
         assert isinstance(xs, (tuple, list))
         assert len(xs) == 3
 
-        cv_feats_list = []
+        outs_list = []
         for i in range(self.num_layer):
-            pool_feats = self.pool_list[i](xs[i])
-            cv_feats = self.cv1_list[i](pool_feats)
-            cv_feats_list.append(cv_feats)
-
-        return cv_feats_list
+            outs = self.rfem_list[i](xs[i])
+            outs = self.pool_list[i](outs)
+            outs = self.cv1_list[i](outs)
+            outs_list.append(outs)
+        return outs_list
 
 
 class TridentBlock(nn.Module):
