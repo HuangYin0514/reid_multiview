@@ -148,6 +148,7 @@ class TransLayer_1(nn.Module):
             pool_feats = self.pool_list[i](xs[i])
             cv_feats = self.cv1_list[i](pool_feats)
             cv_feats_list.append(cv_feats)
+
         return cv_feats_list
 
 
