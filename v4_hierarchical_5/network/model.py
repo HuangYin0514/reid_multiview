@@ -2,7 +2,6 @@ import torch.nn as nn
 import torchvision
 
 from .common import (
-    RFEM,
     TransLayer_1,
     TransLayer_classifier,
     weights_init_classifier,
@@ -95,11 +94,8 @@ class Model(nn.Module):
         self.transLayer_1.apply(weights_init_kaiming)
         self.transLayer_classifier.apply(weights_init_classifier)
 
-        self.RFEM_layer = RFEM(2048, 2048, n=1, e=0.01)
-
     def forward(self, x):
         x1, x2, x3, x4, features_map = self.backbone(x)
-        features_map = self.RFEM_layer(features_map)
 
         if self.training:
             hierarchical_features_list = self.transLayer_1([x2, x3, x4])

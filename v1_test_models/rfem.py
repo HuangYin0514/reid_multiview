@@ -10,7 +10,7 @@ class TridentBlock(nn.Module):
         super(TridentBlock, self).__init__()
         self.stride = stride
         self.c = c
-        c_ = int(c2 * e)
+        c_ = int(c2 / e)
         self.padding = padding
         self.dilate = dilate
         self.share_weightconv1 = nn.Parameter(torch.Tensor(c_, c1, 1, 1))

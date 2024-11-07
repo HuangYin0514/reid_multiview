@@ -7,9 +7,9 @@
 
 #################################################################################
 
-rm -rf /home/hy/project/reid_multiview/v4_hierarchical_3/results
-cd /home/hy/project/reid_multiview/v4_hierarchical_3
-sh run.sh
+# rm -rf /home/hy/project/reid_multiview/v4_hierarchical_3/results
+# cd /home/hy/project/reid_multiview/v4_hierarchical_3
+# sh run.sh
 
 rm -rf /home/hy/project/reid_multiview/v4_hierarchical_4/results
 cd /home/hy/project/reid_multiview/v4_hierarchical_4

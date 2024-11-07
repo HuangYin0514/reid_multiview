@@ -63,13 +63,13 @@ class TransLayer_classifier(nn.Module):
             classifier_list.append(temp)
         self.classifier_list = classifier_list
 
-    def forward(self, xs):
-        assert isinstance(xs, (tuple, list))
-        assert len(xs) == 3
+    def forward(self, feats):
+        assert isinstance(feats, (tuple, list))
+        assert len(feats) == self.num_layer
 
         score_list = []
         for i in range(self.num_layer):
-            _, score = self.classifier_list[i](xs[i])
+            _, score = self.classifier_list[i](feats[i])
             score_list.append(score)
 
         return score_list
@@ -80,15 +80,6 @@ class TransLayer_1(nn.Module):
         super().__init__()
 
         self.num_layer = 3
-
-        # 多尺度头
-        input_channel = [256, 512, 1024, 2048]
-        output_channel = [256, 512, 1024, 2048]
-        rfem_list = nn.ModuleList()
-        for i in range(self.num_layer):
-            temp = RFEM(c1=input_channel[i], c2=output_channel[i], n=1)
-            rfem_list.append(temp)
-        self.rfem_list = rfem_list
 
         # 池化层
         kernel_size = [(4, 4), (2, 2), (1, 1), (1, 1)]
@@ -111,21 +102,21 @@ class TransLayer_1(nn.Module):
             cv1_list.append(temp)
         self.cv1_list = cv1_list
 
-    def forward(self, xs):
-        assert isinstance(xs, (tuple, list))
-        assert len(xs) == 3
+    def forward(self, feats):
+        assert isinstance(feats, (tuple, list))
+        assert len(feats) == self.num_layer
 
         outs_list = []
         for i in range(self.num_layer):
-            outs = self.rfem_list[i](xs[i])
-            outs = self.pool_list[i](outs)
+            outs = self.pool_list[i](feats[i])
             outs = self.cv1_list[i](outs)
             outs_list.append(outs)
+
         return outs_list
 
 
 class TridentBlock(nn.Module):
-    def __init__(self, c1, c2, stride=1, c=False, e=0.5, padding=[1, 2, 3], dilate=[1, 2, 3], bias=False):
+    def __init__(self, c1, c2, stride=1, c=False, e=0.01, padding=[1, 2, 3], dilate=[1, 2, 3], bias=False):
         super(TridentBlock, self).__init__()
         self.stride = stride
         self.c = c
