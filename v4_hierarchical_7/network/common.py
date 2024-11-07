@@ -122,7 +122,7 @@ class TransLayer_1(nn.Module):
         for i in range(self.num_layer):
             outs = self.pool_list[i](feats[i])
             outs = self.cv1_list[i](outs)
-            outs = self.cv1_list2[i](outs)
+            outs = self.cv1_list2[i](outs) + outs
             outs_list.append(outs)
 
         return outs_list
