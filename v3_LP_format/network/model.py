@@ -33,10 +33,7 @@ def weights_init_classifier(m):
 
 class Model(nn.Module):
     def __init__(self):
-        super(
-            Model,
-            self,
-        ).__init__()
+        super(Model, self).__init__()
         resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
         resnet.layer4[0].downsample[0].stride = (1, 1)
@@ -48,34 +45,9 @@ class Model(nn.Module):
         return features_map
 
 
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModel,
-            self,
-        ).__init__()
-
-    def forward(self, x):
-        return x
-
-
-class AuxiliaryModelClassifier(nn.Module):
-    def __init__(self, pid_num):
-        super(
-            AuxiliaryModelClassifier,
-            self,
-        ).__init__()
-
-    def forward(self, features_map):
-        return
-
-
 class Classifier(nn.Module):
     def __init__(self, pid_num):
-        super(
-            Classifier,
-            self,
-        ).__init__()
+        super(Classifier, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
@@ -96,10 +68,7 @@ class Classifier(nn.Module):
 
 class Classifier2(nn.Module):
     def __init__(self, pid_num):
-        super(
-            Classifier2,
-            self,
-        ).__init__()
+        super(Classifier2, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(2048)
@@ -113,3 +82,19 @@ class Classifier2(nn.Module):
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
+
+
+class AuxiliaryModelClassifier(nn.Module):
+    def __init__(self, pid_num):
+        super(AuxiliaryModelClassifier, self).__init__()
+
+    def forward(self, features_map):
+        return
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(AuxiliaryModel, self).__init__()
+
+    def forward(self, x):
+        return x
