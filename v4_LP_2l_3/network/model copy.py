@@ -41,15 +41,9 @@ class Model(nn.Module):
 
         self.resnet_conv = nn.Sequential(resnet.conv1, resnet.bn1, resnet.maxpool, resnet.layer1, resnet.layer2, resnet.layer3, resnet.layer4)
 
-        self.separe_model = SepareModel()
-
     def forward(self, x):
         features_map = self.resnet_conv(x)
-        features_map, unrelated_features_map, related_cosine_score = self.separe_model(features_map)
-        if self.training:
-            return features_map, unrelated_features_map, related_cosine_score
-        else:
-            return features_map
+        return features_map
 
 
 class Classifier(nn.Module):
@@ -91,13 +85,34 @@ class Classifier2(nn.Module):
         return bn_features, cls_score
 
 
-class SepareModel(nn.Module):
-    def __init__(self, pid_num=None):
-        super(SepareModel, self).__init__()
+class AuxiliaryModelClassifier(nn.Module):
+    def __init__(self, pid_num):
+        super(AuxiliaryModelClassifier, self).__init__()
+        self.pid_num = pid_num
+        self.GAP = GeneralizedMeanPoolingP()
+        self.BN = nn.BatchNorm1d(2048)
+        self.BN.apply(weights_init_kaiming)
+
+        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier.apply(weights_init_classifier)
+
+    def forward(self, features_map):
+        features = self.GAP(features_map)
+        bn_features = self.BN(features.squeeze())
+        cls_score = self.classifier(bn_features)
+        return bn_features, cls_score
+
+
+class AuxiliaryModel(nn.Module):
+    def __init__(self, pid_num):
+        super(AuxiliaryModel, self).__init__()
 
         in_channels = 2048
         out_channels = 2048
         self.cv1 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
             nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
         )
 
@@ -115,19 +130,3 @@ class SepareModel(nn.Module):
         related_cosine_score = torch.cosine_similarity(pool_features_map, pool_unrelated_features_map).abs().mean() * 1
         # print(torch.cosine_similarity(pool_features_map, pool_unrelated_features_map).data)
         return features_map, unrelated_features_map, related_cosine_score
-
-
-class AuxiliaryModelClassifier(nn.Module):
-    def __init__(self, pid_num):
-        super(AuxiliaryModelClassifier, self).__init__()
-
-    def forward(self, features_map):
-        return
-
-
-class AuxiliaryModel(nn.Module):
-    def __init__(self, pid_num):
-        super(AuxiliaryModel, self).__init__()
-
-    def forward(self, x):
-        return x

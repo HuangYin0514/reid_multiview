@@ -99,6 +99,7 @@ class SepareModel(nn.Module):
         out_channels = 2048
         self.cv1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
+            nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
         )
 
         self.pool1 = nn.AdaptiveAvgPool2d(1)
