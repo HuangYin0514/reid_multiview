@@ -27,6 +27,8 @@
 # cd /home/hy/project/reid_multiview/v4_hierarchical_7
 # sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v4_LP_2l/results
-cd /home/hy/project/reid_multiview/v4_LP_2l
+
+
+rm -rf /home/hy/project/reid_multiview/v4_LP_2l_2/results
+cd /home/hy/project/reid_multiview/v4_LP_2l_2
 sh run.sh
