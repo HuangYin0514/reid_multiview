@@ -33,7 +33,7 @@ def weights_init_classifier(m):
 
 
 class Model(nn.Module):
-    def __init__(self):
+    def __init__(self, pid_num):
         super(Model, self).__init__()
         resnet = torchvision.models.resnet50(pretrained=True)
         resnet.layer4[0].conv2.stride = (1, 1)
@@ -41,13 +41,13 @@ class Model(nn.Module):
 
         self.resnet_conv = nn.Sequential(resnet.conv1, resnet.bn1, resnet.maxpool, resnet.layer1, resnet.layer2, resnet.layer3, resnet.layer4)
 
-        self.separe_model = SepareModel()
+        self.separe_model = SepareModel(pid_num)
 
     def forward(self, x):
         features_map = self.resnet_conv(x)
-        features_map, unrelated_features_map, related_cosine_score = self.separe_model(features_map)
+        features_map, unrelated_features_score, related_cosine_score = self.separe_model(features_map)
         if self.training:
-            return features_map, unrelated_features_map, related_cosine_score
+            return features_map, unrelated_features_score, related_cosine_score
         else:
             return features_map
 
@@ -91,6 +91,22 @@ class Classifier2(nn.Module):
         return bn_features, cls_score
 
 
+class SepareModel_Classifier(nn.Module):
+    def __init__(self, pid_num):
+        super(SepareModel_Classifier, self).__init__()
+        self.pid_num = pid_num
+        self.BN = nn.BatchNorm1d(2048)
+        self.BN.apply(weights_init_kaiming)
+
+        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier.apply(weights_init_classifier)
+
+    def forward(self, features_map):
+        bn_features = self.BN(features_map)
+        cls_score = self.classifier(bn_features)
+        return cls_score
+
+
 class SepareModel(nn.Module):
     def __init__(self, pid_num=None):
         super(SepareModel, self).__init__()
@@ -98,11 +114,13 @@ class SepareModel(nn.Module):
         in_channels = 2048
         out_channels = 2048
         self.cv1 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, 3, 1, bias=False),
+            nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
         )
 
         self.pool1 = nn.AdaptiveAvgPool2d(1)
         self.pool2 = nn.AdaptiveAvgPool2d(1)
+
+        self.unrelated_features_map_classifier = SepareModel_Classifier(pid_num)
 
     def forward(self, features_map):
         unrelated_features_map = self.cv1(features_map)
@@ -111,10 +129,11 @@ class SepareModel(nn.Module):
         pool_features_map = self.pool1(features_map).squeeze()
         pool_unrelated_features_map = self.pool2(unrelated_features_map).squeeze()
 
-        # print(pool_features_map.shape)
+        unrelated_features_score = self.unrelated_features_map_classifier(pool_unrelated_features_map)
+
         related_cosine_score = torch.cosine_similarity(pool_features_map, pool_unrelated_features_map).abs().mean() * 1
-        # print(torch.cosine_similarity(pool_features_map, pool_unrelated_features_map).data)
-        return features_map, unrelated_features_map, related_cosine_score
+
+        return features_map, unrelated_features_score, related_cosine_score
 
 
 class AuxiliaryModelClassifier(nn.Module):

@@ -33,7 +33,7 @@ def train(base, loaders, config):
 
         elif config.module == "Lucky":
 
-            features_map, unrelated_features_map, related_cosine_score = base.model(imgs)
+            features_map, unrelated_features_score, related_cosine_score = base.model(imgs)
             bn_features, cls_score = base.classifier(features_map)
 
             localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base)
@@ -43,7 +43,9 @@ def train(base, loaders, config):
             localized_integrating_ide_loss = base.pid_creiteron(localized_integrating_cls_score, integrating_pids)
             localized_integrating_reasoning_loss = base.reasoning_creiteron(bn_features, localized_integrating_bn_features)
 
-            total_loss = ide_loss + related_cosine_score + localized_integrating_ide_loss + config.lambda1 * localized_integrating_reasoning_loss
+            unrelated_features_ide_loss = base.pid_creiteron(unrelated_features_score, pids)
+
+            total_loss = ide_loss + unrelated_features_ide_loss + related_cosine_score + localized_integrating_ide_loss + config.lambda1 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             base.classifier_optimizer.zero_grad()
@@ -61,6 +63,7 @@ def train(base, loaders, config):
                     "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
                     "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
                     "related_cosine_score": related_cosine_score.data,
+                    "unrelated_features_ide_loss": unrelated_features_ide_loss.data,
                 }
             )
 
