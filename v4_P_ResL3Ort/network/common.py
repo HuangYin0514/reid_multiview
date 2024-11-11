@@ -1,4 +1,6 @@
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
@@ -40,3 +42,11 @@ class AuxiliaryModelClassifier(nn.Module):
 
     def forward(self, features_map):
         return
+
+
+def cos_sim(embedded_fg, embedded_bg):
+    embedded_fg = F.normalize(embedded_fg, dim=1)
+    embedded_bg = F.normalize(embedded_bg, dim=1)
+    sim = torch.matmul(embedded_fg, embedded_bg.T)
+
+    return torch.clamp(sim, min=0.0005, max=0.9995)

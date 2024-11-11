@@ -17,11 +17,12 @@
 #################################################################################
 # progress
 #################################################################################
-# rm -rf /home/hy/project/reid_multiview/v4_LP_2l_2/results
-# cd /home/hy/project/reid_multiview/v4_LP_2l_2
+# # 构建多视角融合的baseline，仅用传播机制，重点改了resnet结构
+# rm -rf /home/hy/project/reid_multiview/v3_backbone_P/results
+# cd /home/hy/project/reid_multiview/v3_backbone_P
 # sh run.sh
 
-# 构建多视角融合的baseline，仅用传播机制，重点改了resnet结构
-rm -rf /home/hy/project/reid_multiview/v3_backbone_P/results
-cd /home/hy/project/reid_multiview/v3_backbone_P
+# resnet 第三层正交 
+rm -rf /home/hy/project/reid_multiview/v4_P_ResL3Ort/results
+cd /home/hy/project/reid_multiview/v4_P_ResL3Ort
 sh run.sh

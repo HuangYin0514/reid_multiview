@@ -36,7 +36,7 @@ def train(base, loaders, config):
 
         elif config.module == "Lucky":
 
-            features_map = base.model(imgs)
+            features_map, loss_diver2 = base.model(imgs)
             bn_features, cls_score = base.classifier(features_map)
 
             integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(features_map, pids)
@@ -46,7 +46,7 @@ def train(base, loaders, config):
             integrating_ide_loss = base.pid_creiteron(integrating_cls_score, integrating_pids)
             integrating_reasoning_loss = base.reasoning_creiteron(bn_features, integrating_bn_features)
 
-            total_loss = ide_loss + integrating_ide_loss + config.lambda1 * integrating_reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss + config.lambda1 * integrating_reasoning_loss + loss_diver2
 
             base.model_optimizer.zero_grad()
             base.classifier_optimizer.zero_grad()
@@ -63,6 +63,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
                     "integrating_reasoning_loss": integrating_reasoning_loss.data,
+                    "loss_diver2": loss_diver2.data,
                 }
             )
 

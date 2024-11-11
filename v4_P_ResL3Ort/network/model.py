@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision
 
@@ -89,6 +90,29 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
+def ort(x4):
+    # define response loss
+    bs, c_x4, h_x4, w_x4 = x4.size()
+    loss_diver2 = torch.tensor(0.0, device=x4.device).float()
+    response = x4.view(bs, c_x4, -1)  # N*1024*128
+    norm = torch.norm(response, dim=2).unsqueeze(2)
+    norm_T = torch.einsum("kij->kji", [norm])
+    norm_matrix = torch.einsum("kij,kjm->kim", [norm, norm_T])
+    # Calculate autocorrelation matrix
+    response_T = torch.einsum("kij->kji", [response])
+    corr = torch.einsum("kij,kjm->kim", [response, response_T])
+    norm_matrix = 1.0 / (norm_matrix + 1e-6)
+    # Set diagonal elements to 0
+    corr *= 1 - torch.eye(1024, 1024, device=x4.device)
+    norm_matrix *= 1 - torch.eye(1024, 1024, device=x4.device)
+    # response loss
+    loss_diver12 = corr * norm_matrix
+    loss_diver22 = torch.pow(loss_diver12, 2)
+    loss_diver32 = torch.nansum(loss_diver22, dim=(1, 2))
+    loss_diver2 = loss_diver32 / (x4.shape[1] * x4.shape[1])
+    return loss_diver2.mean()
+
+
 class Model(nn.Module):
 
     def __init__(self, config):
@@ -97,8 +121,9 @@ class Model(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, x4, features_map = self.backbone(x)
+        loss_diver2 = ort(x4)
 
         if self.training:
-            return features_map
+            return features_map, loss_diver2
         else:
             return features_map
