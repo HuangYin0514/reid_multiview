@@ -21,15 +21,7 @@
 # cd /home/hy/project/reid_multiview/v4_LP_2l_2
 # sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v3_P/results
-cd /home/hy/project/reid_multiview/v3_P
-sh run.sh
-
-rm -rf /home/hy/project/reid_multiview/v3_LP_format/results
-cd /home/hy/project/reid_multiview/v3_LP_format
-sh run.sh
-
 # 构建多视角融合的baseline，仅用传播机制，重点改了resnet结构
-rm -rf /home/hy/project/reid_multiview/v3_P_format/results
-cd /home/hy/project/reid_multiview/v3_P_format
+rm -rf /home/hy/project/reid_multiview/v3_backbone_P/results
+cd /home/hy/project/reid_multiview/v3_backbone_P
 sh run.sh
