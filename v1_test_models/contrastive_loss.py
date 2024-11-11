@@ -117,3 +117,13 @@ if __name__ == "__main__":
     # simMinLoss = SimMinLoss().forward(fg_embedding, fg_embedding)
     simMinLoss = SimMaxLoss().forward(fg_embedding)
     print(simMinLoss)
+
+    examplar = torch.tensor([[1, 2, 3, 4], [2, 3, 1, 4], [4, 2, 1, 3]])
+
+    _, indices = examplar.sort(descending=True, dim=1)
+    _, rank = indices.sort(dim=1)
+    print(indices)
+    print(rank)
+
+    rank_weights = torch.exp(-rank.float() * 0.25)
+    print(rank_weights)
