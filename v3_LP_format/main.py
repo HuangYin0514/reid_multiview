@@ -6,7 +6,7 @@ import warnings
 
 import numpy as np
 import torch
-from core import Base, test, train
+from core import Base, test, train, visualization
 from data_loader.loader import Loader
 from tools import Logger, make_dirs, os_walk, time_now
 
@@ -83,12 +83,26 @@ def main(config):
         mAP, CMC = test(config, model, loaders)
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
+    elif config.mode == "visualization":
+        loaders._visualization_load()
+        if config.auto_resume_training_from_lastest_step:
+            root, _, files = os_walk(model.save_model_path)
+            if len(files) > 0:
+                indexes = []
+                for file in files:
+                    indexes.append(int(file.replace(".pth", "").split("_")[-1]))
+                indexes = sorted(list(set(indexes)), reverse=False)
+                model.resume_model(indexes[-1])
+                start_train_epoch = indexes[-1]
+                logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
+        visualization(config, model, loaders)
+
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", type=str, default="cuda")
-    parser.add_argument("--mode", type=str, default="train", help="train, test")
+    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
     parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
     parser.add_argument("--backbone", type=str, default="resnet50", help="resnet50, resnet50ibna")
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")

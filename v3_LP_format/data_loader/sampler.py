@@ -1,4 +1,4 @@
-'''''
+"""''
 import copy
 import random
 import numpy as np
@@ -57,7 +57,7 @@ class TripletSampler(Sampler):
 
     def __len__(self):
         return self.length
-'''
+"""
 
 # encoding: utf-8
 
@@ -67,6 +67,7 @@ from collections import defaultdict
 
 import numpy as np
 from torch.utils.data.sampler import Sampler
+
 
 class TripletSampler(Sampler):
     """
@@ -99,7 +100,6 @@ class TripletSampler(Sampler):
 
     def __iter__(self):
         batch_idxs_dict = defaultdict(list)
-
 
         for pid in self.pids:
             idxs = copy.deepcopy(self.index_dic[pid])
