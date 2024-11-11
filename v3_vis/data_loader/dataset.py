@@ -235,7 +235,7 @@ class Dataset:
             return Image.fromarray(cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB))
 
 
-class RankedDataset:
+class VisualizationDataset:
 
     def __init__(self, samples, transform):
         self.samples = samples

@@ -1,4 +1,5 @@
 import os
+import random
 import shutil
 
 import cv2
@@ -30,14 +31,25 @@ class Visualization_CAM:
         features_map = model(images)
         bs, c, h, w = features_map.shape
 
-        classifier_params = [param for name, param in classifier.named_parameters()]
-        heatmaps = torch.zeros((bs, h, w), device="cuda")
-        for i in range(bs):
-            heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
-            if heatmap_i.max() != 0:
-                heatmap_i = (heatmap_i - heatmap_i.min()) / (heatmap_i.max() - heatmap_i.min())
-            heatmap_i = heatmap_i.reshape(h, w)
-            heatmaps[i] = heatmap_i
+        # classifier_params = [param for name, param in classifier.named_parameters()]
+        # heatmaps = torch.zeros((bs, h, w), device="cuda")
+        # for i in range(bs):
+        #     heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
+        #     if heatmap_i.max() != 0:
+        #         heatmap_i = (heatmap_i - heatmap_i.min()) / (heatmap_i.max() - heatmap_i.min())
+        #     heatmap_i = heatmap_i.reshape(h, w)
+        #     heatmaps[i] = heatmap_i
+
+        heatmaps = torch.abs(features_map)
+        # max_channel_indices = torch.argmax(heatmaps, dim=1, keepdim=True)[0]
+        # print(max_channel_indices, max_channel_indices.shape)
+        # heatmaps = torch.max(heatmaps[:, 476 : 476 + 1, :, :], dim=1, keepdim=True)[0]
+        heatmaps = torch.max(heatmaps, dim=1, keepdim=True)[0]
+        heatmaps = heatmaps.squeeze()
+
+        heatmaps = heatmaps.view(bs, h * w)
+        heatmaps = F.normalize(heatmaps, p=2, dim=1)
+        heatmaps = heatmaps.view(bs, h, w)
 
         for j in range(bs):
 
@@ -66,7 +78,9 @@ class Visualization_CAM:
             grid_img[:, :width, :] = img_np[:, :, ::-1]
             grid_img[:, width + self.GRID_SPACING : 2 * width + self.GRID_SPACING, :] = am
             grid_img[:, 2 * width + 2 * self.GRID_SPACING :, :] = overlapped
-            cv2.imwrite(os.path.join(self.actmap_dir, str(pids[j].item()) + "_" + str(j) + ".jpg"), grid_img)
+
+            random_number = random.randint(100000, 999999)
+            cv2.imwrite(os.path.join(self.actmap_dir, str(pids[j].item()) + "_" + str(random_number) + ".jpg"), grid_img)
 
     def __call__(self, images, model, classifier, pids):
         # model.eval()
@@ -106,7 +120,7 @@ class Visualization_ranked_results:
         print("Visualizing top-{} ranks ...".format(topk))
 
         query, gallery = dataset
-        indices = np.argsort(distmat, axis=1)
+        indices = np.argsort(distmat)[:, ::-1]
 
         for q_idx in range(num_q):
             _, qpid, qcamid, qimg_path = query[q_idx]
@@ -146,7 +160,6 @@ class Visualization_ranked_results:
             if data_type == "image":
                 imname = os.path.basename(os.path.splitext(qimg_path_name)[0])
                 cv2.imwrite(os.path.join(save_dir, imname + ".jpg"), grid_img)
-                return
 
             if (q_idx + 1) % 100 == 0:
                 print("- done {}/{}".format(q_idx + 1, num_q))
@@ -171,6 +184,8 @@ def visualization(config, base, loader):
     base.set_eval()
 
     ###########################################################################################
+    # CMA (heat map)
+    ###########################################################################################
     # print(time_now(), "CAM start")
     # train_loader = loader.loader
     # Visualization_CAM_fn = Visualization_CAM(config)
@@ -183,37 +198,44 @@ def visualization(config, base, loader):
     # print(time_now(), "CAM done.")
 
     ###########################################################################################
+    # ranked list
+    ###########################################################################################
     print(time_now(), "Visualization_ranked_results start")
     base.set_eval()
     loaders = [loader.query_loader, loader.gallery_loader]
-    # query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    # gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    # #  ------------------------------------------------
+    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    with torch.no_grad():
+        for loader_id, loader in enumerate(loaders):
+            for data in loader:
+                images, pids, cids, path = data
+                images = images.to(base.device)
+                flip_imgs = torch.flip(images, [3]).cuda()
+                features_map = base.model(images)
+                flip_features_map = base.model(flip_imgs)
+                bn_features = base.classifier(features_map)
+                # bn_features[:, 476 : 1000 + 1] = 0
+                flip_bn_features = base.classifier(flip_features_map)
+                bn_features = bn_features + flip_bn_features
+
+                if loader_id == 0:
+                    query_features_meter.update(bn_features.data)
+                    query_pids_meter.update(pids)
+                    query_cids_meter.update(cids)
+                elif loader_id == 1:
+                    gallery_features_meter.update(bn_features.data)
+                    gallery_pids_meter.update(pids)
+                    gallery_cids_meter.update(cids)
+
+    query_features = query_features_meter.get_val_numpy()
+    gallery_features = gallery_features_meter.get_val_numpy()
+
+    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
+
+    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
+
     # ------------------------------------------------
-    # with torch.no_grad():
-    #     for loader_id, loader in enumerate(loaders):
-    #         for data in loader:
-    #             images, pids, cids, path = data
-    #             images = images.to(base.device)
-    #             flip_imgs = torch.flip(images, [3]).cuda()
-    #             features_map = base.model(images)
-    #             flip_features_map = base.model(flip_imgs)
-    #             bn_features = base.classifier(features_map)
-    #             flip_bn_features = base.classifier(flip_features_map)
-    #             bn_features = bn_features + flip_bn_features
-
-    #             if loader_id == 0:
-    #                 query_features_meter.update(bn_features.data)
-    #                 query_pids_meter.update(pids)
-    #                 query_cids_meter.update(cids)
-    #             elif loader_id == 1:
-    #                 gallery_features_meter.update(bn_features.data)
-    #                 gallery_pids_meter.update(pids)
-    #                 gallery_cids_meter.update(cids)
-
-    # query_features = query_features_meter.get_val_numpy()
-    # gallery_features = gallery_features_meter.get_val_numpy()
-
-    # # ------------------------------------------------
     # t_dir = os.path.join(config.output_path, "tmp")
     # if not os.path.exists(t_dir):
     #     os.makedirs(t_dir)
@@ -222,19 +244,20 @@ def visualization(config, base, loader):
     # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
     # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
-    query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
-    def cosine_dist(x, y):
+    # ------------------------------------------------
+    def cos_sim(x, y):
         def normalize(x):
             norm = np.tile(np.sqrt(np.sum(np.square(x), axis=1, keepdims=True)), [1, x.shape[1]])
             return x / norm
 
         x = normalize(x)
         y = normalize(y)
-        return 1 - np.matmul(x, y.transpose([1, 0]))
+        return np.matmul(x, y.transpose([1, 0]))
 
-    scores = cosine_dist(query_features, gallery_features)
+    dist = cos_sim(query_features, gallery_features)
     Visualization_ranked_results_fn = Visualization_ranked_results(config)
-    Visualization_ranked_results_fn.__call__(scores, [loaders[0].dataset, loaders[1].dataset])
+    Visualization_ranked_results_fn.__call__(dist, [loaders[0].dataset, loaders[1].dataset])
     print(time_now(), "Visualization_ranked_results done.")

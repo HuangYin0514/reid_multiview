@@ -84,8 +84,7 @@ def main(config):
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
     elif config.mode == "visualization":
-        loaders._ranked_load()
-        print(loaders.query_loader)
+        loaders._visualization_load()
         if config.auto_resume_training_from_lastest_step:
             root, _, files = os_walk(model.save_model_path)
             if len(files) > 0:

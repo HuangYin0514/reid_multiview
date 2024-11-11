@@ -1,7 +1,6 @@
 import torchvision.transforms as transforms
 from data_loader.dataset import (
     Dataset,
-    RankedDataset,
     Samples4Duke,
     Samples4Market,
     Samples4MSMT17,
@@ -16,6 +15,7 @@ from data_loader.dataset import (
     TestSamples4PartialDuke,
     TestSamples4PartialiLIDS,
     TestSamples4PartialReID,
+    VisualizationDataset,
 )
 from data_loader.preprocessing import RandomErasing
 from data_loader.sampler import TripletSampler
@@ -59,12 +59,12 @@ class Loader:
         self.query_loader = self._get_test_loader(query_samples, self.transform_test, 128)
         self.gallery_loader = self._get_test_loader(gallery_samples, self.transform_test, 128)
 
-    def _ranked_load(self):
+    def _visualization_load(self):
         samples = self._get_samples(self.train_dataset)
         self.loader = self._get_train_iter(samples, self.transform_train, self.batchsize)
         query_samples, gallery_samples = self._get_test_samples(self.test_dataset)
-        self.query_loader = self._get_ranked_loader(query_samples, self.transform_test, 128)
-        self.gallery_loader = self._get_ranked_loader(gallery_samples, self.transform_test, 128)
+        self.query_loader = self._get_visualization_loader(query_samples, self.transform_test, 128)
+        self.gallery_loader = self._get_visualization_loader(gallery_samples, self.transform_test, 128)
 
     def _get_samples(self, dataset):
         if dataset == "occluded_duke":
@@ -120,8 +120,8 @@ class Loader:
         loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
         return loader
 
-    def _get_ranked_loader(self, samples, transform, batch_size):
-        dataset = RankedDataset(samples, transform=transform)
+    def _get_visualization_loader(self, samples, transform, batch_size):
+        dataset = VisualizationDataset(samples, transform=transform)
         loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
         return loader
 
