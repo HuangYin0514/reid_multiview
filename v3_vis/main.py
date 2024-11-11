@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", type=str, default="cuda")
-    parser.add_argument("--mode", type=str, default="visualization", help="train, test, visualization")
+    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
     parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
     parser.add_argument("--backbone", type=str, default="resnet50", help="resnet50, resnet50ibna")
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")

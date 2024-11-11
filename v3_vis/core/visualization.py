@@ -31,21 +31,23 @@ class Visualization_CAM:
         features_map = model(images)
         bs, c, h, w = features_map.shape
 
-        # classifier_params = [param for name, param in classifier.named_parameters()]
-        # heatmaps = torch.zeros((bs, h, w), device="cuda")
-        # for i in range(bs):
-        #     heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
-        #     if heatmap_i.max() != 0:
-        #         heatmap_i = (heatmap_i - heatmap_i.min()) / (heatmap_i.max() - heatmap_i.min())
-        #     heatmap_i = heatmap_i.reshape(h, w)
-        #     heatmaps[i] = heatmap_i
+        # CAM
+        classifier_params = [param for name, param in classifier.named_parameters()]
+        heatmaps = torch.zeros((bs, h, w), device="cuda")
+        for i in range(bs):
+            heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
+            if heatmap_i.max() != 0:
+                heatmap_i = (heatmap_i - heatmap_i.min()) / (heatmap_i.max() - heatmap_i.min())
+            heatmap_i = heatmap_i.reshape(h, w)
+            heatmaps[i] = heatmap_i
 
-        heatmaps = torch.abs(features_map)
-        # max_channel_indices = torch.argmax(heatmaps, dim=1, keepdim=True)[0]
-        # print(max_channel_indices, max_channel_indices.shape)
-        # heatmaps = torch.max(heatmaps[:, 476 : 476 + 1, :, :], dim=1, keepdim=True)[0]
-        heatmaps = torch.max(heatmaps, dim=1, keepdim=True)[0]
-        heatmaps = heatmaps.squeeze()
+        # Channel
+        # heatmaps = torch.abs(features_map)
+        # # max_channel_indices = torch.argmax(heatmaps, dim=1, keepdim=True)[0]
+        # # print(max_channel_indices, max_channel_indices.shape)
+        # # heatmaps = torch.max(heatmaps[:, 476 : 476 + 1, :, :], dim=1, keepdim=True)[0]
+        # heatmaps = torch.max(heatmaps, dim=1, keepdim=True)[0]
+        # heatmaps = heatmaps.squeeze()
 
         heatmaps = heatmaps.view(bs, h * w)
         heatmaps = F.normalize(heatmaps, p=2, dim=1)
@@ -142,8 +144,10 @@ class Visualization_ranked_results:
                 invalid = (qpid == gpid) & (qcamid == gcamid)
                 if not invalid:
                     matched = gpid == qpid
-                    if rank_idx == 1 and matched:  # 过滤
+
+                    if matched and rank_idx == 1:  # 过滤, rank-1 错误的情况
                         continue
+
                     if data_type == "image":
                         border_color = self.GREEN if matched else self.RED
                         gimg = cv2.imread(gimg_path)
@@ -154,10 +158,13 @@ class Visualization_ranked_results:
                         end = (rank_idx + 1) * width + rank_idx * self.GRID_SPACING + self.QUERY_EXTRA_SPACING
                         grid_img[:, start:end, :] = gimg
                     rank_idx += 1
+
                     if rank_idx > topk:
                         break
 
             if data_type == "image":
+                # if qpid != 19:  # 查询特定的行人图像
+                #     continue
                 imname = os.path.basename(os.path.splitext(qimg_path_name)[0])
                 cv2.imwrite(os.path.join(save_dir, imname + ".jpg"), grid_img)
 
@@ -186,16 +193,17 @@ def visualization(config, base, loader):
     ###########################################################################################
     # CMA (heat map)
     ###########################################################################################
-    # print(time_now(), "CAM start")
-    # train_loader = loader.loader
-    # Visualization_CAM_fn = Visualization_CAM(config)
-    # with torch.no_grad():
-    #     for index, data in enumerate(train_loader):
-    #         print(time_now(), "CAM: {}/{}".format(index, len(train_loader)))
-    #         images, pids, cids = data
-    #         images = images.to(base.device)
-    #         Visualization_CAM_fn.__call__(images, base.model, base.classifier, pids)
-    # print(time_now(), "CAM done.")
+    print(time_now(), "CAM start")
+    train_loader = loader.loader
+    Visualization_CAM_fn = Visualization_CAM(config)
+    with torch.no_grad():
+        for index, data in enumerate(train_loader):
+            print(time_now(), "CAM: {}/{}".format(index, len(train_loader)))
+            images, pids, cids = data
+            images = images.to(base.device)
+            Visualization_CAM_fn.__call__(images, base.model, base.classifier, pids)
+            break
+    print(time_now(), "CAM done.")
 
     ###########################################################################################
     # ranked list
@@ -203,37 +211,37 @@ def visualization(config, base, loader):
     print(time_now(), "Visualization_ranked_results start")
     base.set_eval()
     loaders = [loader.query_loader, loader.gallery_loader]
-    # #  ------------------------------------------------
-    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    with torch.no_grad():
-        for loader_id, loader in enumerate(loaders):
-            for data in loader:
-                images, pids, cids, path = data
-                images = images.to(base.device)
-                flip_imgs = torch.flip(images, [3]).cuda()
-                features_map = base.model(images)
-                flip_features_map = base.model(flip_imgs)
-                bn_features = base.classifier(features_map)
-                # bn_features[:, 476 : 1000 + 1] = 0
-                flip_bn_features = base.classifier(flip_features_map)
-                bn_features = bn_features + flip_bn_features
+    # ------------------------------------------------
+    # query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    # gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    # with torch.no_grad():
+    #     for loader_id, loader in enumerate(loaders):
+    #         for data in loader:
+    #             images, pids, cids, path = data
+    #             images = images.to(base.device)
+    #             flip_imgs = torch.flip(images, [3]).cuda()
+    #             features_map = base.model(images)
+    #             flip_features_map = base.model(flip_imgs)
+    #             bn_features = base.classifier(features_map)
+    #             # bn_features[:, 476 : 1000 + 1] = 0
+    #             flip_bn_features = base.classifier(flip_features_map)
+    #             bn_features = bn_features + flip_bn_features
 
-                if loader_id == 0:
-                    query_features_meter.update(bn_features.data)
-                    query_pids_meter.update(pids)
-                    query_cids_meter.update(cids)
-                elif loader_id == 1:
-                    gallery_features_meter.update(bn_features.data)
-                    gallery_pids_meter.update(pids)
-                    gallery_cids_meter.update(cids)
+    #             if loader_id == 0:
+    #                 query_features_meter.update(bn_features.data)
+    #                 query_pids_meter.update(pids)
+    #                 query_cids_meter.update(cids)
+    #             elif loader_id == 1:
+    #                 gallery_features_meter.update(bn_features.data)
+    #                 gallery_pids_meter.update(pids)
+    #                 gallery_cids_meter.update(cids)
 
-    query_features = query_features_meter.get_val_numpy()
-    gallery_features = gallery_features_meter.get_val_numpy()
+    # query_features = query_features_meter.get_val_numpy()
+    # gallery_features = gallery_features_meter.get_val_numpy()
 
-    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
+    # mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
 
-    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
+    # print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
 
     # ------------------------------------------------
     # t_dir = os.path.join(config.output_path, "tmp")
@@ -244,8 +252,8 @@ def visualization(config, base, loader):
     # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
     # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
-    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+    query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
     # ------------------------------------------------
     def cos_sim(x, y):
