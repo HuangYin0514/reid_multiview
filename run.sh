@@ -18,13 +18,13 @@
 #################################################################################
 # Vis
 #################################################################################
-cd /home/hy/project/reid_multiview/v3_backbone_IP
-sh vis.sh
+# cd /home/hy/project/reid_multiview/v3_backbone_IP
+# sh vis.sh
 
 #################################################################################
 # progress
 #################################################################################
-# # 重写融合模块
-# rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
-# cd /home/hy/project/reid_multiview/v3_backbone_IP
-# sh run.sh
+# 重写融合模块
+rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
+cd /home/hy/project/reid_multiview/v3_backbone_IP
+sh run.sh
