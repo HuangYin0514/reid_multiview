@@ -323,6 +323,7 @@ def visualization(config, base, loader):
     print("query_pids_features shape:", query_pids_features.shape)
     print("gallery_pids_features shape:", gallery_pids_features.shape)
 
+    # ------------------------------------------------
     # query 可视化结果
     # tsne = TSNE(n_components=2, random_state=42)
     # X_tsne = tsne.fit_transform(query_features)
@@ -339,6 +340,7 @@ def visualization(config, base, loader):
     # plt.show()
     # print(time_now(), "t-SNE done.")
 
+    # ------------------------------------------------
     # # gallery 可视化结果
     # tsne = TSNE(n_components=2, random_state=42)
     # X_tsne = tsne.fit_transform(gallery_features)
@@ -355,20 +357,29 @@ def visualization(config, base, loader):
     # plt.show()
     # print(time_now(), "t-SNE done.")
 
-    # all 可视化结果
+    # ------------------------------------------------
+    # all 可视化结果(查询模式)
     tsne = TSNE(n_components=2, random_state=42)
     all_features = np.concatenate((query_features, gallery_features), axis=0)
     all_pids_features = np.concatenate((query_pids_features, gallery_pids_features), axis=0)
     X_tsne = tsne.fit_transform(all_features)
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(10, 10), dpi=300)
+
+    plot_list = [19, 21, 31, 33, 83]
+
     for idx, pid in enumerate(np.unique(all_pids_features)):
-        if pid not in [577, 479, 4272, 834]:
+        if pid not in plot_list:
             continue
         plt.scatter(X_tsne[all_pids_features == pid, 0], X_tsne[all_pids_features == pid, 1], label=f"Class {pid}")
+
+    query_features_len = query_features.shape[0]
+    mask = np.isin(query_pids_features, plot_list)
+    plt.scatter(X_tsne[:query_features_len][mask, 0], X_tsne[:query_features_len][mask, 1], s=100, c="red", marker="x", alpha=0.8, label="Query Marked")
+
     plt.title("t-SNE Visualization of Simulated Data with Numpy")
     plt.xlabel("Component 1")
     plt.ylabel("Component 2")
     plt.legend()
-    plt.savefig(os.path.join(t_dir, "all_tsne.png"))  # 保存图像
+    plt.savefig(os.path.join(t_dir, "all_tsne.png"))
     plt.show()
     print(time_now(), "t-SNE done.")
