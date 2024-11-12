@@ -28,7 +28,7 @@ class Visualization_CAM:
 
     def actmap_fn(self, images, model, classifier, pids):
         _, _, height, width = images.shape
-        features_map = model(images)
+        features_map = model.module.heatmap(images)
         bs, c, h, w = features_map.shape
 
         # CAM
@@ -201,7 +201,7 @@ def visualization(config, base, loader):
             print(time_now(), "CAM: {}/{}".format(index, len(train_loader)))
             images, pids, cids = data
             images = images.to(base.device)
-            Visualization_CAM_fn.__call__(images, base.model, base.classifier, pids)
+            Visualization_CAM_fn.__call__(images, base.model, base.model.module.classifier, pids)
             break
     print(time_now(), "CAM done.")
 
@@ -245,8 +245,8 @@ def visualization(config, base, loader):
     # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
     # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
-    query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
 
     # ------------------------------------------------
     def cos_sim(x, y):

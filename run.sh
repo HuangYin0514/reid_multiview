@@ -8,26 +8,23 @@
 # cd /home/hy/project/reid_multiview/
 # sh run.sh
 
+
+#################################################################################
+# copy
+#################################################################################
+# cp -rf /home/hy/project/reid_multiview/v3_backbone_IP /home/hy/project/reid_multiview/v3_backbone_IP_bk
+
+
 #################################################################################
 # Vis
 #################################################################################
-# cd /home/hy/project/reid_multiview/v3_vis
-# sh run.sh
+cd /home/hy/project/reid_multiview/v3_backbone_IP
+sh vis.sh
 
 #################################################################################
 # progress
 #################################################################################
-# # 构建多视角融合的baseline，仅用传播机制，重点改了resnet结构
-# rm -rf /home/hy/project/reid_multiview/v3_backbone_P/results
-# cd /home/hy/project/reid_multiview/v3_backbone_P
+# # 重写融合模块
+# rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
+# cd /home/hy/project/reid_multiview/v3_backbone_IP
 # sh run.sh
-
-# # resnet 第三层正交 
-# rm -rf /home/hy/project/reid_multiview/v4_P_ResL3Ort/results 
-# cd /home/hy/project/reid_multiview/v4_P_ResL3Ort
-# sh run.sh
-
-# 重写融合模块
-rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
-cd /home/hy/project/reid_multiview/v3_backbone_IP
-sh run.sh

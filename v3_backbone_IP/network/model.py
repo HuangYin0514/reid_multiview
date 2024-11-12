@@ -106,6 +106,10 @@ class Model(nn.Module):
         self.classifier2 = Classifier2(config.pid_num)
         self.feature_map_integrating = FeatureMapIntegrating(config)
 
+    def heatmap(self, x):
+        _, _, _, _, features_map = self.backbone(x)
+        return features_map
+
     def forward(self, x, pids=None):
         if self.training:
             x1, x2, x3, x4, features_map = self.backbone(x)

@@ -212,36 +212,29 @@ def visualization(config, base, loader):
     base.set_eval()
     loaders = [loader.query_loader, loader.gallery_loader]
     # ------------------------------------------------
-    # query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    # gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    # with torch.no_grad():
-    #     for loader_id, loader in enumerate(loaders):
-    #         for data in loader:
-    #             images, pids, cids, path = data
-    #             images = images.to(base.device)
-    #             flip_imgs = torch.flip(images, [3]).cuda()
-    #             features_map = base.model(images)
-    #             flip_features_map = base.model(flip_imgs)
-    #             bn_features = base.classifier(features_map)
-    #             # bn_features[:, 476 : 1000 + 1] = 0
-    #             flip_bn_features = base.classifier(flip_features_map)
-    #             bn_features = bn_features + flip_bn_features
+    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    with torch.no_grad():
+        for loader_id, loader in enumerate(loaders):
+            for data in loader:
+                images, pids, cids, path = data
+                bn_features = base.model(images)
 
-    #             if loader_id == 0:
-    #                 query_features_meter.update(bn_features.data)
-    #                 query_pids_meter.update(pids)
-    #                 query_cids_meter.update(cids)
-    #             elif loader_id == 1:
-    #                 gallery_features_meter.update(bn_features.data)
-    #                 gallery_pids_meter.update(pids)
-    #                 gallery_cids_meter.update(cids)
+                if loader_id == 0:
+                    query_features_meter.update(bn_features.data)
+                    query_pids_meter.update(pids)
+                    query_cids_meter.update(cids)
+                elif loader_id == 1:
+                    gallery_features_meter.update(bn_features.data)
+                    gallery_pids_meter.update(pids)
+                    gallery_cids_meter.update(cids)
 
-    # query_features = query_features_meter.get_val_numpy()
-    # gallery_features = gallery_features_meter.get_val_numpy()
+    query_features = query_features_meter.get_val_numpy()
+    gallery_features = gallery_features_meter.get_val_numpy()
 
-    # mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
+    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
 
-    # print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
+    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
 
     # ------------------------------------------------
     # t_dir = os.path.join(config.output_path, "tmp")

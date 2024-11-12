@@ -18,12 +18,7 @@ def test(config, base, loader):
             for data in loader:
                 images, pids, cids = data
                 images = images.to(base.device)
-                flip_imgs = torch.flip(images, [3]).cuda()
-                features_map = base.model(images)
-                flip_features_map = base.model(flip_imgs)
-                bn_features = base.classifier(features_map)
-                flip_bn_features = base.classifier(flip_features_map)
-                bn_features = bn_features + flip_bn_features
+                bn_features = base.model(images)
 
                 if loader_id == 0:
                     query_features_meter.update(bn_features.data)

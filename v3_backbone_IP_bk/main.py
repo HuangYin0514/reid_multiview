@@ -63,9 +63,6 @@ def main(config):
 
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
-            model.classifier_lr_scheduler.step(current_epoch)
-            model.classifier2_lr_scheduler.step(current_epoch)
-            model.auxiliaryModel_lr_scheduler.step(current_epoch)
 
             if current_epoch < config.total_train_epoch:
                 _, result = train(model, loaders, config)

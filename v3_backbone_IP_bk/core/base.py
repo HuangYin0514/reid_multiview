@@ -4,7 +4,7 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from network import AuxiliaryModel, Classifier, Classifier2, Model, Res50IBNaBNNeck
+from network import Model, Res50IBNaBNNeck
 from tools import CrossEntropyLabelSmooth, KLDivLoss, ReasoningLoss, os_walk
 
 
@@ -42,15 +42,6 @@ class Base:
             self.model = Model(self.config)
         self.model = nn.DataParallel(self.model).to(self.device)
 
-        self.classifier = Classifier(self.pid_num)
-        self.classifier = nn.DataParallel(self.classifier).to(self.device)
-
-        self.classifier2 = Classifier2(self.pid_num)
-        self.classifier2 = nn.DataParallel(self.classifier2).to(self.device)
-
-        self.auxiliaryModel = AuxiliaryModel(self.pid_num)
-        self.auxiliaryModel = nn.DataParallel(self.auxiliaryModel).to(self.device)
-
     def _init_creiteron(self):
         self.pid_creiteron = CrossEntropyLabelSmooth()
         self.reasoning_creiteron = ReasoningLoss()
@@ -59,54 +50,24 @@ class Base:
     def _init_optimizer(self):
 
         model_params_group = [{"params": self.model.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
-        classifier_params_group = [{"params": self.classifier.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
-        classifier2_params_group = [{"params": self.classifier2.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
-        auxiliaryModel_params_group = [{"params": self.auxiliaryModel.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
 
         self.model_optimizer = optim.Adam(model_params_group)
         self.model_lr_scheduler = WarmupMultiStepLR(self.model_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
-
-        self.classifier_optimizer = optim.Adam(classifier_params_group)
-        self.classifier_lr_scheduler = WarmupMultiStepLR(self.classifier_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
-
-        self.classifier2_optimizer = optim.Adam(classifier2_params_group)
-        self.classifier2_lr_scheduler = WarmupMultiStepLR(self.classifier2_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
-
-        self.auxiliaryModel_optimizer = optim.Adam(auxiliaryModel_params_group)
-        self.auxiliaryModel_lr_scheduler = WarmupMultiStepLR(self.auxiliaryModel_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
 
     def save_model(self, save_epoch, is_best):
         if is_best:
             model_file_path = os.path.join(self.save_model_path, "model_{}.pth".format(save_epoch))
             torch.save(self.model.state_dict(), model_file_path)
 
-            classifier_file_path = os.path.join(self.save_model_path, "classifier_{}.pth".format(save_epoch))
-            torch.save(self.classifier.state_dict(), classifier_file_path)
-
-            classifier2_file_path = os.path.join(self.save_model_path, "classifier2_{}.pth".format(save_epoch))
-            torch.save(self.classifier2.state_dict(), classifier2_file_path)
-
-            auxiliaryModel_file_path = os.path.join(self.save_model_path, "auxiliaryModel_{}.pth".format(save_epoch))
-            torch.save(self.auxiliaryModel.state_dict(), auxiliaryModel_file_path)
-
         if self.max_save_model_num > 0:
             root, _, files = os_walk(self.save_model_path)
             for file in files:
                 if ".pth" not in file:
                     files.remove(file)
-            if len(files) > 4 * self.max_save_model_num:
+            if len(files) > 1 * self.max_save_model_num:
                 file_iters = sorted([int(file.replace(".pth", "").split("_")[1]) for file in files], reverse=False)
                 model_file_path = os.path.join(root, "model_{}.pth".format(file_iters[0]))
                 os.remove(model_file_path)
-
-                classifier_file_path = os.path.join(root, "classifier_{}.pth".format(file_iters[0]))
-                os.remove(classifier_file_path)
-
-                classifier2_file_path = os.path.join(root, "classifier2_{}.pth".format(file_iters[0]))
-                os.remove(classifier2_file_path)
-
-                auxiliaryModel_file_path = os.path.join(root, "auxiliaryModel_{}.pth".format(file_iters[0]))
-                os.remove(auxiliaryModel_file_path)
 
     def resume_last_model(self):
         root, _, files = os_walk(self.save_model_path)
@@ -129,32 +90,12 @@ class Base:
         self.model.load_state_dict(torch.load(model_path), strict=False)
         print("Successfully resume model from {}".format(model_path))
 
-        classifier_path = os.path.join(self.save_model_path, "classifier_{}.pth".format(resume_epoch))
-        self.classifier.load_state_dict(torch.load(classifier_path), strict=False)
-        print("Successfully resume classifier from {}".format(classifier_path))
-
-        classifier2_path = os.path.join(self.save_model_path, "classifier2_{}.pth".format(resume_epoch))
-        self.classifier2.load_state_dict(torch.load(classifier2_path), strict=False)
-        print("Successfully resume classifier2 from {}".format(classifier2_path))
-
-        auxiliaryModel_file_path = os.path.join(self.save_model_path, "auxiliaryModel_{}.pth".format(resume_epoch))
-        self.auxiliaryModel.load_state_dict(torch.load(auxiliaryModel_file_path), strict=False)
-        print("Successfully resume auxiliaryModel from {}".format(auxiliaryModel_file_path))
-
     def set_train(self):
         self.model = self.model.train()
-        self.classifier = self.classifier.train()
-        self.classifier2 = self.classifier2.train()
-        self.auxiliaryModel = self.auxiliaryModel.train()
-
         self.training = True
 
     def set_eval(self):
         self.model = self.model.eval()
-        self.classifier = self.classifier.eval()
-        self.classifier2 = self.classifier2.eval()
-        self.auxiliaryModel = self.auxiliaryModel.eval()
-
         self.training = False
 
 
