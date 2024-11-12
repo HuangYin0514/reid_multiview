@@ -8,12 +8,10 @@
 # cd /home/hy/project/reid_multiview/
 # sh run.sh
 
-
 #################################################################################
 # copy
 #################################################################################
 # cp -rf /home/hy/project/reid_multiview/v3_backbone_IP /home/hy/project/reid_multiview/v3_backbone_IP_tsne
-
 
 #################################################################################
 # Vis
@@ -27,7 +25,12 @@
 #################################################################################
 # progress
 #################################################################################
-# # 重写融合模块
-rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
-cd /home/hy/project/reid_multiview/v3_backbone_IP
+# backbone
+# rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
+# cd /home/hy/project/reid_multiview/v3_backbone_IP
+# sh run.sh
+
+# seam
+rm -rf /home/hy/project/reid_multiview/v4_seam/results
+cd /home/hy/project/reid_multiview/v4_seam
 sh run.sh
