@@ -40,7 +40,7 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
-class FeatureMapIntegrating:
+class FeatureMapIntegrating(nn.Module):
     def __init__(self, config):
         super(FeatureMapIntegrating, self).__init__()
         self.config = config
@@ -56,16 +56,28 @@ class FeatureMapIntegrating:
         return integrating_bn_features, integrating_pids
 
 
+class FeatureDecoupling(nn.Module):
+    def __init__(self, config):
+        super(FeatureDecoupling, self).__init__()
+        self.config = config
+
+    def forward(self, features):
+        return features
+
+
 class Model(nn.Module):
 
     def __init__(self, config):
         super(Model, self).__init__()
         self.backbone = Backbone()
 
-        self.classifier = Classifier(config.pid_num)
-        self.classifier2 = Classifier2(config.pid_num)
+        # 解耦
+        self.decouping = FeatureDecoupling(config)
+
+        # 特征融合
         self.feature_integrating = FeatureMapIntegrating(config)
 
+        # 分类
         self.gap_bn = GAP_BN(2048)
         self.bn_classifier = BN_Classifier(2048, config.pid_num)
         self.bn_classifier2 = BN_Classifier(2048, config.pid_num)
@@ -77,26 +89,28 @@ class Model(nn.Module):
     def forward(self, x, pids=None):
         if self.training:
             x1, x2, x3, x4, features_map = self.backbone(x)
-
-            # 主分支
             features = self.gap_bn(features_map)
-            bn_features, cls_score = self.bn_classifier(features)
+
+            # 解耦分支
+            decoupling_features = self.decouping(features)
+            bn_features, cls_score = self.bn_classifier(decoupling_features)
 
             # 融合分支
-            integrating_bn_features, integrating_pids = self.feature_integrating(features, pids)
-            integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_bn_features)
+            integrating_features, integrating_pids = self.feature_integrating(decoupling_features, pids)
+            integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
 
             return cls_score, integrating_cls_score, integrating_cls_score, integrating_pids, bn_features, integrating_bn_features
         else:
-            images = x
-            _, _, _, _, features_map = self.backbone(images)
-            features = self.gap_bn(features_map)
-            bn_features, _ = self.bn_classifier(features)
 
+            def core_func(images):
+                _, _, _, _, features_map = self.backbone(images)
+                features = self.gap_bn(features_map)
+                decoupling_features = self.decouping(features)
+                bn_features, cls_score = self.bn_classifier(decoupling_features)
+                return bn_features
+
+            bn_features = core_func(x)
             flip_images = torch.flip(x, [3])
-            _, _, _, _, flip_features_map = self.backbone(flip_images)
-            flip_bn_features = self.gap_bn(flip_features_map)
-            flip_bn_features, _ = self.bn_classifier(features)
-
+            flip_bn_features = core_func(flip_images)
             bn_features = bn_features + flip_bn_features
             return bn_features

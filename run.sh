@@ -19,28 +19,25 @@
 # cd /home/hy/project/reid_multiview/v3_backbone_IP
 # sh vis.sh
 
-cd /home/hy/project/reid_multiview/v4_IP_mv
-sh vis.sh
+# cd /home/hy/project/reid_multiview/v4_IP_mv
+# sh vis.sh
 
 #################################################################################
 # progress
 #################################################################################
-# # backbone
-# rm -rf /home/hy/project/reid_multiview/v3_backbone_IP/results
-# cd /home/hy/project/reid_multiview/v3_backbone_IP
-# sh run.sh
 
-# # seam 注意力模块
-# rm -rf /home/hy/project/reid_multiview/v4_seam/results
-# cd /home/hy/project/reid_multiview/v4_seam
-# sh run.sh
+# # v4_mv, 修改已有程序的bug, 增加解耦模块（空）
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_2
+sh run.sh
 
-# # 多视图融合策略
-# rm -rf /home/hy/project/reid_multiview/v4_seam/results
-# cd /home/hy/project/reid_multiview/v4_seam
-# sh run.sh
+# v4_IP_mv_2, 修改整合方式为mean
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_3
+sh run.sh
 
-# # bn 融合
-# rm -rf /home/hy/project/reid_multiview/v4_mv/results
-# cd /home/hy/project/reid_multiview/v4_mv
-# sh run.sh
+# # v4_IP_mv_2, 神经网络融合
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_4
+sh run.sh
+
