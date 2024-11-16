@@ -27,9 +27,9 @@
 #################################################################################
 
 # # # 构造backbone
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_6/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_6
-# sh run.sh
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_6/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_6
+sh run.sh
 
 # v4_IP_mv_6, 三种对比损失
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_7/results
