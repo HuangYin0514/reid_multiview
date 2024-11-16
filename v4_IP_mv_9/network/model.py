@@ -135,9 +135,9 @@ class Model(nn.Module):
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
 
             # (指定)损失
-            # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
+            specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
 
-            decoupling_loss += sharedSpecialLoss + sharedSharedLoss
+            decoupling_loss += sharedSpecialLoss + sharedSharedLoss + specialSpecialLoss
 
         total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss
 

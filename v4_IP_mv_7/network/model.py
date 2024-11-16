@@ -139,8 +139,6 @@ class Model(nn.Module):
 
             decoupling_loss += sharedSpecialLoss
 
-            # print(sharedSpecialLoss, specialSpecialLoss)
-
         total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss
 
         meter.update(
