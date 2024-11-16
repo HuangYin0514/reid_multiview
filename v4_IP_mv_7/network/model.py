@@ -126,7 +126,7 @@ class Model(nn.Module):
         decoupling_loss = 0
         for i in range(chunk_bs):
             shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-            special_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
+            special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
 
             # (共享-指定)损失
             sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
