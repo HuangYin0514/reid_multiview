@@ -1,0 +1,155 @@
+import torch
+import torch.nn as nn
+
+from .common import *
+from .contrastive_loss import SharedSpecialLoss, SpecialSpecialLoss
+from .gem_pool import GeneralizedMeanPoolingP
+from .resnet50 import resnet50
+
+
+class Backbone(nn.Module):
+    def __init__(self):
+        super(Backbone, self).__init__()
+        resnet = resnet50(pretrained=True)
+        # resnet = torchvision.models.resnet50(pretrained=True)
+        # Modifiy backbone
+        resnet.layer4[0].downsample[0].stride = (1, 1)
+        resnet.layer4[0].conv2.stride = (1, 1)
+        # Backbone structure
+        self.resnet_conv1 = resnet.conv1
+        self.resnet_bn1 = resnet.bn1
+        self.resnet_maxpool = resnet.maxpool
+        self.resnet_layer1 = resnet.layer1
+        self.resnet_layer2 = resnet.layer2
+        self.resnet_layer3 = resnet.layer3
+        self.resnet_layer4 = resnet.layer4
+
+    def forward(self, x):
+        x = self.resnet_conv1(x)
+        x = self.resnet_bn1(x)
+        x = self.resnet_maxpool(x)
+
+        x1 = x
+        x = self.resnet_layer1(x)
+        x2 = x
+        x = self.resnet_layer2(x)
+        x3 = x
+        x = self.resnet_layer3(x)
+        x4 = x
+        x = self.resnet_layer4(x)
+        return x1, x2, x3, x4, x
+
+
+class FeatureMapIntegrating(nn.Module):
+    def __init__(self, config):
+        super(FeatureMapIntegrating, self).__init__()
+        self.config = config
+
+    def __call__(self, bn_features, pids):
+        bs, f_dim = bn_features.size(0), bn_features.size(1)
+        chunk_bs = int(bs / 4)
+
+        # Fusion
+        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, c, h, w)
+        integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
+        integrating_pids = pids[::4]
+        return integrating_bn_features, integrating_pids
+
+
+class FeatureDecoupling(nn.Module):
+    def __init__(self, config):
+        super(FeatureDecoupling, self).__init__()
+        self.config = config
+
+        # shared branch
+        ic = 2048
+        oc = 1024
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+            nn.Linear(oc, oc, bias=False),
+        )
+
+        # special branch
+        self.mlp2 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+            nn.Linear(oc, oc, bias=False),
+        )
+
+    def forward(self, features):
+        shared_features = self.mlp1(features)
+        special_features = self.mlp2(features)
+        return shared_features, special_features
+
+
+class Model(nn.Module):
+
+    def __init__(self, config):
+        super(Model, self).__init__()
+        self.backbone = Backbone()
+
+        # 解耦
+        self.decoupling = FeatureDecoupling(config)
+
+        # 特征融合
+        self.feature_integrating = FeatureMapIntegrating(config)
+
+        # 分类
+        self.gap_bn = GAP_BN(2048)
+        self.bn_classifier = BN_Classifier(2048, config.pid_num)
+        self.bn_classifier2 = BN_Classifier(2048, config.pid_num)
+
+    def heatmap(self, x):
+        _, _, _, _, features_map = self.backbone(x)
+        return features_map
+
+    def forward(self, x, pids=None):
+        if self.training:
+            x1, x2, x3, x4, features_map = self.backbone(x)
+            features = self.gap_bn(features_map)
+
+            # 解耦分支
+            shared_features, special_features = self.decoupling(features)
+            decoupling_loss = 0
+            for i in range(16):
+                shared_feature_i = shared_features[4 * i : 4 * i + 4, ...]
+                special_feature_i = shared_features[4 * i : 4 * i + 4, ...]
+
+                # 共享指定损失
+                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+
+                decoupling_loss += sharedSpecialLoss
+            decoupling_features = torch.cat([shared_features, special_features], dim=1)
+            bn_features, cls_score = self.bn_classifier(decoupling_features)
+
+            # 融合分支
+            integrating_features, integrating_pids = self.feature_integrating(decoupling_features, pids)
+            integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
+
+            return (
+                cls_score,
+                integrating_cls_score,
+                integrating_cls_score,
+                integrating_pids,
+                bn_features,
+                integrating_bn_features,
+                decoupling_loss,
+            )
+        else:
+
+            def core_func(images):
+                _, _, _, _, features_map = self.backbone(images)
+                features = self.gap_bn(features_map)
+                shared_features, special_features = self.decoupling(features)
+                decoupling_features = torch.cat([shared_features, special_features], dim=1)
+                bn_features, cls_score = self.bn_classifier(decoupling_features)
+                return bn_features
+
+            bn_features = core_func(x)
+            flip_images = torch.flip(x, [3])
+            flip_bn_features = core_func(flip_images)
+            bn_features = bn_features + flip_bn_features
+            return bn_features
