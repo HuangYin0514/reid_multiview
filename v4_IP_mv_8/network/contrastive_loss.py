@@ -38,8 +38,8 @@ class SpecialSpecialLoss(nn.Module):
         super(SpecialSpecialLoss, self).__init__()
 
     def forward(self, embedded_a):
-        bs = embedded_a.shape[0]
         sims = cos_sim(embedded_a, embedded_a)
+        bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)
         non_diag_sims = sims[mask]
         loss = -torch.log(1 - non_diag_sims)
