@@ -28,9 +28,9 @@
 
 
 # # v4_IP_mv_2, format
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_12/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_12
-# sh run.sh
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_12/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_12
+sh run.sh
 
 
 # v4_IP_mv_2, format, bn_features = F.normalize(features, p=2, dim=1)
@@ -43,3 +43,17 @@ rm -rf /home/hy/project/reid_multiview/v4_IP_mv_14/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_14
 sh run.sh
 
+# v4_IP_mv_12, 共享/指定特征id约束
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_15/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_15
+sh run.sh
+
+# v4_IP_mv_15, 共享/指定特征id约束，  共享-指定损失/共享损失
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_16/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_16
+sh run.sh
+
+# # v4_IP_mv_16, 共享/指定特征id约束，  共享-指定损失/共享损失/指定损失
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_17/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_17
+sh run.sh
