@@ -17,7 +17,7 @@ class SharedSpecialLoss(nn.Module):
     def forward(self, embedded_a, embedded_b):
         sim = cos_sim(embedded_a, embedded_b)
         loss = -torch.log(1 - sim)
-        return torch.mean(loss)
+        return torch.sum(loss)
 
 
 class SharedSharedLoss(nn.Module):

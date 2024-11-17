@@ -33,8 +33,13 @@
 # sh run.sh
 
 
-# v4_IP_mv_2, format, 共享-指定损失sum方式 
+# v4_IP_mv_2, format, bn_features = F.normalize(features, p=2, dim=1)
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_13/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_13
+sh run.sh
+
+# v4_IP_mv_2, format, 共享-指定损失sum方式 
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_14/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_14
 sh run.sh
 
