@@ -172,7 +172,8 @@ class Model(nn.Module):
                 backbone_features = self.gap_bn(backbone_features_map)
                 shared_features, special_features = self.decoupling(backbone_features)
                 features = torch.cat([shared_features, special_features], dim=1)
-                bn_features = F.normalize(features, p=2, dim=1)
+                # bn_features = F.normalize(features, p=2, dim=1)
+                bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
             bn_features = core_func(x)
