@@ -26,8 +26,15 @@
 # progress
 #################################################################################
 
-# v4_IP_mv, (共享-指定)损失 
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_7/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_7
+
+# # v4_IP_mv_2, format
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_12/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_12
 # sh run.sh
+
+
+# v4_IP_mv_2, format, 共享-指定损失sum方式 
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_13/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_13
+sh run.sh
 
