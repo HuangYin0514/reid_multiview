@@ -51,7 +51,7 @@ class BN_Classifier(nn.Module):
         self.pid_num = pid_num
         self.BN = nn.BatchNorm1d(channel)
         self.BN.apply(weights_init_kaiming)
-        self.classifier = nn.Linear(2048, self.pid_num, bias=False)
+        self.classifier = nn.Linear(channel, self.pid_num, bias=False)
         self.classifier.apply(weights_init_classifier)
 
     def forward(self, features):
