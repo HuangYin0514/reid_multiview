@@ -74,7 +74,7 @@ def main(config):
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
                 best_rank1 = max(CMC[0], best_rank1)
-                best_epoch = current_epoch
+                best_epoch = current_epoch if is_best_rank else best_epoch
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
