@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore")
 
 best_mAP = 0
 best_rank1 = 0
+best_epoch = 0
 
 
 def seed_torch(seed):
@@ -31,6 +32,7 @@ def seed_torch(seed):
 def main(config):
     global best_mAP
     global best_rank1
+    global best_epoch
 
     loaders = Loader(config)
     model = Base(config)
@@ -72,8 +74,14 @@ def main(config):
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
                 best_rank1 = max(CMC[0], best_rank1)
+                best_epoch = current_epoch if is_best_rank else best_epoch
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+
+        if best_rank1:
+            logger("=" * 50)
+            logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
+            logger("=" * 50)
 
     elif config.mode == "test":
         model.resume_model(config.resume_test_model)
