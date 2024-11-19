@@ -28,6 +28,6 @@
 
 
 # # v4_IP_mv_3, seam注意力
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_2
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_4
 sh run.sh
