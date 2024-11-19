@@ -68,12 +68,18 @@ def main(config):
                 _, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
 
-            if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
+            # if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
+            if 1 == 1:
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
                 best_rank1 = max(CMC[0], best_rank1)
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+
+                if best_rank1:
+                    logger("=" * 10)
+                    logger("save best model to {}: best_rank1 {}".format(current_epoch, best_rank1))
+                    logger("=" * 10)
 
     elif config.mode == "test":
         model.resume_model(config.resume_test_model)

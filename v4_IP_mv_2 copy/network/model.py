@@ -53,8 +53,7 @@ class FeatureMapIntegrating(nn.Module):
 
         # Fusion
         integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, c, h, w)
-        integrating_bn_features = torch.sum(integrating_bn_features, dim=1).repeat_interleave(4, dim=0)
-
+        integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
         integrating_pids = pids[::4]
         return integrating_bn_features, integrating_pids
 
@@ -92,8 +91,6 @@ class Model(nn.Module):
 
         # 解耦
         self.decoupling = FeatureDecoupling(config)
-        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
         # 特征融合
         self.feature_integrating = FeatureMapIntegrating(config)
@@ -126,11 +123,6 @@ class Model(nn.Module):
         integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 特征解耦
-        _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
-        shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-        _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
-        special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
-
         num_views = 4
         bs = cls_score.size(0)
         chunk_bs = int(bs / num_views)
@@ -141,13 +133,13 @@ class Model(nn.Module):
             # (共享-指定)损失
             sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
             # (共享)损失
-            sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+            # sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
             # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+            decoupling_loss += sharedSpecialLoss
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss
 
         meter.update(
             {
@@ -155,8 +147,6 @@ class Model(nn.Module):
                 "integrating_pid_loss": integrating_ide_loss.data,
                 "integrating_reasoning_loss": integrating_reasoning_loss.data,
                 "decoupling_loss": decoupling_loss.data,
-                "shared_ide_loss": shared_ide_loss.data,
-                "special_ide_loss": special_ide_loss.data,
             }
         )
         return total_loss
