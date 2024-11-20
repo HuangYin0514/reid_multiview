@@ -38,7 +38,7 @@
 # cd /home/hy/project/reid_multiview/v4_IP_mv_3
 # sh run.sh
 
-# 去除初始化
+# decoupling_loss += sharedSpecialLoss + 0.01 * sharedSharedLoss
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_4
 sh run.sh
