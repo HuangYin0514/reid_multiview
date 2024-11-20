@@ -29,6 +29,6 @@
 
 
 # # IP结合注意力
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_3
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_2
 sh run.sh

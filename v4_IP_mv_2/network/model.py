@@ -70,12 +70,14 @@ class FeatureDecoupling(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp1.apply(weights_init_kaiming)
 
         # special branch
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp2.apply(weights_init_kaiming)
 
     def forward(self, features):
         shared_features = self.mlp1(features)
@@ -91,6 +93,8 @@ class Model(nn.Module):
 
         # 解耦
         self.decoupling = FeatureDecoupling(config)
+        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
+        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
         # 特征融合
         self.feature_integrating = FeatureMapIntegrating(config)
@@ -123,6 +127,11 @@ class Model(nn.Module):
         integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 特征解耦
+        _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
+        shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+        _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
+        special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+
         num_views = 4
         bs = cls_score.size(0)
         chunk_bs = int(bs / num_views)
@@ -133,13 +142,13 @@ class Model(nn.Module):
             # (共享-指定)损失
             sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
             # (共享)损失
-            # sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+            sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
             # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss
+            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss
+        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss + shared_ide_loss + special_ide_loss
 
         meter.update(
             {
@@ -147,6 +156,8 @@ class Model(nn.Module):
                 "integrating_pid_loss": integrating_ide_loss.data,
                 "integrating_reasoning_loss": integrating_reasoning_loss.data,
                 "decoupling_loss": decoupling_loss.data,
+                "shared_ide_loss": shared_ide_loss.data,
+                "special_ide_loss": special_ide_loss.data,
             }
         )
         return total_loss
@@ -172,7 +183,6 @@ class Model(nn.Module):
                 backbone_features = self.gap_bn(backbone_features_map)
                 shared_features, special_features = self.decoupling(backbone_features)
                 features = torch.cat([shared_features, special_features], dim=1)
-                # bn_features = F.normalize(features, p=2, dim=1)
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
