@@ -42,3 +42,8 @@
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_4
 sh run.sh
+
+# loss = loss * rank_weights * 0.25
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_5
+sh run.sh
