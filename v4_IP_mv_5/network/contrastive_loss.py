@@ -27,15 +27,16 @@ class SharedSharedLoss(nn.Module):
     def forward(self, embedded_a):
         sims = cos_sim(embedded_a, embedded_a)
         bs = embedded_a.shape[0]
-        # mask = ~torch.eye(bs, dtype=torch.bool)
-        # non_diag_sims = sims[mask]
-        # loss = -torch.log(non_diag_sims)
+        mask = ~torch.eye(bs, dtype=torch.bool)
+        non_diag_sims = sims[mask]
+        loss = -torch.log(non_diag_sims)
 
-        _, indices = sims.sort(descending=True, dim=1)
-        _, rank = indices.sort(dim=1)
+        loss[loss < 0] = 0
+        _, indices = non_diag_sims.sort(descending=True, dim=0)
+        _, rank = indices.sort(dim=0)
         rank = rank - 1
-        rank_weights = torch.exp(-rank.float() * self.alpha)
-        loss = loss * rank_weights * 0.25
+        rank_weights = torch.exp(-rank.float() * 0.25)
+        loss = loss * rank_weights
 
         return torch.mean(loss)
 

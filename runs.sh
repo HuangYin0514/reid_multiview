@@ -38,12 +38,12 @@
 # cd /home/hy/project/reid_multiview/v4_IP_mv_3
 # sh run.sh
 
-# decoupling_loss += sharedSpecialLoss + 0.01 * sharedSharedLoss
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_4
-sh run.sh
+# # decoupling_loss += sharedSpecialLoss + 0.01 * sharedSharedLoss
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_4
+# sh run.sh
 
-# loss = loss * rank_weights * 0.25
+# loss = loss * rank_weights
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_5
 sh run.sh
