@@ -70,12 +70,14 @@ class FeatureDecoupling(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp1.apply(weights_init_kaiming)
 
         # special branch
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp2.apply(weights_init_kaiming)
 
     def forward(self, features):
         shared_features = self.mlp1(features)
@@ -176,12 +178,11 @@ class Model(nn.Module):
             return total_loss
         else:
 
-            def core_func(images):
-                x1, x2, x3, x4, backbone_features_map = self.backbone(images)
+            def core_func(x):
+                x1, x2, x3, x4, backbone_features_map = self.backbone(x)
                 backbone_features = self.gap_bn(backbone_features_map)
                 shared_features, special_features = self.decoupling(backbone_features)
                 features = torch.cat([shared_features, special_features], dim=1)
-                # bn_features = F.normalize(features, p=2, dim=1)
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
