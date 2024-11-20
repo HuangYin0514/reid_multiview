@@ -28,13 +28,17 @@
 #################################################################################
 
 
-# 分离特征
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_2
-sh run.sh
+# # 分离特征
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2_backbone/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_2_backbone
+# sh run.sh
 
+# # 去除初始化
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_3
+# sh run.sh
 
-# 
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_3
+# 去除初始化
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_4
 sh run.sh

@@ -70,14 +70,14 @@ class FeatureDecoupling(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        # self.mlp1.apply(weights_init_kaiming)
+        self.mlp1.apply(weights_init_kaiming)
 
         # special branch
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        # self.mlp2.apply(weights_init_kaiming)
+        self.mlp2.apply(weights_init_kaiming)
 
     def forward(self, features):
         shared_features = self.mlp1(features)
