@@ -3,6 +3,7 @@ from tqdm import tqdm
 
 
 def train(base, loaders, config):
+
     base.set_train()
     loader = loaders.loader
     meter = MultiItemAverageMeter()

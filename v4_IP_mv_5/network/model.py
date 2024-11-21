@@ -47,12 +47,18 @@ class FeatureMapIntegrating(nn.Module):
         super(FeatureMapIntegrating, self).__init__()
         self.config = config
 
-    def __call__(self, bn_features, pids):
+    def __call__(self, bn_features, pids, cls_scores):
         bs, f_dim = bn_features.size(0), bn_features.size(1)
         chunk_bs = int(bs / 4)
 
+        prob = torch.log_softmax(cls_scores, dim=1)
+        probs = prob[torch.arange(bs), pids]
+        weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
+        quantified_features_map = weights.unsqueeze(1) * bn_features
+
         # Fusion
-        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
+        integrating_bn_features = quantified_features_map.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, c, h, w)
         integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
         integrating_pids = pids[::4]
         return integrating_bn_features, integrating_pids
@@ -117,23 +123,23 @@ class Model(nn.Module):
         ) = input_features
 
         # IDE
-        bn_features, cls_score = self.bn_classifier(features)
-        ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+        bn_features, cls_scores = self.bn_classifier(features)
+        ide_loss = CrossEntropyLabelSmooth().forward(cls_scores, pids)
 
         # 多视角
-        integrating_features, integrating_pids = self.feature_integrating(features, pids)
-        integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
-        integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+        integrating_features, integrating_pids = self.feature_integrating(features, pids, cls_scores)
+        integrating_bn_features, integrating_cls_scores = self.bn_classifier2(integrating_features)
+        integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_scores, integrating_pids)
         integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 特征解耦
-        _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
-        shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-        _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
-        special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+        _, shared_cls_scores = self.decoupling_shared_bn_classifier(shared_features)
+        shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_scores, pids)
+        _, special_cls_scores = self.decoupling_special_bn_classifier(special_features)
+        special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_scores, pids)
 
         num_views = 4
-        bs = cls_score.size(0)
+        bs = cls_scores.size(0)
         chunk_bs = int(bs / num_views)
         decoupling_loss = 0
         for i in range(chunk_bs):
