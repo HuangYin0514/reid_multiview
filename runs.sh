@@ -28,22 +28,21 @@
 #################################################################################
 
 
-# 分离特征
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2_backbone/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_2_backbone
-sh run.sh
+# # 分离特征
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2_backbone/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_2_backbone
+# sh run.sh
 
-# 去除初始化
 rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
 cd /home/hy/project/reid_multiview/v4_IP_mv_3
 sh run.sh
 
-# decoupling_loss += sharedSpecialLoss + 0.01 * sharedSharedLoss
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_4
-sh run.sh
+# # decoupling_loss += sharedSpecialLoss + 0.01 * sharedSharedLoss
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_4
+# sh run.sh
 
-# loss = loss * rank_weights
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_5
-sh run.sh
+# # loss = loss * rank_weights
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_5
+# sh run.sh

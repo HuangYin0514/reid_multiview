@@ -115,7 +115,14 @@ class Model(nn.Module):
             features,
             shared_features,
             special_features,
+            flip_features,
+            flip_shared_features,
+            flip_special_features,
         ) = input_features
+
+        features = features + flip_features
+        shared_features = shared_features + flip_shared_features
+        special_features = special_features + flip_special_features
 
         # IDE
         bn_features, cls_score = self.bn_classifier(features)
@@ -170,11 +177,19 @@ class Model(nn.Module):
             shared_features, special_features = self.decoupling(backbone_features)
             features = torch.cat([shared_features, special_features], dim=1)
 
+            flip_x = torch.flip(x, [3])
+            x1, x2, x3, x4, flip_backbone_features_map = self.backbone(flip_x)
+            flip_backbone_features = self.gap_bn(flip_backbone_features_map)
+            flip_shared_features, flip_special_features = self.decoupling(flip_backbone_features)
+            flip_features = torch.cat([flip_shared_features, flip_special_features], dim=1)
+
             input_features = [
-                backbone_features,
                 features,
                 shared_features,
                 special_features,
+                flip_features,
+                flip_shared_features,
+                flip_special_features,
             ]
             total_loss = self.make_loss(input_features=input_features, pids=pids, meter=meter)
             return total_loss
