@@ -157,7 +157,6 @@ class Model(nn.Module):
                 "integrating_reasoning_loss": integrating_reasoning_loss.data,
                 "decoupling_loss": decoupling_loss.data,
                 "shared_ide_loss": shared_ide_loss.data,
-                "special_ide_loss": special_ide_loss.data,
             }
         )
         return total_loss
