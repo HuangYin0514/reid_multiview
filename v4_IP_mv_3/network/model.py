@@ -52,10 +52,9 @@ class FeatureMapIntegrating(nn.Module):
         chunk_bs = int(bs / 4)
 
         # Fusion
-        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, c, h, w)
+        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
         integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
         integrating_pids = pids[::4]
-
         return integrating_bn_features, integrating_pids
 
 
@@ -115,14 +114,7 @@ class Model(nn.Module):
             features,
             shared_features,
             special_features,
-            flip_features,
-            flip_shared_features,
-            flip_special_features,
         ) = input_features
-
-        features = features + flip_features
-        shared_features = shared_features + flip_shared_features
-        special_features = special_features + flip_special_features
 
         # IDE
         bn_features, cls_score = self.bn_classifier(features)
@@ -152,8 +144,8 @@ class Model(nn.Module):
             # (共享)损失
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
-            specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss + specialSpecialLoss
+            # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
+            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
         # 总损失
         total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss + shared_ide_loss + special_ide_loss
@@ -177,19 +169,10 @@ class Model(nn.Module):
             shared_features, special_features = self.decoupling(backbone_features)
             features = torch.cat([shared_features, special_features], dim=1)
 
-            flip_x = torch.flip(x, [3])
-            x1, x2, x3, x4, flip_backbone_features_map = self.backbone(flip_x)
-            flip_backbone_features = self.gap_bn(flip_backbone_features_map)
-            flip_shared_features, flip_special_features = self.decoupling(flip_backbone_features)
-            flip_features = torch.cat([flip_shared_features, flip_special_features], dim=1)
-
             input_features = [
                 features,
                 shared_features,
                 special_features,
-                flip_features,
-                flip_shared_features,
-                flip_special_features,
             ]
             total_loss = self.make_loss(input_features=input_features, pids=pids, meter=meter)
             return total_loss

@@ -1,13 +1,8 @@
-from network.processing import (
-    FeatureMapIntegrating,
-    FeatureMapLocalizedIntegratingNoRelu,
-)
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
 
 def train(base, loaders, config):
-
     base.set_train()
     loader = loaders.loader
     meter = MultiItemAverageMeter()
