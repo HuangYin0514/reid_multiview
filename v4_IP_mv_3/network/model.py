@@ -5,7 +5,6 @@ from torch.nn import functional as F
 
 from .common import *
 from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
-from .gem_pool import GeneralizedMeanPoolingP
 from .resnet50 import resnet50
 
 
@@ -145,7 +144,7 @@ class Model(nn.Module):
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
             # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss + 0.5 * sharedSharedLoss
+            decoupling_loss += sharedSpecialLoss + 0.05 * sharedSharedLoss
 
         # 总损失
         total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss + decoupling_loss + shared_ide_loss + special_ide_loss

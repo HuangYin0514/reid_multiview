@@ -5,7 +5,6 @@ from torch.nn import functional as F
 
 from .common import *
 from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
-from .gem_pool import GeneralizedMeanPoolingP
 from .resnet50 import resnet50
 
 
