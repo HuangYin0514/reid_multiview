@@ -107,7 +107,7 @@ class Model(nn.Module):
         _, _, _, _, features_map = self.backbone(x)
         return features_map
 
-    def make_loss(self, input_features, pids, meter):
+    def make_loss(self, input_features, pids, cids, epoch, meter):
 
         (
             features,
@@ -161,7 +161,7 @@ class Model(nn.Module):
         )
         return total_loss
 
-    def forward(self, x, pids=None, meter=None):
+    def forward(self, x, pids=None, cids=None, epoch=None, meter=None):
         if self.training:
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             backbone_features = self.gap_bn(backbone_features_map)
@@ -173,7 +173,7 @@ class Model(nn.Module):
                 shared_features,
                 special_features,
             ]
-            total_loss = self.make_loss(input_features=input_features, pids=pids, meter=meter)
+            total_loss = self.make_loss(input_features=input_features, pids=pids, cids=cids, epoch=epoch, meter=meter)
             return total_loss
         else:
 

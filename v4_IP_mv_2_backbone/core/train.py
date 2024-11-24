@@ -6,11 +6,11 @@ def train(base, loaders, config):
     base.set_train()
     loader = loaders.loader
     meter = MultiItemAverageMeter()
-    for i, data in enumerate(tqdm(loader)):
+    for epoch, data in enumerate(tqdm(loader)):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
-            total_loss = base.model(imgs, pids, meter)
+            total_loss = base.model(imgs, pids, cids, epoch, meter)
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
