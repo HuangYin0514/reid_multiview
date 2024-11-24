@@ -32,6 +32,28 @@ def weights_init_classifier(m):
             nn.init.constant_(m.bias, 0.0)
 
 
+class MLPResidualBlock(nn.Module):
+    def __init__(self, in_channels, num_layers=1):
+        super(MLPResidualBlock, self).__init__()
+        net = nn.ModuleList()
+        for _ in range(num_layers):
+            mlp = nn.Sequential(
+                nn.Linear(in_channels, in_channels, bias=False),
+                nn.BatchNorm1d(in_channels),
+            )
+            net.append(mlp)
+        self.net = net
+        self.net.apply(weights_init_kaiming)
+
+    def forward(self, x):
+        identity = x
+        for mlp in self.net:
+            out = mlp(x)
+            x = out
+        out += identity
+        return out
+
+
 class GAP_BN(nn.Module):
     def __init__(self, channel=2048):
         super(GAP_BN, self).__init__()
