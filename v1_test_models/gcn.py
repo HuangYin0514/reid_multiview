@@ -63,7 +63,7 @@ if __name__ == "__main__":
     feature_dim = 2048  # 输入特征维度
     hidden_dim = 2048  # 隐藏层维度
     output_dim = 2048  # 输出维度
-    dropout = 0.5  # dropout 概率
+    dropout = 0.5  # dropout概率
 
     # 随机生成输入特征矩阵
     x = torch.randn(num_nodes, feature_dim)

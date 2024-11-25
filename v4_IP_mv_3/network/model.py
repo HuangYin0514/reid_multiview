@@ -99,7 +99,7 @@ class Model(nn.Module):
         self.feature_integrating = FeatureMapIntegrating(config)
 
         # 聚合特征
-        self.gcn = GCN(nfeat=2048, nhid=2048, nout=2048, dropout=0.1)
+        self.gcn = GCN(nfeat=2048, nhid=2048, nout=2048, dropout=0.0)
 
         # 分类
         self.gap_bn = GAP_BN(2048)
@@ -141,12 +141,12 @@ class Model(nn.Module):
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             features = self.gap_bn(backbone_features_map)
 
-            # GCN
-            edge = self.gcn._constract_graph(features)
-            gcn_features = self.gcn(features, edge)
+            # # GCN
+            # edge = self.gcn._constract_graph(features)
+            # gcn_features = self.gcn(features, edge)
 
             input_features = [
-                gcn_features,
+                features,
             ]
             total_loss = self.make_loss(input_features=input_features, pids=pids, cids=cids, epoch=epoch, meter=meter)
             return total_loss
@@ -155,10 +155,10 @@ class Model(nn.Module):
             def core_func(x):
                 x1, x2, x3, x4, backbone_features_map = self.backbone(x)
                 features = self.gap_bn(backbone_features_map)
-                # GCN
-                edge = self.gcn._constract_graph(features)
-                gcn_features = self.gcn(features, edge)
-                bn_features, cls_score = self.bn_classifier(gcn_features)
+                # # GCN
+                # edge = self.gcn._constract_graph(features)
+                # gcn_features = self.gcn(features, edge)
+                bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
             bn_features = core_func(x)
