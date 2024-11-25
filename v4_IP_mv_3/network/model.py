@@ -158,7 +158,7 @@ class Model(nn.Module):
                 # GCN
                 edge = self.gcn._constract_graph(features)
                 gcn_features = self.gcn(features, edge)
-                bn_features, cls_score = self.bn_classifier(features)
+                bn_features, cls_score = self.bn_classifier(gcn_features)
                 return bn_features
 
             bn_features = core_func(x)
