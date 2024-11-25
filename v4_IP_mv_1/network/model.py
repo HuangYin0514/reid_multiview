@@ -5,7 +5,6 @@ from torch.nn import functional as F
 
 from .common import *
 from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
-from .gem_pool import GeneralizedMeanPoolingP
 from .resnet50 import resnet50
 
 
@@ -58,11 +57,43 @@ class FeatureMapIntegrating(nn.Module):
         return integrating_bn_features, integrating_pids
 
 
+class FeatureDecoupling(nn.Module):
+    def __init__(self, config):
+        super(FeatureDecoupling, self).__init__()
+        self.config = config
+
+        # shared branch
+        ic = 2048
+        oc = 1024
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
+        # special branch
+        self.mlp2 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp2.apply(weights_init_kaiming)
+
+    def forward(self, features):
+        shared_features = self.mlp1(features)
+        special_features = self.mlp2(features)
+        return shared_features, special_features
+
+
 class Model(nn.Module):
 
     def __init__(self, config):
         super(Model, self).__init__()
         self.backbone = Backbone()
+
+        # 解耦
+        self.decoupling = FeatureDecoupling(config)
+        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
+        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
         # 特征融合
         self.feature_integrating = FeatureMapIntegrating(config)
@@ -76,7 +107,7 @@ class Model(nn.Module):
         _, _, _, _, features_map = self.backbone(x)
         return features_map
 
-    def make_loss(self, input_features, pids, meter):
+    def make_loss(self, input_features, pids, cids, epoch, meter):
 
         (features,) = input_features
 
@@ -102,7 +133,7 @@ class Model(nn.Module):
         )
         return total_loss
 
-    def forward(self, x, pids=None, meter=None):
+    def forward(self, x, pids=None, cids=None, epoch=None, meter=None):
         if self.training:
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             features = self.gap_bn(backbone_features_map)
@@ -110,7 +141,7 @@ class Model(nn.Module):
             input_features = [
                 features,
             ]
-            total_loss = self.make_loss(input_features=input_features, pids=pids, meter=meter)
+            total_loss = self.make_loss(input_features=input_features, pids=pids, cids=cids, epoch=epoch, meter=meter)
             return total_loss
         else:
 
