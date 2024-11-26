@@ -41,9 +41,25 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
-class FeatureMapIntegrating(nn.Module):
+class SharedFeatureMapIntegrating(nn.Module):
     def __init__(self, config):
-        super(FeatureMapIntegrating, self).__init__()
+        super(SharedFeatureMapIntegrating, self).__init__()
+        self.config = config
+
+    def __call__(self, bn_features, pids):
+        bs, f_dim = bn_features.size(0), bn_features.size(1)
+        chunk_bs = int(bs / 4)
+
+        # Fusion
+        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
+        integrating_bn_features = torch.mean(integrating_bn_features, dim=1)
+        integrating_pids = pids[::4]
+        return integrating_bn_features, integrating_pids
+
+
+class SpecialFeatureMapIntegrating(nn.Module):
+    def __init__(self, config):
+        super(SpecialFeatureMapIntegrating, self).__init__()
         self.config = config
 
     def __call__(self, bn_features, pids):
@@ -96,7 +112,8 @@ class Model(nn.Module):
         self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
         # 特征融合
-        self.feature_integrating = FeatureMapIntegrating(config)
+        self.shared_feature_integrating = SharedFeatureMapIntegrating(config)
+        self.special_feature_integrating = SpecialFeatureMapIntegrating(config)
 
         # 分类
         self.gap_bn = GAP_BN(2048)
@@ -108,7 +125,6 @@ class Model(nn.Module):
         return features_map
 
     def make_loss(self, input_features, pids, cids, epoch, meter):
-
         (
             features,
             shared_features,
@@ -119,18 +135,21 @@ class Model(nn.Module):
         bn_features, cls_score = self.bn_classifier(features)
         ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
-        # 多视角
-        integrating_features, integrating_pids = self.feature_integrating(features, pids)
-        integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
-        integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-        integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
-
         # 特征解耦
         _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
         shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
         _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
+        # 多视角
+        shared_integrating_features, integrating_pids = self.shared_feature_integrating(shared_features, pids)
+        special_integrating_features, integrating_pids = self.special_feature_integrating(special_features, pids)
+        integrating_features = torch.cat([shared_integrating_features, special_integrating_features], dim=1)
+        integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
+        integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+        integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
+
+        # 解耦损失
         num_views = 4
         bs = cls_score.size(0)
         chunk_bs = int(bs / num_views)
@@ -142,6 +161,7 @@ class Model(nn.Module):
             sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
             # (共享)损失
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+
             # (指定)损失
             # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
             decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
