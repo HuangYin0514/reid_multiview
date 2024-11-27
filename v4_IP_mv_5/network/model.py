@@ -91,7 +91,7 @@ class ReasoningLoss(nn.Module):
 
     def forward(self, bn_features, bn_features2):
         new_bn_features2 = torch.zeros(bn_features.size()).cuda()
-        for i in range(int(bn_features2.size(0) / 4)):
+        for i in range(int(bn_features.size(0) / 4)):
             new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
         loss = torch.norm((bn_features - new_bn_features2), p=2)
         return loss
@@ -135,7 +135,7 @@ class Model(nn.Module):
         integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss
+        total_loss = ide_loss + integrating_ide_loss + 0.01 * integrating_reasoning_loss
 
         meter.update(
             {
