@@ -46,12 +46,17 @@ class SharedFeatureMapIntegrating(nn.Module):
         super(SharedFeatureMapIntegrating, self).__init__()
         self.config = config
 
-    def __call__(self, bn_features, pids):
+    def __call__(self, bn_features, shared_cls_score, pids):
         bs, f_dim = bn_features.size(0), bn_features.size(1)
         chunk_bs = int(bs / 4)
 
+        prob = torch.log_softmax(shared_cls_score, dim=1)
+        probs = prob[torch.arange(bs), pids]
+        weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+        quantified_bn_features = weights.unsqueeze(1) * bn_features
+
         # Fusion
-        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
+        integrating_bn_features = quantified_bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
         integrating_bn_features = torch.mean(integrating_bn_features, dim=1)
         integrating_pids = pids[::4]
         return integrating_bn_features, integrating_pids
@@ -142,7 +147,7 @@ class Model(nn.Module):
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
         # 多视角
-        shared_integrating_features, integrating_pids = self.shared_feature_integrating(shared_features, pids)
+        shared_integrating_features, integrating_pids = self.shared_feature_integrating(shared_features, shared_cls_score, pids)
         special_integrating_features, integrating_pids = self.special_feature_integrating(special_features, pids)
         integrating_features = torch.cat([shared_integrating_features, special_integrating_features], dim=1)
         integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
