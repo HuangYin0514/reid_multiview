@@ -122,7 +122,7 @@ class Model(nn.Module):
         integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss
+        total_loss = ide_loss + integrating_ide_loss + 0.01 * integrating_reasoning_loss
 
         meter.update(
             {

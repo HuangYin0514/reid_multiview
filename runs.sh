@@ -31,13 +31,13 @@
 # cd /home/hy/project/reid_multiview/v4_IP_mv_5
 # sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_4
-sh run.sh
-
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_3
+# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
+# cd /home/hy/project/reid_multiview/v4_IP_mv_4
 # sh run.sh
+
+rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
+cd /home/hy/project/reid_multiview/v4_IP_mv_3
+sh run.sh
 
 # 分离特征
 # rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2_backbone/results
