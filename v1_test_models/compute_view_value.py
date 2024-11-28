@@ -23,7 +23,7 @@ def compute_view_value(rs, H, view):
 
 
 if __name__ == "__main__":
-    rs = torch.randn(64, 2048)
+    rs = torch.randn(4, 16, 2048)
     H = torch.randn(16, 2048)
     rs = normalize(rs, dim=1)
     H = normalize(H, dim=1)
@@ -32,4 +32,5 @@ if __name__ == "__main__":
     model = compute_view_value
 
     out = model(rs, H, view)
+    print(out)
     print(out.shape)
