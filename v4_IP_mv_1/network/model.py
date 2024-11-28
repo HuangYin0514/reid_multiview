@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-from tools import CrossEntropyLabelSmooth, KLDivLoss, ReasoningLoss
-from torch.nn import functional as F
+from tools import CrossEntropyLabelSmooth
 
 from .common import *
-from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
+from .contrastive_loss import *
 from .resnet50 import resnet50
 
 
@@ -82,6 +81,18 @@ class FeatureDecoupling(nn.Module):
         shared_features = self.mlp1(features)
         special_features = self.mlp2(features)
         return shared_features, special_features
+
+
+class ReasoningLoss(nn.Module):
+    def __init__(self):
+        super(ReasoningLoss, self).__init__()
+
+    def forward(self, bn_features, bn_features2):
+        new_bn_features2 = torch.zeros(bn_features.size()).cuda()
+        for i in range(int(bn_features2.size(0) / 4)):
+            new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
+        loss = torch.norm((bn_features - new_bn_features2), p=2)
+        return loss
 
 
 class Model(nn.Module):
