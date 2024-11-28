@@ -1,4 +1,6 @@
 
+#!/bin/bash
+
 #################################################################################
 # Common
 #################################################################################
@@ -31,18 +33,18 @@
 # cd /home/hy/project/reid_multiview/v4_IP_mv_5
 # sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_4/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_4
+#注意空格
+folder="v4_IP_mv_3"
+folder="v4_IP_mv_4"
+folder="v4_IP_mv_5"
+# folder="v4_IP_mv_6"
+
+echo $folder  
+
+rm -rf /home/hy/project/reid_multiview/$folder/results
+cd /home/hy/project/reid_multiview/$folder
 sh run.sh
 
-rm -rf /home/hy/project/reid_multiview/v4_IP_mv_3/results
-cd /home/hy/project/reid_multiview/v4_IP_mv_3
-sh run.sh
-
-# 分离特征
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_2_backbone/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_2_backbone
-# sh run.sh
 
 
 
