@@ -6,7 +6,7 @@ from torch.nn.modules.module import Module
 from torch.nn.parameter import Parameter
 
 
-def compute_view_value(rs, H, view):
+def get_MMD_weight(rs, H, view):
     N = H.shape[0]
     w = []
     # all features are normalized
@@ -22,6 +22,20 @@ def compute_view_value(rs, H, view):
     return w.squeeze()
 
 
+# if __name__ == "__main__":
+#     rs = torch.randn(4, 16, 2048)
+#     H = torch.randn(16, 2048)
+#     rs = normalize(rs, dim=1)
+#     H = normalize(H, dim=1)
+#     view = 4
+
+#     model = get_MMD_weight
+
+#     out = model(rs, H, view)
+#     print(torch.sum(out))
+#     print(out)
+#     print(out.shape)
+
 if __name__ == "__main__":
     rs = torch.randn(4, 16, 2048)
     H = torch.randn(16, 2048)
@@ -29,8 +43,9 @@ if __name__ == "__main__":
     H = normalize(H, dim=1)
     view = 4
 
-    model = compute_view_value
+    model = get_MMD_weight
 
     out = model(rs, H, view)
+    print(torch.sum(out))
     print(out)
     print(out.shape)
