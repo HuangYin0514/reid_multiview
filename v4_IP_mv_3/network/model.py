@@ -90,10 +90,10 @@ class ReasoningLoss(nn.Module):
         super(ReasoningLoss, self).__init__()
 
     def forward(self, bn_features, bn_features2):
-        new_bn_features2 = torch.zeros(bn_features.size()).cuda()
-        for i in range(int(bn_features2.size(0))):
-            new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
-        loss = torch.norm((bn_features - new_bn_features2), p=2)
+        # new_bn_features2 = torch.zeros(bn_features.size()).cuda()
+        # for i in range(int(bn_features2.size(0))):
+        #     new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
+        loss = torch.norm((bn_features), p=2)
         return loss
 
 
