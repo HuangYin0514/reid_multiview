@@ -150,7 +150,6 @@ class Model(nn.Module):
             {
                 "pid_loss": ide_loss.data,
                 "integrating_pid_loss": integrating_ide_loss.data,
-                "decoupling_loss": decoupling_loss.data,
                 "shared_ide_loss": shared_ide_loss.data,
                 "special_ide_loss": special_ide_loss.data,
             }

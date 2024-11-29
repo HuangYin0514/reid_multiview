@@ -37,9 +37,9 @@
 folder="v4_IP_mv_3"
 folder="v4_IP_mv_4"
 folder="v4_IP_mv_5"
-folder="v4_IP_mv_6"
-folder="v4_IP_mv_7"
-folder="v4_IP_mv_8"
+# folder="v4_IP_mv_6"
+# folder="v4_IP_mv_7"
+# folder="v4_IP_mv_8"
 echo $folder  
 
 rm -rf /home/hy/project/reid_multiview/$folder/results
