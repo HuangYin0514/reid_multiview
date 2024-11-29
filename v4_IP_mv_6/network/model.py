@@ -119,11 +119,28 @@ class Model(nn.Module):
         bn_features, cls_score = self.bn_classifier(features)
         ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
+        # 多视角
+        integrating_features, integrating_pids = self.feature_integrating(features, pids)
+        integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
+        integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+
         # 特征解耦
         _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
         shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
         _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+
+        prob = torch.log_softmax(shared_cls_score, dim=1)
+        probs = prob[torch.arange(shared_cls_score.size(0)), pids]
+        shared_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
+        prob = torch.log_softmax(special_cls_score, dim=1)
+        probs = prob[torch.arange(special_cls_score.size(0)), pids]
+        special_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
+        # print(shared_weights.shape, shared_features.shape)
+        shared_features = shared_weights.unsqueeze(1) * shared_features
+        # special_features = special_weights.unsqueeze(1) * special_features
 
         num_views = 4
         bs = cls_score.size(0)
@@ -141,11 +158,12 @@ class Model(nn.Module):
             decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
         # 总损失
-        total_loss = ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+        total_loss = ide_loss + integrating_ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
 
         meter.update(
             {
                 "pid_loss": ide_loss.data,
+                "integrating_pid_loss": integrating_ide_loss.data,
                 "decoupling_loss": decoupling_loss.data,
                 "shared_ide_loss": shared_ide_loss.data,
                 "special_ide_loss": special_ide_loss.data,
