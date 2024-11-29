@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from tools import CrossEntropyLabelSmooth, KLDivLoss
-from torch.autograd import Variable
+from tools import CrossEntropyLabelSmooth, KLDivLoss, ReasoningLoss
 from torch.nn import functional as F
 
 from .common import *
@@ -85,18 +84,6 @@ class FeatureDecoupling(nn.Module):
         return shared_features, special_features
 
 
-class ReasoningLoss(nn.Module):
-    def __init__(self):
-        super(ReasoningLoss, self).__init__()
-
-    def forward(self, bn_features, bn_features2):
-        # new_bn_features2 = torch.zeros(bn_features.size()).cuda()
-        # for i in range(int(bn_features2.size(0))):
-        #     new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
-        loss = torch.norm((bn_features), p=2)
-        return loss
-
-
 class Model(nn.Module):
 
     def __init__(self, config):
@@ -122,7 +109,11 @@ class Model(nn.Module):
 
     def make_loss(self, input_features, pids, cids, epoch, meter):
 
-        (features,) = input_features
+        (
+            features,
+            shared_features,
+            special_features,
+        ) = input_features
 
         # IDE
         bn_features, cls_score = self.bn_classifier(features)
@@ -132,16 +123,38 @@ class Model(nn.Module):
         integrating_features, integrating_pids = self.feature_integrating(features, pids)
         integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
         integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-        integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
+
+        # 特征解耦
+        _, shared_cls_score = self.decoupling_shared_bn_classifier(shared_features)
+        shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+        _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
+        special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+
+        num_views = 4
+        bs = cls_score.size(0)
+        chunk_bs = int(bs / num_views)
+        decoupling_loss = 0
+        for i in range(chunk_bs):
+            shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
+            special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
+            # (共享-指定)损失
+            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+            # (共享)损失
+            sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+            # (指定)损失
+            # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
+            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.01 * integrating_reasoning_loss
+        total_loss = ide_loss + integrating_ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
 
         meter.update(
             {
                 "pid_loss": ide_loss.data,
                 "integrating_pid_loss": integrating_ide_loss.data,
-                "integrating_reasoning_loss": integrating_reasoning_loss.data,
+                "decoupling_loss": decoupling_loss.data,
+                "shared_ide_loss": shared_ide_loss.data,
+                "special_ide_loss": special_ide_loss.data,
             }
         )
         return total_loss
@@ -149,10 +162,14 @@ class Model(nn.Module):
     def forward(self, x, pids=None, cids=None, epoch=None, meter=None):
         if self.training:
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-            features = self.gap_bn(backbone_features_map)
+            backbone_features = self.gap_bn(backbone_features_map)
+            shared_features, special_features = self.decoupling(backbone_features)
+            features = torch.cat([shared_features, special_features], dim=1)
 
             input_features = [
                 features,
+                shared_features,
+                special_features,
             ]
             total_loss = self.make_loss(input_features=input_features, pids=pids, cids=cids, epoch=epoch, meter=meter)
             return total_loss
@@ -160,7 +177,9 @@ class Model(nn.Module):
 
             def core_func(x):
                 x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-                features = self.gap_bn(backbone_features_map)
+                backbone_features = self.gap_bn(backbone_features_map)
+                shared_features, special_features = self.decoupling(backbone_features)
+                features = torch.cat([shared_features, special_features], dim=1)
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 

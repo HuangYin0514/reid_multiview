@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
-from tools import CrossEntropyLabelSmooth, KLDivLoss
-from torch.autograd import Variable
-from torch.nn import functional as F
+from tools import CrossEntropyLabelSmooth
 
 from .common import *
-from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
+from .contrastive_loss import *
 from .resnet50 import resnet50
 
 
@@ -90,11 +88,9 @@ class ReasoningLoss(nn.Module):
         super(ReasoningLoss, self).__init__()
 
     def forward(self, bn_features, bn_features2):
-        # new_bn_features2 = torch.zeros(bn_features.size()).cuda()
-        # for i in range(int(bn_features2.size(0))):
-        #     new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
-        # loss = torch.norm((bn_features), p=2)
-        new_bn_features2 = bn_features2.repeat_interleave(4, dim=0).clone().detach()
+        new_bn_features2 = torch.zeros(bn_features.size()).cuda()
+        for i in range(int(bn_features2.size(0) / 4)):
+            new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
         loss = torch.norm((bn_features - new_bn_features2), p=2)
         return loss
 
@@ -134,16 +130,14 @@ class Model(nn.Module):
         integrating_features, integrating_pids = self.feature_integrating(features, pids)
         integrating_bn_features, integrating_cls_score = self.bn_classifier2(integrating_features)
         integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-        integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + 0.01 * integrating_reasoning_loss
+        total_loss = ide_loss + integrating_ide_loss
 
         meter.update(
             {
                 "pid_loss": ide_loss.data,
                 "integrating_pid_loss": integrating_ide_loss.data,
-                "integrating_reasoning_loss": integrating_reasoning_loss.data,
             }
         )
         return total_loss
