@@ -130,23 +130,21 @@ class Model(nn.Module):
         _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
-        num_views = 4
-        bs = cls_score.size(0)
-        chunk_bs = int(bs / num_views)
-        decoupling_loss = 0
-        for i in range(chunk_bs):
-            shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-            special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-            # (共享-指定)损失
-            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
-            # (共享)损失
-            sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-            # (指定)损失
-            # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+        # num_views = 4
+        # bs = cls_score.size(0)
+        # chunk_bs = int(bs / num_views)
+        # decoupling_loss = 0
+        # for i in range(chunk_bs):
+        #     shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
+        #     special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
+        #     # (共享-指定)损失
+        #     sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+        #     # (共享)损失
+        #     # sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+        #       decoupling_loss += sharedSpecialLoss
 
         # 总损失
-        total_loss = ide_loss + integrating_ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+        total_loss = ide_loss + integrating_ide_loss + shared_ide_loss + special_ide_loss
 
         meter.update(
             {
