@@ -125,6 +125,14 @@ class Model(nn.Module):
         _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
+        prob = torch.log_softmax(shared_cls_score, dim=1)
+        probs = prob[torch.arange(shared_cls_score.size(0)), pids]
+        shared_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
+        prob = torch.log_softmax(special_cls_score, dim=1)
+        probs = prob[torch.arange(special_cls_score.size(0)), pids]
+        special_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
         num_views = 4
         bs = cls_score.size(0)
         chunk_bs = int(bs / num_views)
@@ -132,8 +140,13 @@ class Model(nn.Module):
         for i in range(chunk_bs):
             shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
             special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
+
+            # 权重部分
+            shared_weights_i = shared_weights[num_views * i : num_views * (i + 1)]
+            special_weights_i = special_weights[num_views * i : num_views * (i + 1)]
+
             # (共享-指定)损失
-            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i, shared_weights_i, special_weights_i)
             # (共享)损失
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
