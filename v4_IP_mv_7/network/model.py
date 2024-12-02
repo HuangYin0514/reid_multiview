@@ -41,20 +41,30 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
-class FeatureMapIntegrating(nn.Module):
+class FeatureFusion(nn.Module):
     def __init__(self, config):
-        super(FeatureMapIntegrating, self).__init__()
+        super(FeatureFusion, self).__init__()
         self.config = config
 
-    def __call__(self, bn_features, pids):
-        bs, f_dim = bn_features.size(0), bn_features.size(1)
-        chunk_bs = int(bs / 4)
+        ic = 2048 * 2
+        oc = 2048
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+        )
 
-        # Fusion
-        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
-        integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
-        integrating_pids = pids[::4]
-        return integrating_bn_features, integrating_pids
+        self.mlp1.apply(weights_init_kaiming)
+        self.mlp2 = nn.Sequential(
+            nn.Linear(oc, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp2.apply(weights_init_kaiming)
+
+    def forward(self, features_1, features_2):
+        out = self.mlp1(torch.cat([features_1, features_2], dim=1))
+        out = out + self.mlp2(out)
+        return out
 
 
 class FeatureDecoupling(nn.Module):
@@ -96,7 +106,7 @@ class Model(nn.Module):
         self.decoupling_special_bn_classifier = BN_Classifier(2048, config.pid_num)
 
         # 特征融合
-        self.feature_integrating = FeatureMapIntegrating(config)
+        self.featureFusion = FeatureFusion(config)
 
         # 分类
         self.gap_bn = GAP_BN(2048)
@@ -136,11 +146,9 @@ class Model(nn.Module):
             sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
             # (共享)损失
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-            # (共享-全局)损失
-            sharedGlobalLoss = SharedGlobalLoss().forward(shared_feature_i)
             # (指定)损失
             # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss + 0.01 * sharedGlobalLoss
+            decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
             # print("sharedSpecialLoss: ", sharedSpecialLoss.item(), "sharedSharedLoss: ", sharedSharedLoss.item(), "sharedGlobalLoss: ", sharedGlobalLoss.item())
 
@@ -162,7 +170,7 @@ class Model(nn.Module):
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             backbone_features = self.gap_bn(backbone_features_map)
             shared_features, special_features = self.decoupling(backbone_features)
-            features = shared_features + special_features
+            features = self.featureFusion(shared_features, special_features)
 
             input_features = [
                 features,
@@ -177,7 +185,7 @@ class Model(nn.Module):
                 x1, x2, x3, x4, backbone_features_map = self.backbone(x)
                 backbone_features = self.gap_bn(backbone_features_map)
                 shared_features, special_features = self.decoupling(backbone_features)
-                features = shared_features + special_features
+                features = self.featureFusion(shared_features, special_features)
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
