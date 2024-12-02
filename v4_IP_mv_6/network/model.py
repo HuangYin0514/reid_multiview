@@ -64,7 +64,7 @@ class FeatureDecoupling(nn.Module):
 
         # shared branch
         ic = 2048
-        oc = 1024
+        oc = 2048
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -92,8 +92,8 @@ class Model(nn.Module):
 
         # 解耦
         self.decoupling = FeatureDecoupling(config)
-        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
+        self.decoupling_shared_bn_classifier = BN_Classifier(2048, config.pid_num)
+        self.decoupling_special_bn_classifier = BN_Classifier(2048, config.pid_num)
 
         # 特征融合
         self.feature_integrating = FeatureMapIntegrating(config)
@@ -125,14 +125,6 @@ class Model(nn.Module):
         _, special_cls_score = self.decoupling_special_bn_classifier(special_features)
         special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
-        prob = torch.log_softmax(shared_cls_score, dim=1)
-        probs = prob[torch.arange(shared_cls_score.size(0)), pids]
-        shared_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
-
-        prob = torch.log_softmax(special_cls_score, dim=1)
-        probs = prob[torch.arange(special_cls_score.size(0)), pids]
-        special_weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
-
         num_views = 4
         bs = cls_score.size(0)
         chunk_bs = int(bs / num_views)
@@ -140,13 +132,8 @@ class Model(nn.Module):
         for i in range(chunk_bs):
             shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
             special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-
-            # 权重部分
-            shared_weights_i = shared_weights[num_views * i : num_views * (i + 1)]
-            special_weights_i = special_weights[num_views * i : num_views * (i + 1)]
-
             # (共享-指定)损失
-            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i, shared_weights_i, special_weights_i)
+            sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
             # (共享)损失
             sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
             # (指定)损失
@@ -171,7 +158,7 @@ class Model(nn.Module):
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             backbone_features = self.gap_bn(backbone_features_map)
             shared_features, special_features = self.decoupling(backbone_features)
-            features = torch.cat([shared_features, special_features], dim=1)
+            features = shared_features + special_features
 
             input_features = [
                 features,
@@ -186,7 +173,7 @@ class Model(nn.Module):
                 x1, x2, x3, x4, backbone_features_map = self.backbone(x)
                 backbone_features = self.gap_bn(backbone_features_map)
                 shared_features, special_features = self.decoupling(backbone_features)
-                features = torch.cat([shared_features, special_features], dim=1)
+                features = shared_features + special_features
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 
