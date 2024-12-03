@@ -46,28 +46,27 @@ class FeatureFusion(nn.Module):
         super(FeatureFusion, self).__init__()
         self.config = config
 
-        ic = 2048 * 2
-        oc = 2048
-        self.mlp1 = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-            nn.ReLU(inplace=True),
-        )
-        self.mlp1.apply(weights_init_kaiming)
-        self.mlp2 = nn.Sequential(
-            nn.Linear(oc, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp2.apply(weights_init_kaiming)
-        self.mlp3 = nn.Sequential(
-            nn.Linear(oc, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp3.apply(weights_init_kaiming)
+        # ic = 2048 * 2
+        # oc = 2048
+        # self.mlp1 = nn.Sequential(
+        #     nn.Linear(ic, oc, bias=False),
+        #     nn.BatchNorm1d(oc),
+        #     nn.ReLU(inplace=True),
+        # )
+        # self.mlp1.apply(weights_init_kaiming)
+        # self.mlp2 = nn.Sequential(
+        #     nn.Linear(oc, oc, bias=False),
+        #     nn.BatchNorm1d(oc),
+        # )
+        # self.mlp2.apply(weights_init_kaiming)
+        # self.mlp3 = nn.Sequential(
+        #     nn.Linear(oc, oc, bias=False),
+        #     nn.BatchNorm1d(oc),
+        # )
+        # self.mlp3.apply(weights_init_kaiming)
 
     def forward(self, features_1, features_2):
-        out = self.mlp1(torch.cat([features_1, features_2], dim=1))
-        out = self.mlp2(out)
+        out = torch.cat([features_1, features_2], dim=-1)
         return out
 
 
@@ -78,7 +77,7 @@ class FeatureDecoupling(nn.Module):
 
         # shared branch
         ic = 2048
-        oc = 2048
+        oc = 1024
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -106,8 +105,8 @@ class Model(nn.Module):
 
         # 解耦
         self.decoupling = FeatureDecoupling(config)
-        self.decoupling_shared_bn_classifier = BN_Classifier(2048, config.pid_num)
-        self.decoupling_special_bn_classifier = BN_Classifier(2048, config.pid_num)
+        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
+        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
         # 特征融合
         self.featureFusion = FeatureFusion(config)
