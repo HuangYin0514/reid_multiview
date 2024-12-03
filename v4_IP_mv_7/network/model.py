@@ -53,17 +53,21 @@ class FeatureFusion(nn.Module):
             nn.BatchNorm1d(oc),
             nn.ReLU(inplace=True),
         )
-
         self.mlp1.apply(weights_init_kaiming)
         self.mlp2 = nn.Sequential(
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
         self.mlp2.apply(weights_init_kaiming)
+        self.mlp3 = nn.Sequential(
+            nn.Linear(oc, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp3.apply(weights_init_kaiming)
 
     def forward(self, features_1, features_2):
         out = self.mlp1(torch.cat([features_1, features_2], dim=1))
-        out = out + self.mlp2(out)
+        out = out + self.mlp3(self.mlp2(out))
         return out
 
 
