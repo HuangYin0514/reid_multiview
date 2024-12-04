@@ -1,0 +1,1 @@
+python main.py --output_path occluded_duke/base

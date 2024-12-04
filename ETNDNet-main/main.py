@@ -1,20 +1,19 @@
-import argparse
-import ast
 import os
-import random
-import warnings
-
-import numpy as np
+import ast
 import torch
-from core import Base, test, train, visualization
+import random
+import argparse
+import numpy as np
+
 from data_loader.loader import Loader
-from tools import Logger, make_dirs, os_walk, time_now
+from core import Base, train, test
+from tools import make_dirs, Logger, os_walk, time_now
+import warnings
 
 warnings.filterwarnings("ignore")
 
 best_mAP = 0
 best_rank1 = 0
-best_epoch = 0
 
 
 def seed_torch(seed):
@@ -32,7 +31,6 @@ def seed_torch(seed):
 def main(config):
     global best_mAP
     global best_rank1
-    global best_epoch
 
     loaders = Loader(config)
     model = Base(config)
@@ -41,7 +39,7 @@ def main(config):
     make_dirs(model.save_model_path)
     make_dirs(model.save_logs_path)
 
-    logger = Logger(os.path.join(os.path.join(config.output_path, "logs/"), "logger.log"))
+    logger = Logger(os.path.join(os.path.join(config.output_path, "logs/"), "log.txt"))
     logger("\n" * 3)
     logger(config)
 
@@ -65,6 +63,7 @@ def main(config):
 
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
+            model.classifier_lr_scheduler.step(current_epoch)
 
             if current_epoch < config.total_train_epoch:
                 _, result = train(model, loaders, config)
@@ -74,52 +73,30 @@ def main(config):
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
                 best_rank1 = max(CMC[0], best_rank1)
-                best_epoch = current_epoch if is_best_rank else best_epoch
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
-
-        if best_rank1:
-            logger("=" * 50)
-            logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
-            logger("=" * 50)
 
     elif config.mode == "test":
         model.resume_model(config.resume_test_model)
         mAP, CMC = test(config, model, loaders)
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
-    elif config.mode == "visualization":
-        loaders._visualization_load()
-        if config.auto_resume_training_from_lastest_step:
-            root, _, files = os_walk(model.save_model_path)
-            if len(files) > 0:
-                indexes = []
-                for file in files:
-                    indexes.append(int(file.replace(".pth", "").split("_")[-1]))
-                indexes = sorted(list(set(indexes)), reverse=False)
-                model.resume_model(indexes[-1])
-                start_train_epoch = indexes[-1]
-                logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
-        visualization(config, model, loaders)
-
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", type=str, default="cuda")
-    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
-    parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
+    parser.add_argument("--mode", type=str, default="train", help="train, test")
+    parser.add_argument("--module", type=str, default="ETND", help="B, ED, TD, ND, ETD, END, TND, ETND")
     parser.add_argument("--backbone", type=str, default="resnet50", help="resnet50, resnet50ibna")
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")
-    parser.add_argument("--occluded_reid_path", type=str, default="/opt/data/private/data/Occluded_REID")
+    parser.add_argument("--occluded_reid_path", type=str, default="/opt/data/private/data/Occluded_REID_OURS/new")
     parser.add_argument("--partial_duke_path", type=str, default="/opt/data/private/data/P_Duke_OURS/new")
-    parser.add_argument("--partial_reid_path", type=str, default="/opt/data/private/data/Partial-REID_Dataset")
-    parser.add_argument("--partial_ilids_path", type=str, default="/opt/data/private/data/Partial_iLIDS")
     parser.add_argument("--market_path", type=str, default="/opt/data/private/data//Market-1501-v15.09.15")
     parser.add_argument("--duke_path", type=str, default="/opt/data/private/data/DukeMTMC-reID")
     parser.add_argument("--msmt_path", type=str, default="/opt/data/private/data/MSMT17")
-    parser.add_argument("--train_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
-    parser.add_argument("--test_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
+    parser.add_argument("--train_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "partial_duke, market, duke, msmt")
+    parser.add_argument("--test_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "partial_duke, market, duke, msmt")
     parser.add_argument("--image_size", type=int, nargs="+", default=[256, 128])
     parser.add_argument("--use_rea", type=ast.literal_eval, default=True, help="use random erasing augmentation")
     parser.add_argument("--use_colorjitor", type=ast.literal_eval, default=False, help="use random erasing augmentation")
@@ -129,7 +106,12 @@ if __name__ == "__main__":
     parser.add_argument("--pid_num", type=int, default=702)
     parser.add_argument("--in_dim", type=int, default=2048)
     parser.add_argument("--learning_rate", type=float, default=0.0003)
-    parser.add_argument("--lambda1", type=float, default=0.007)
+    parser.add_argument("--lower", type=float, default=0.02)
+    parser.add_argument("--upper", type=float, default=0.4)
+    parser.add_argument("--ratio", type=float, default=0.3)
+    parser.add_argument("--lambda1", type=float, default=0.1)
+    parser.add_argument("--lambda2", type=float, default=0.15)
+    parser.add_argument("--lambda3", type=float, default=0.1)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument("--milestones", nargs="+", type=int, default=[40, 70], help="milestones for the learning rate decay")
     parser.add_argument("--output_path", type=str, default="occluded_duke/base/", help="path to save related informations")
@@ -140,10 +122,6 @@ if __name__ == "__main__":
     parser.add_argument("--eval_epoch", type=int, default=5)
     parser.add_argument("--resume_test_model", type=int, default=119, help="-1 for no resuming")
     parser.add_argument("--test_mode", type=str, default="inter-camera", help="inter-camera, intra-camera, all")
-
-    parser.add_argument("--lower", type=float, default=0.02)
-    parser.add_argument("--upper", type=float, default=0.4)
-    parser.add_argument("--ratio", type=float, default=0.3)
 
     config = parser.parse_args()
     seed_torch(config.seed)
