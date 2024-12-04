@@ -18,14 +18,8 @@ def train(base, loaders, config):
             bn_features, cls_score = base.model.module.bn_classifier(bn_features)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
-            # 多视角
-            integrating_features, integrating_pids = base.model.module.feature_integrating(bn_features, pids)
-            integrating_bn_features, integrating_cls_score = base.model.module.bn_classifier2(integrating_features)
-            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-            integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
-
             # 总损失
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss
+            total_loss = ide_loss
 
             # 反向传播
             base.model_optimizer.zero_grad()
@@ -35,8 +29,6 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "integrating_pid_loss": integrating_ide_loss.data,
-                    "integrating_reasoning_loss": integrating_reasoning_loss.data,
                 }
             )
 
