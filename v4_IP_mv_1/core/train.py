@@ -8,9 +8,6 @@ def train(base, loaders, config):
     base.set_train()
     loader = loaders.loader
     meter = MultiItemAverageMeter()
-    config.lower = 0.02
-    config.upper = 0.4
-    config.ratio = 0.3
     for epoch, data in enumerate(tqdm(loader)):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
