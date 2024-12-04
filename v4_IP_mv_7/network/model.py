@@ -40,61 +40,6 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
-class FeatureMapIntegrating(nn.Module):
-    def __init__(self, config):
-        super(FeatureMapIntegrating, self).__init__()
-        self.config = config
-
-    def __call__(self, bn_features, pids):
-        bs, f_dim = bn_features.size(0), bn_features.size(1)
-        chunk_bs = int(bs / 4)
-
-        # Fusion
-        integrating_bn_features = bn_features.view(chunk_bs, 4, f_dim)  # (chunk_size, 4, f_dim)
-        integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
-        integrating_pids = pids[::4]
-        return integrating_bn_features, integrating_pids
-
-
-class FeatureDecoupling(nn.Module):
-    def __init__(self, config):
-        super(FeatureDecoupling, self).__init__()
-        self.config = config
-
-        # shared branch
-        ic = 2048
-        oc = 1024
-        self.mlp1 = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp1.apply(weights_init_kaiming)
-
-        # special branch
-        self.mlp2 = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp2.apply(weights_init_kaiming)
-
-    def forward(self, features):
-        shared_features = self.mlp1(features)
-        special_features = self.mlp2(features)
-        return shared_features, special_features
-
-
-class ReasoningLoss(nn.Module):
-    def __init__(self):
-        super(ReasoningLoss, self).__init__()
-
-    def forward(self, bn_features, bn_features2):
-        new_bn_features2 = torch.zeros(bn_features.size()).cuda()
-        for i in range(int(bn_features2.size(0) / 4)):
-            new_bn_features2[i * 4 : i * 4 + 4] = bn_features2[i]
-        loss = torch.norm((bn_features - new_bn_features2), p=2)
-        return loss
-
-
 class Model(nn.Module):
 
     def __init__(self, config):
@@ -144,26 +89,20 @@ class Model(nn.Module):
         )
         return total_loss
 
-    def forward(self, x, pids=None, cids=None, epoch=None, meter=None):
+    def forward(self, x):
         if self.training:
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-            features = self.gap_bn(backbone_features_map)
-
-            input_features = [
-                features,
-            ]
-            total_loss = self.make_loss(input_features=input_features, pids=pids, cids=cids, epoch=epoch, meter=meter)
-            return total_loss
+            bn_features = self.gap_bn(backbone_features_map)
+            return bn_features
         else:
 
-            def core_func(x):
+            def extract_features(self, x):
                 x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-                features = self.gap_bn(backbone_features_map)
-                bn_features, cls_score = self.bn_classifier(features)
+                bn_features = self.gap_bn(backbone_features_map)
                 return bn_features
 
-            bn_features = core_func(x)
+            bn_features = extract_features(x)
             flip_images = torch.flip(x, [3])
-            flip_bn_features = core_func(flip_images)
+            flip_bn_features = extract_features(flip_images)
             bn_features = bn_features + flip_bn_features
             return bn_features
