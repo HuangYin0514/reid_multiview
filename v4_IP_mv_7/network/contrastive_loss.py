@@ -33,16 +33,6 @@ class SharedSharedLoss(nn.Module):
         return torch.mean(loss)
 
 
-class SharedGlobalLoss(nn.Module):
-    def __init__(self):
-        super(SharedGlobalLoss, self).__init__()
-
-    def forward(self, embedded_a):
-        global_features = torch.mean(embedded_a, dim=0).unsqueeze(0)
-        loss = torch.norm(embedded_a - global_features, p=2)
-        return loss
-
-
 class SpecialSpecialLoss(nn.Module):
     def __init__(self):
         super(SpecialSpecialLoss, self).__init__()
