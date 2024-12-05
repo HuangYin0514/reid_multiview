@@ -38,12 +38,14 @@ class Model(nn.Module):
             bn_features = self.gap_bn(features_map)
             shared_features, special_features = self.decoupling(bn_features)
             bn_features = torch.cat([shared_features, special_features], dim=1)
+            bn_features, cls_score = self.bn_classifier(bn_features)
 
             flip_x = torch.flip(x, [3])
             _, _, _, _, flip_features_map = self.backbone(flip_x)
             flip_bn_features = self.gap_bn(flip_features_map)
             flip_shared_features, flip_special_features = self.decoupling(flip_bn_features)
             flip_bn_features = torch.cat([flip_shared_features, flip_special_features], dim=1)
+            flip_bn_features, cls_score = self.bn_classifier(flip_bn_features)
 
             bn_features = bn_features + flip_bn_features
             return bn_features
