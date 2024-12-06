@@ -34,17 +34,18 @@ class Model(nn.Module):
             _, _, _, _, features_map = self.backbone(x)
             return features_map
         else:
+            _, _, _, _, features_map = self.backbone(x)
+            bn_features = self.gap_bn(features_map)
+            shared_features, special_features = self.decoupling(bn_features)
+            bn_features = torch.cat([shared_features, special_features], dim=1)
+            bn_features, cls_score = self.bn_classifier(bn_features)
 
-            def core_func(x):
-                x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-                backbone_features = self.gap_bn(backbone_features_map)
-                shared_features, special_features = self.decoupling(backbone_features)
-                features = torch.cat([shared_features, special_features], dim=1)
-                bn_features, cls_score = self.bn_classifier(features)
-                return bn_features
+            flip_x = torch.flip(x, [3])
+            _, _, _, _, flip_features_map = self.backbone(flip_x)
+            flip_bn_features = self.gap_bn(flip_features_map)
+            flip_shared_features, flip_special_features = self.decoupling(flip_bn_features)
+            flip_bn_features = torch.cat([flip_shared_features, flip_special_features], dim=1)
+            flip_bn_features, cls_score = self.bn_classifier(flip_bn_features)
 
-            bn_features = core_func(x)
-            flip_images = torch.flip(x, [3])
-            flip_bn_features = core_func(flip_images)
             bn_features = bn_features + flip_bn_features
             return bn_features
