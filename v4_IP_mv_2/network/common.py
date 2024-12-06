@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
+from .resnet50 import resnet50
 
 
 def weights_init_kaiming(m):
