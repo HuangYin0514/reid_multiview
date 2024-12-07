@@ -141,10 +141,6 @@ if __name__ == "__main__":
     parser.add_argument("--resume_test_model", type=int, default=119, help="-1 for no resuming")
     parser.add_argument("--test_mode", type=str, default="inter-camera", help="inter-camera, intra-camera, all")
 
-    parser.add_argument("--lower", type=float, default=0.02)
-    parser.add_argument("--upper", type=float, default=0.4)
-    parser.add_argument("--ratio", type=float, default=0.3)
-
     config = parser.parse_args()
     seed_torch(config.seed)
     main(config)
