@@ -38,8 +38,10 @@ class Model(nn.Module):
         else:
 
             def core_func(x):
-                x1, x2, x3, x4, features_map = self.backbone(x)
-                features = self.gap_bn(features_map)
+                x1, x2, x3, x4, backbone_features_map = self.backbone(x)
+                backbone_features = self.gap_bn(backbone_features_map)
+                shared_features, special_features = self.decoupling(backbone_features)
+                features = torch.cat([shared_features, special_features], dim=1)
                 bn_features, cls_score = self.bn_classifier(features)
                 return bn_features
 

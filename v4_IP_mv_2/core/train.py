@@ -13,19 +13,36 @@ def train(base, loaders, config):
         if config.module == "Lucky":
             features_map = base.model(imgs)
             features = base.model.module.gap_bn(features_map)
+            shared_features, special_features = base.model.module.decoupling(features)
+            features = torch.cat([shared_features, special_features], dim=1)
 
             # IDE
             bn_features, cls_score = base.model.module.bn_classifier(features)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
-            # 多视角
-            integrating_features, integrating_pids = base.model.module.feature_integrating(features, pids)
-            integrating_bn_features, integrating_cls_score = base.model.module.bn_classifier2(integrating_features)
-            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-            integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
+            # 特征解耦
+            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
+            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
+            special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+
+            num_views = 4
+            bs = cls_score.size(0)
+            chunk_bs = int(bs / num_views)
+            decoupling_loss = 0
+            for i in range(chunk_bs):
+                shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
+                special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
+                # (共享-指定)损失
+                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+                # (共享)损失
+                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+                # (指定)损失
+                # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
+                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
             # 总损失
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * integrating_reasoning_loss
+            total_loss = ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -34,8 +51,9 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "integrating_pid_loss": integrating_ide_loss.data,
-                    "integrating_reasoning_loss": integrating_reasoning_loss.data,
+                    "decoupling_loss": decoupling_loss.data,
+                    "shared_ide_loss": shared_ide_loss.data,
+                    "special_ide_loss": special_ide_loss.data,
                 }
             )
 
