@@ -15,7 +15,7 @@ def train(base, loaders, config):
             features = base.model.module.gap_bn(features_map)
 
             # IDE
-            bn_features, cls_score = base.mode.module.bn_classifier(features)
+            bn_features, cls_score = base.model.module.bn_classifier(features)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
             # 多视角
