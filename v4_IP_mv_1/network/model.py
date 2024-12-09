@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
-from tools import CrossEntropyLabelSmooth, KLDivLoss
-from torch.autograd import Variable
-from torch.nn import functional as F
 
 from .common import *
-from .contrastive_loss import SharedSharedLoss, SharedSpecialLoss, SpecialSpecialLoss
 
 
 class Model(nn.Module):

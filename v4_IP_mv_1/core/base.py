@@ -4,7 +4,7 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from network import Model, Res50IBNaBNNeck
+from network import Model
 from tools import CrossEntropyLabelSmooth, KLDivLoss, ReasoningLoss, os_walk
 
 

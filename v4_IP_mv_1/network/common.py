@@ -4,7 +4,7 @@ import torchvision
 
 from .gem_pool import GeneralizedMeanPoolingP
 from .resnet50 import resnet50
-from .res50ibnabnneck import resnet50_ibn_a
+from .resnet_ibn_a import resnet50_ibn_a
 
 
 def weights_init_kaiming(m):
@@ -38,7 +38,7 @@ def weights_init_classifier(m):
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        resnet = resnet50(pretrained=True)
+        # resnet = resnet50(pretrained=True)
         resnet = resnet50_ibn_a(pretrained=True)
         # resnet = torchvision.models.resnet50(pretrained=True)
 
