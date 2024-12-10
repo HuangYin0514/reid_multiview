@@ -14,7 +14,7 @@ def train(base, loaders, config):
             features_map = base.model(imgs)
             features = base.model.module.gap_bn(features_map)
             shared_features, special_features = base.model.module.decoupling(features)
-            features = torch.cat([shared_features, special_features], dim=1)
+            features = base.model.module.feature_fusion(shared_features, special_features)
 
             # IDE
             bn_features, cls_score = base.model.module.bn_classifier(features)

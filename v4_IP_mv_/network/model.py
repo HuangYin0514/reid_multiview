@@ -15,8 +15,11 @@ class Model(nn.Module):
         self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
         self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 
+        # 多视角特征聚合
+        self.feature_integrating = FeatureIntegrating(config)
+
         # 特征融合
-        self.feature_integrating = FeatureMapIntegrating(config)
+        self.feature_fusion = FeatureFusion(config)
 
         # 分类
         self.gap_bn = GAP_BN(2048)
@@ -35,6 +38,6 @@ class Model(nn.Module):
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             backbone_features = self.gap_bn(backbone_features_map)
             shared_features, special_features = self.decoupling(backbone_features)
-            features = torch.cat([shared_features, special_features], dim=1)
+            features = self.feature_fusion(shared_features, special_features)
             bn_features, cls_score = self.bn_classifier(features)
             return bn_features

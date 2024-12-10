@@ -70,9 +70,9 @@ class Backbone(nn.Module):
         return x1, x2, x3, x4, x
 
 
-class FeatureMapIntegrating(nn.Module):
+class FeatureIntegrating(nn.Module):
     def __init__(self, config):
-        super(FeatureMapIntegrating, self).__init__()
+        super(FeatureIntegrating, self).__init__()
         self.config = config
 
     def __call__(self, bn_features, pids):
@@ -84,6 +84,17 @@ class FeatureMapIntegrating(nn.Module):
         integrating_bn_features = torch.sum(integrating_bn_features, dim=1)
         integrating_pids = pids[::4]
         return integrating_bn_features, integrating_pids
+
+
+class FeatureFusion(nn.Module):
+    def __init__(self, config):
+        super(FeatureFusion, self).__init__()
+        self.config = config
+
+    def __call__(self, features_1, features_2):
+        bs = features_1.size(0)
+        out = torch.cat([features_1, features_2], dim=1)
+        return out
 
 
 class FeatureDecoupling(nn.Module):
