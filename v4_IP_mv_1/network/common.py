@@ -38,8 +38,8 @@ def weights_init_classifier(m):
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        # resnet = resnet50(pretrained=True)
-        resnet = resnet50_ibn_a(pretrained=True)
+        resnet = resnet50(pretrained=True)
+        # resnet = resnet50_ibn_a(pretrained=True)
         # resnet = torchvision.models.resnet50(pretrained=True)
 
         # Modifiy backbone
