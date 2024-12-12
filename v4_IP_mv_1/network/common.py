@@ -91,9 +91,20 @@ class FeatureFusion(nn.Module):
         super(FeatureFusion, self).__init__()
         self.config = config
 
+        ic = 2048
+        oc = 2048
+        self.mlp = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.Linear(oc, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
         out = torch.cat([features_1, features_2], dim=1)
+        out = out + self.mlp(out)
         return out
 
 
