@@ -99,7 +99,7 @@ class FeatureFusion(nn.Module):
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init_kaiming)
+        self.mlp.apply(weights_init_kaiming)
 
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
