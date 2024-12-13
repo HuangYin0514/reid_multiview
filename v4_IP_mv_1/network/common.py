@@ -97,6 +97,9 @@ class FeatureFusion(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(oc),
+            nn.Linear(oc, oc, bias=False),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(oc),
         )
         self.mlp.apply(weights_init_kaiming)
 
