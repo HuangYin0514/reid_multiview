@@ -97,7 +97,13 @@ class FeatureFusion(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(oc),
-            nn.Linear(oc, oc, bias=False),
+        )
+        self.mlp.apply(weights_init_kaiming)
+
+        ic = 2048
+        oc = 2048
+        self.mlp2 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(oc),
         )
@@ -107,6 +113,7 @@ class FeatureFusion(nn.Module):
         bs = features_1.size(0)
         out = torch.cat([features_1, features_2], dim=1)
         out = out + self.mlp(out)
+        out = out + self.mlp2(out)
         return out
 
 
