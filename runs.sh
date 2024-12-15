@@ -26,54 +26,16 @@
 # sh vis.sh
 
 #################################################################################
-# progress (Mac)
+# progress (Linux)
 #################################################################################
 
-# rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
-# cd /home/hy/project/reid_multiview/v4_IP_mv_5
-# sh run.sh
-
-#注意空格
-root_folder="/Users/drhy/Documents/project/reid_multiview/"
+# #注意空格
+root_folder="/home/hy/project/reid_multiview/$folder"
 folder="v4_IP_mv_1"
 # folder="v4_IP_mv_2"
 # folder="v4_IP_mv_3"
-# folder="v4_IP_mv_4"
-# folder="v4_IP_mv_5"
-# folder="v4_IP_mv_6"
-# folder="v4_IP_mv_7"
-# folder="v4_IP_mv_8"
-echo $folder  
+echo $root_folder/$folder
 
 rm -rf $root_folder/$folder/results
 cd $root_folder/$folder
 sh run.sh
-
-
-#################################################################################
-# progress (Linux)
-#################################################################################
-
-# # rm -rf /home/hy/project/reid_multiview/v4_IP_mv_5/results
-# # cd /home/hy/project/reid_multiview/v4_IP_mv_5
-# # sh run.sh
-
-# #注意空格
-# folder="v4_IP_mv_1"
-# # folder="v4_IP_mv_2"
-# # folder="v4_IP_mv_3"
-# # folder="v4_IP_mv_4"
-# # folder="v4_IP_mv_5"
-# # folder="v4_IP_mv_6"
-# # folder="v4_IP_mv_7"
-# # folder="v4_IP_mv_8"
-# echo $folder  
-
-# rm -rf /home/hy/project/reid_multiview/$folder/results
-# cd /home/hy/project/reid_multiview/$folder
-# sh run.sh
-
-
-
-
-

@@ -15,7 +15,6 @@ class Base:
         self.pid_num = config.pid_num
 
         self.module = config.module
-        self.backbone = config.backbone
 
         self.max_save_model_num = config.max_save_model_num
         self.output_path = config.output_path
@@ -31,14 +30,11 @@ class Base:
         self._init_optimizer()
 
     def _init_device(self):
-        self.device = torch.device("cuda")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(device)
 
     def _init_model(self):
-
-        if self.config.backbone == "resnet50ibna":
-            self.model = Res50IBNaBNNeck()
-        else:
-            self.model = Model(self.config)
+        self.model = Model(self.config)
         self.model = nn.DataParallel(self.model).to(self.device)
 
     def _init_optimizer(self):
