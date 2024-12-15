@@ -4,52 +4,15 @@ import torch
 from torch import nn
 
 
-class _FusionBlock(nn.Module):
-    """
-    Fusion Block for Residual fusion.
-    input -> (_, input_dim) -> norm -> (_, input_dim * expand) -> (_, input_dim) -> output
-                   |                                                         |
-                   -------------------------------+---------------------------
-    """
+class BaseFusion(nn.Module):
 
-    expand = 2
-
-    def __init__(self, input_dim, act_func="relu", dropout=0.0, norm_eps=1e-5) -> None:
+    def __init__(self, args, device="cpu") -> None:
         super().__init__()
-        latent_dim1 = input_dim * self.expand
-        latent_dim2 = input_dim // self.expand
-        if act_func == "relu":
-            self.act = nn.ReLU(inplace=True)
-        elif act_func == "tanh":
-            self.act = nn.Tanh()
-        elif act_func == "sigmoid":
-            self.act = nn.Sigmoid()
-        else:
-            raise ValueError("Activate function must be ReLU or Tanh.")
-        self.linear1 = nn.Linear(input_dim, latent_dim1, bias=False)
-        self.linear2 = nn.Linear(latent_dim1, input_dim, bias=False)
-
-        self.linear3 = nn.Linear(input_dim, latent_dim2, bias=False)
-        self.linear4 = nn.Linear(latent_dim2, input_dim, bias=False)
-
-        self.norm1 = nn.BatchNorm1d(input_dim, eps=norm_eps)
-        self.norm2 = nn.BatchNorm1d(input_dim, eps=norm_eps)
-        self.dropout1 = nn.Dropout(dropout)
-        self.dropout2 = nn.Dropout(dropout)
-
-    def forward(self, x):
-        x = x + self.block1(self.norm1(x))
-        x = x + self.block2(self.norm2(x))
-        return x
-
-    def block1(self, x):
-        return self.linear2(self.dropout1(self.act(self.linear1(x))))
-
-    def block2(self, x):
-        return self.linear4(self.dropout2(self.act(self.linear3(x))))
+        self.args = args
+        self.device = device
 
 
-class ResidualFusion(nn.Module):
+class ResidualFusion(BaseFusion):
     """Fusion block with residual connection.
 
     A block like to:
