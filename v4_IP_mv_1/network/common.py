@@ -132,7 +132,7 @@ class FeatureDecoupling(nn.Module):
 
     def forward(self, features):
         special_features = self.special_mlp(features)
-        shared_features = special_features + self.shared_mlp(special_features)
+        shared_features = self.shared_mlp(special_features)
         return shared_features, special_features
 
 
