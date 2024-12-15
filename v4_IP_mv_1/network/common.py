@@ -100,20 +100,10 @@ class FeatureFusion(nn.Module):
         )
         self.mlp.apply(weights_init_kaiming)
 
-        ic = 2048
-        oc = 2048
-        self.mlp2 = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp.apply(weights_init_kaiming)
-
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
         out = torch.cat([features_1, features_2], dim=1)
         out = out + self.mlp(out)
-        out = out + self.mlp2(out)
         return out
 
 
@@ -123,24 +113,26 @@ class FeatureDecoupling(nn.Module):
         self.config = config
 
         # shared branch
-        ic = 2048
+        ic = 1024
         oc = 1024
-        self.mlp1 = nn.Sequential(
+        self.shared_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init_kaiming)
+        self.shared_mlp.apply(weights_init_kaiming)
 
         # special branch
-        self.mlp2 = nn.Sequential(
+        ic = 2048
+        oc = 1024
+        self.special_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp2.apply(weights_init_kaiming)
+        self.special_mlp.apply(weights_init_kaiming)
 
     def forward(self, features):
-        shared_features = self.mlp1(features)
-        special_features = self.mlp2(features)
+        special_features = self.special_mlp(features)
+        shared_features = special_features + self.shared_mlp(special_features)
         return shared_features, special_features
 
 

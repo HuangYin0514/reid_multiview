@@ -31,12 +31,14 @@ class Base:
         self._init_optimizer()
 
     def _init_device(self):
-        self.device = torch.device("cuda")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(device)
 
     def _init_model(self):
 
         if self.config.backbone == "resnet50ibna":
-            self.model = Res50IBNaBNNeck()
+            # self.model = Res50IBNaBNNeck()
+            self.model = None
         else:
             self.model = Model(self.config)
         self.model = nn.DataParallel(self.model).to(self.device)
