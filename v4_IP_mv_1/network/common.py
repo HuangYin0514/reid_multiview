@@ -113,26 +113,24 @@ class FeatureDecoupling(nn.Module):
         self.config = config
 
         # shared branch
-        ic = 1024
-        oc = 1024
-        self.shared_mlp = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.shared_mlp.apply(weights_init_kaiming)
-
-        # special branch
         ic = 2048
         oc = 1024
-        self.special_mlp = nn.Sequential(
+        self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.special_mlp.apply(weights_init_kaiming)
+        self.mlp1.apply(weights_init_kaiming)
+
+        # special branch
+        self.mlp2 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp2.apply(weights_init_kaiming)
 
     def forward(self, features):
-        special_features = self.special_mlp(features)
-        shared_features = self.shared_mlp(special_features)
+        shared_features = self.mlp1(features)
+        special_features = self.mlp2(features)
         return shared_features, special_features
 
 
