@@ -26,6 +26,12 @@ def train(base, loaders, config):
             _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
             special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
+            # 多视角
+            integrating_features, integrating_pids = base.model.module.feature_integrating(bn_features, pids)
+            integrating_bn_features, integrating_cls_score = base.model.module.bn_classifier2(integrating_features)
+            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            # integrating_reasoning_loss = ReasoningLoss().forward(bn_features, integrating_bn_features)
+
             num_views = 4
             bs = cls_score.size(0)
             chunk_bs = int(bs / num_views)
@@ -38,7 +44,7 @@ def train(base, loaders, config):
                 decoupling_loss += sharedSpecialLoss
 
             # 总损失
-            total_loss = ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+            total_loss = ide_loss + integrating_ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
