@@ -26,7 +26,8 @@ class SharedSharedLoss(nn.Module):
 
     def forward(self, embedded_a):
         sims = cos_sim(embedded_a, embedded_a)
-        mask = ~torch.eye(embedded_a.shape[0], dtype=torch.bool)
+        bs = embedded_a.shape[0]
+        mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
         non_diag_sims = sims[mask]
         loss = -torch.log(non_diag_sims)
         return torch.mean(loss)
@@ -39,7 +40,7 @@ class SpecialSpecialLoss(nn.Module):
     def forward(self, embedded_a):
         bs = embedded_a.shape[0]
         sims = cos_sim(embedded_a, embedded_a)
-        mask = ~torch.eye(bs, dtype=torch.bool)
+        mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
         non_diag_sims = sims[mask]
         loss = -torch.log(1 - non_diag_sims)
         return torch.mean(loss)
