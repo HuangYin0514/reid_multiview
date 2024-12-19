@@ -27,6 +27,9 @@ class SharedSharedLoss(nn.Module):
     def forward(self, embedded_a):
         print(embedded_a.shape)
 
+        intergral_feats = torch.sum(embedded_a, dim=0)
+        print(intergral_feats.shape)
+
         sims = cos_sim(embedded_a, embedded_a)
         bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
