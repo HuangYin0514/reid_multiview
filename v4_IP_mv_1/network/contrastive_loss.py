@@ -26,14 +26,10 @@ class SharedSharedLoss(nn.Module):
 
     def forward(self, embedded_a):
         bs = embedded_a.shape[0]
-
         intergral_embedded_a = torch.mean(embedded_a, dim=0, keepdim=True)
-        print(intergral_embedded_a.shape)
-
         contrastive_loss = 0
         for i in range(bs):
             contrastive_loss += torch.norm((intergral_embedded_a - embedded_a[i]), p=2)
-
         return torch.mean(contrastive_loss)
 
 
