@@ -41,7 +41,7 @@ def train(base, loaders, config):
                 sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
                 # (指定)损失
                 # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+                decoupling_loss += sharedSpecialLoss + 1 * sharedSharedLoss
 
             # 总损失
             total_loss = ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
