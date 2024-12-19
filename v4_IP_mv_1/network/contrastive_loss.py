@@ -30,7 +30,7 @@ class SharedSharedLoss(nn.Module):
         contrastive_loss = 0
         for i in range(bs):
             contrastive_loss += torch.norm((intergral_embedded_a - embedded_a[i]), p=2)
-        return torch.mean(contrastive_loss)
+        return contrastive_loss
 
 
 class SpecialSpecialLoss(nn.Module):
