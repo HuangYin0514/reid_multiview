@@ -25,17 +25,16 @@ class SharedSharedLoss(nn.Module):
         super(SharedSharedLoss, self).__init__()
 
     def forward(self, embedded_a):
-        print(embedded_a.shape)
-
-        intergral_feats = torch.sum(embedded_a, dim=0)
-        print(intergral_feats.shape)
-
-        sims = cos_sim(embedded_a, embedded_a)
         bs = embedded_a.shape[0]
-        mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
-        non_diag_sims = sims[mask]
-        loss = -torch.log(non_diag_sims)
-        return torch.mean(loss)
+
+        intergral_embedded_a = torch.mean(embedded_a, dim=0, keepdim=True)
+        print(intergral_embedded_a.shape)
+
+        contrastive_loss = 0
+        for i in range(bs):
+            contrastive_loss += torch.norm((intergral_embedded_a - embedded_a[i]), p=2)
+
+        return torch.mean(contrastive_loss)
 
 
 class SpecialSpecialLoss(nn.Module):
