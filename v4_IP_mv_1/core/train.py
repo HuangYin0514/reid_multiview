@@ -13,60 +13,26 @@ def train(base, loaders, config):
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
             features_map = base.model(imgs)
-            localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
-            features = base.model.module.gap_bn(localized_features_map)
-            shared_features, special_features = base.model.module.decoupling(features)
-            features = base.model.module.feature_fusion(shared_features, special_features)
-            _, cls_score = base.model.module.bn_classifier2(features)
-            ide_loss_2 = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            bn_features, cls_score = base.model.module.classifier(features_map)
 
-            # # IDE
-            # _, cls_score = base.model.module.bn_classifier(features)
-            # ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base)
+            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(localized_integrating_features_map)
 
-            # localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
+            ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
+            localized_integrating_reasoning_loss = ReasoningLoss.forward(bn_features, localized_integrating_bn_features)
 
-            # # 特征解耦
-            # _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            # shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            # _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            # special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
-
-            # num_views = 4
-            # bs = cls_score.size(0)
-            # chunk_bs = int(bs / num_views)
-            # decoupling_loss = 0
-            # for i in range(chunk_bs):
-            #     shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-            #     special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-            #     # (共享-指定)损失
-            #     sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
-            #     # (共享)损失
-            #     sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-            #     # (指定)损失
-            #     # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-            #     decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
-
-            # 总损失
-            # total_loss = ide_loss + ide_loss_2 + decoupling_loss + shared_ide_loss + special_ide_loss
-            total_loss = ide_loss_2
+            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
             base.model_optimizer.step()
 
-            # meter.update(
-            #     {
-            #         "pid_loss": ide_loss.data,
-            #         "decoupling_loss": decoupling_loss.data,
-            #         "shared_ide_loss": shared_ide_loss.data,
-            #         "special_ide_loss": special_ide_loss.data,
-            #     }
-            # )
-
             meter.update(
                 {
-                    "pid_loss": ide_loss_2.data,
+                    "pid_loss": ide_loss.data,
+                    "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
+                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
                 }
             )
 
