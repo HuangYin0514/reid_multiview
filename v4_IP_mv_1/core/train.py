@@ -13,7 +13,8 @@ def train(base, loaders, config):
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
             features_map = base.model(imgs)
-            features = base.model.module.gap_bn(features_map)
+            localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
+            features = base.model.module.gap_bn(localized_features_map)
             shared_features, special_features = base.model.module.decoupling(features)
             features = base.model.module.feature_fusion(shared_features, special_features)
             _, cls_score = base.model.module.bn_classifier2(features)
