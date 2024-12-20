@@ -19,7 +19,8 @@ def train(base, loaders, config):
             bn_features, cls_score = base.model.module.bn_classifier(features)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
-            localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
+            # localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
+            localized_features_map = features_map
             features = base.model.module.gap_bn(localized_features_map)
             shared_features, special_features = base.model.module.decoupling(features)
             features = base.model.module.feature_fusion(shared_features, special_features)
