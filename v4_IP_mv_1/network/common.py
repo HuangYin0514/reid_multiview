@@ -90,10 +90,12 @@ class FeatureFusion(nn.Module):
     def __init__(self, config):
         super(FeatureFusion, self).__init__()
         self.config = config
+        self.bn = nn.BatchNorm1d(2048)
 
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
         out = torch.cat([features_1, features_2], dim=1)
+        out = self.bn(out)
         return out
 
 
