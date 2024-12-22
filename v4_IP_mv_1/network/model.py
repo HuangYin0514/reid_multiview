@@ -36,9 +36,13 @@ class Model(nn.Module):
             x1, x2, x3, x4, features_map = self.backbone(x)
             return features_map
         else:
+            # x1, x2, x3, x4, backbone_features_map = self.backbone(x)
+            # backbone_features = self.gap_bn(backbone_features_map)
+            # shared_features, special_features = self.decoupling(backbone_features)
+            # features = self.feature_fusion(shared_features, special_features)
+            # bn_features, cls_score = self.bn_classifier(features)
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
             backbone_features = self.gap_bn(backbone_features_map)
-            shared_features, special_features = self.decoupling(backbone_features)
-            features = self.feature_fusion(shared_features, special_features)
-            bn_features, cls_score = self.bn_classifier(features)
+            bn_features, cls_score = self.bn_classifier(backbone_features)
+            print("bn_features.shape: ", bn_features.shape)
             return bn_features
