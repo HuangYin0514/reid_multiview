@@ -63,9 +63,9 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
                     "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
-                    "shared_ide_loss": shared_ide_loss.data,
-                    "special_ide_loss": special_ide_loss.data,
-                    "reconstruction_loss": reconstruction_loss.data,
+                    # "shared_ide_loss": shared_ide_loss.data,
+                    # "special_ide_loss": special_ide_loss.data,
+                    # "reconstruction_loss": reconstruction_loss.data,
                 }
             )
 
