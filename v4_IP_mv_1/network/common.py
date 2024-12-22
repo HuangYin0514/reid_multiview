@@ -131,8 +131,7 @@ class FeatureDecouplingReconstruction(nn.Module):
         super(FeatureDecouplingReconstruction, self).__init__()
         self.config = config
 
-        # shared branch
-        ic = 1024
+        ic = 2048
         oc = 2048
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -140,17 +139,10 @@ class FeatureDecouplingReconstruction(nn.Module):
         )
         self.mlp1.apply(weights_init_kaiming)
 
-        # special branch
-        self.mlp2 = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-        )
-        self.mlp2.apply(weights_init_kaiming)
-
     def forward(self, shared_features, special_features):
-        shared_features_reconstrction = self.mlp1(shared_features)
-        special_features_reconstrction = self.mlp2(special_features)
-        return shared_features_reconstrction, special_features_reconstrction
+        cat_features = torch.cat([shared_features, special_features], dim=1)
+        out = self.mlp1(cat_features)
+        return out
 
 
 class ReasoningLoss(nn.Module):

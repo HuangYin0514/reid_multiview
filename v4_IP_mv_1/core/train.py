@@ -39,7 +39,7 @@ def train(base, loaders, config):
             special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
             # 重构
-            shared_features_reconstrction, special_features_reconstrction = base.model.module.decoupling_reconstruction(shared_features, special_features)
+            bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
 
             # Loss
             # backbone loss
@@ -49,7 +49,7 @@ def train(base, loaders, config):
             # reasoning loss
             localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
             # reconstruction loss
-            reconstruction_loss = nn.MSELoss().forward(shared_features_reconstrction, shared_features) + nn.MSELoss().forward(special_features_reconstrction, special_features)
+            reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
 
             total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
 
