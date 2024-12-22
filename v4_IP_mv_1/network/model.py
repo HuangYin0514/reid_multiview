@@ -37,8 +37,8 @@ class Model(nn.Module):
             return features_map
         else:
             x1, x2, x3, x4, backbone_features_map = self.backbone(x)
-            backbone_features = self.gap_bn(backbone_features_map)
-            shared_features, special_features = self.decoupling(backbone_features)
-            features = self.feature_fusion(shared_features, special_features)
-            bn_features, cls_score = self.bn_classifier(features)
+            bn_features = self.gap_bn(backbone_features_map)
+            # shared_features, special_features = self.decoupling(backbone_features)
+            # bn_features = self.feature_fusion(shared_features, special_features)
+            bn_features, cls_score = self.bn_classifier(bn_features)
             return bn_features

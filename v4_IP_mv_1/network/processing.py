@@ -40,7 +40,6 @@ class FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights:
         prob = torch.log_softmax(cls_scores, dim=1)
         probs = prob[torch.arange(size), pids]
         weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
-
         quantified_features_map = weights.unsqueeze(1).unsqueeze(2).unsqueeze(3) * features_map
 
         chunk_quantified_features_map = torch.chunk(quantified_features_map, chunks=chunk_size, dim=0)
