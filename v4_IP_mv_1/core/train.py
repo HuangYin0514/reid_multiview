@@ -37,8 +37,8 @@ def train(base, loaders, config):
             special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
             bn_localized_features = base.model.module.feature_fusion(shared_features, special_features)
             # 重构
-            # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
-            # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
+            bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
+            reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
 
             ###########################################################
             # 聚合
@@ -51,7 +51,7 @@ def train(base, loaders, config):
 
             ###########################################################
             # 损失函数
-            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -64,7 +64,7 @@ def train(base, loaders, config):
                     "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "special_ide_loss": special_ide_loss.data,
-                    # "reconstruction_loss": reconstruction_loss.data,
+                    "reconstruction_loss": reconstruction_loss.data,
                 }
             )
 
