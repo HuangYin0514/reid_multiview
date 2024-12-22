@@ -126,6 +126,33 @@ class FeatureDecoupling(nn.Module):
         return shared_features, special_features
 
 
+class FeatureDecouplingReconstruction(nn.Module):
+    def __init__(self, config):
+        super(FeatureDecoupling, self).__init__()
+        self.config = config
+
+        # shared branch
+        ic = 1024
+        oc = 2048
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
+        # special branch
+        self.mlp2 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp2.apply(weights_init_kaiming)
+
+    def forward(self, shared_features, special_features):
+        shared_features_reconstrction = self.mlp1(shared_features)
+        special_features_reconstrction = self.mlp2(special_features)
+        return shared_features_reconstrction, special_features_reconstrction
+
+
 class ReasoningLoss(nn.Module):
     def __init__(self):
         super(ReasoningLoss, self).__init__()

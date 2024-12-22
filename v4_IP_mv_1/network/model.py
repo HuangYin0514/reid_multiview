@@ -12,6 +12,7 @@ class Model(nn.Module):
 
         # 解耦
         self.decoupling = FeatureDecoupling(config)
+        self.decoupling_reconstruction = FeatureDecouplingReconstruction(config)
         self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
         self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
 

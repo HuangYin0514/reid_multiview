@@ -38,20 +38,8 @@ def train(base, loaders, config):
             _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
             special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
-            num_views = 4
-            bs = cls_score.size(0)
-            chunk_bs = int(bs / num_views)
-            decoupling_loss = 0
-            for i in range(chunk_bs):
-                shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-                special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-                # (共享-指定)损失
-                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
-                # (共享)损失
-                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-                # (指定)损失
-                # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+            # 重构
+            shared_features_reconstrction, special_features_reconstrction = base.model.module.decoupling_reconstruction(shared_features, special_features)
 
             # Loss
             # backbone loss
@@ -60,8 +48,10 @@ def train(base, loaders, config):
             localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
             # reasoning loss
             localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
+            # reconstruction loss
+            reconstruction_loss = nn.MSELoss().forward(shared_features_reconstrction, shared_features) + nn.MSELoss().forward(special_features_reconstrction, special_features)
 
-            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
