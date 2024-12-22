@@ -128,7 +128,7 @@ class FeatureDecoupling(nn.Module):
 
 class FeatureDecouplingReconstruction(nn.Module):
     def __init__(self, config):
-        super(FeatureDecoupling, self).__init__()
+        super(FeatureDecouplingReconstruction, self).__init__()
         self.config = config
 
         # shared branch
