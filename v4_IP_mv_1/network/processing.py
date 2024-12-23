@@ -27,9 +27,9 @@ class FeatureMapLocalizedIntegratingNoRelu:
         return localized_features_map
 
 
-class FeatureMapQuantifiedProbLogSoftmaxWeights:
+class FeatureMapLocalized:
     def __init__(self, config):
-        super(FeatureMapQuantifiedProbLogSoftmaxWeights, self).__init__()
+        super(FeatureMapLocalized, self).__init__()
         self.config = config
 
     def __call__(self, features_map, cls_scores, pids):
