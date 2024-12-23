@@ -25,18 +25,6 @@ def train(base, loaders, config):
             bn_localized_features = base.model.module.gap_bn2(localized_features_map)
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
 
-            # ###########################################################
-            # # 解耦
-            # shared_features, special_features = base.model.module.decoupling(bn_localized_features)
-            # _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            # shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            # _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            # special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
-            # bn_localized_features = base.model.module.feature_fusion(shared_features, special_features)
-            # # 重构
-            # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
-            # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
-
             ###########################################################
             # # 聚合
             # quantified_features_map = BNFeatureIntegrating(config).__call__(localized_features_map, localized_cls_score, pids)
@@ -62,6 +50,11 @@ def train(base, loaders, config):
                 # (指定)损失
                 # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
                 decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+
+            # # 重构
+            # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
+            # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
+
             ###########################################################
             # 损失函数
             # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
