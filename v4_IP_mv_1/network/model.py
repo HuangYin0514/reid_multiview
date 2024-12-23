@@ -35,6 +35,8 @@ class Model(nn.Module):
         # 多视角特征聚合
         self.feature_integrating = FeatureIntegrating(config)
 
+        self.quantified_gap_bn = GAP_BN(2048)
+
         ###########################################################
         # 特征融合
         self.feature_fusion = FeatureFusion(config)

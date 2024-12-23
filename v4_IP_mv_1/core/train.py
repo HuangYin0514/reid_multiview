@@ -24,13 +24,16 @@ def train(base, loaders, config):
             localized_features_map = FeatureMapLocalized(config).__call__(features_map, pids, base.model.module.bn_classifier)
             bn_localized_features = base.model.module.gap_bn2(localized_features_map)
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
+            # 量化
+            quantified_features_map = WeightedFeatureMapLocalized(config).__call__(localized_features_map, localized_cls_score, pids)
+            bn_quantified_features = base.model.module.quantified_gap_bn(quantified_features_map)
 
             ###########################################################
             # # 聚合
             # quantified_features_map = BNFeatureIntegrating(config).__call__(localized_features_map, localized_cls_score, pids)
 
             # 解耦
-            shared_features, special_features = base.model.module.decoupling(bn_localized_features)
+            shared_features, special_features = base.model.module.decoupling(bn_quantified_features)
             _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
             shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
             _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
