@@ -1,9 +1,9 @@
 import torch
 
 
-class FeatureMapLocalizedIntegratingNoRelu:
+class FeatureMapLocalized:
     def __init__(self, config):
-        super(FeatureMapLocalizedIntegratingNoRelu, self).__init__()
+        super(FeatureMapLocalized, self).__init__()
         self.config = config
 
     def __call__(self, features_map, pids, classifier):
@@ -27,20 +27,20 @@ class FeatureMapLocalizedIntegratingNoRelu:
         return localized_features_map
 
 
-class FeatureMapLocalized:
-    def __init__(self, config):
-        super(FeatureMapLocalized, self).__init__()
-        self.config = config
+# class FeatureMapLocalized:
+#     def __init__(self, config):
+#         super(FeatureMapLocalized, self).__init__()
+#         self.config = config
 
-    def __call__(self, features_map, cls_scores, pids):
-        size = features_map.size(0)
+#     def __call__(self, features_map, cls_scores, pids):
+#         size = features_map.size(0)
 
-        prob = torch.log_softmax(cls_scores, dim=1)
-        probs = prob[torch.arange(size), pids]
-        weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
-        quantified_features_map = weights.unsqueeze(1).unsqueeze(2).unsqueeze(3) * features_map
+#         prob = torch.log_softmax(cls_scores, dim=1)
+#         probs = prob[torch.arange(size), pids]
+#         weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+#         quantified_features_map = weights.unsqueeze(1).unsqueeze(2).unsqueeze(3) * features_map
 
-        return quantified_features_map
+#         return quantified_features_map
 
 
 class FeatureMapIntegrating:
