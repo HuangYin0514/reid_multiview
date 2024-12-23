@@ -1,8 +1,5 @@
 from network.contrastive_loss import *
-from network.processing import (
-    FeatureMapLocalizedIntegratingNoRelu,
-    FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights,
-)
+from network.processing import *
 from tools import CrossEntropyLabelSmooth, KLDivLoss, MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -28,21 +25,22 @@ def train(base, loaders, config):
             bn_localized_features = base.model.module.gap_bn(localized_features_map)
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
 
-            ###########################################################
-            # 解耦
-            shared_features, special_features = base.model.module.decoupling(bn_localized_features)
-            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
-            bn_localized_features = base.model.module.feature_fusion(shared_features, special_features)
-            # 重构
-            bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
-            reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
+            # ###########################################################
+            # # 解耦
+            # shared_features, special_features = base.model.module.decoupling(bn_localized_features)
+            # _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
+            # shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+            # _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
+            # special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+            # bn_localized_features = base.model.module.feature_fusion(shared_features, special_features)
+            # # 重构
+            # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
+            # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
 
             ###########################################################
             # 聚合
-            quantified_integrating_features_map, integrating_pids = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
+            quantified_features_map = FeatureMapQuantifiedProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
+            quantified_integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, pids)
             bn_quantified_integrating_features = base.model.module.gap_bn(quantified_integrating_features_map)
             localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.bn_classifier2(bn_quantified_integrating_features)
             localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
@@ -51,7 +49,8 @@ def train(base, loaders, config):
 
             ###########################################################
             # 损失函数
-            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
+            # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -62,9 +61,6 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
                     "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
-                    "shared_ide_loss": shared_ide_loss.data,
-                    "special_ide_loss": special_ide_loss.data,
-                    "reconstruction_loss": reconstruction_loss.data,
                 }
             )
 

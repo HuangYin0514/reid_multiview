@@ -27,20 +27,31 @@ class FeatureMapLocalizedIntegratingNoRelu:
         return localized_features_map
 
 
-class FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights:
+class FeatureMapQuantifiedProbLogSoftmaxWeights:
     def __init__(self, config):
-        super(FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights, self).__init__()
+        super(FeatureMapQuantifiedProbLogSoftmaxWeights, self).__init__()
         self.config = config
 
     def __call__(self, features_map, cls_scores, pids):
         size = features_map.size(0)
-        c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
-        chunk_size = int(size / 4)  # 16
 
         prob = torch.log_softmax(cls_scores, dim=1)
         probs = prob[torch.arange(size), pids]
         weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
         quantified_features_map = weights.unsqueeze(1).unsqueeze(2).unsqueeze(3) * features_map
+
+        return quantified_features_map
+
+
+class FeatureMapIntegrating:
+    def __init__(self, config):
+        super(FeatureMapIntegrating, self).__init__()
+        self.config = config
+
+    def __call__(self, quantified_features_map, pids):
+        size = quantified_features_map.size(0)
+        c, h, w = quantified_features_map.size(1), quantified_features_map.size(2), quantified_features_map.size(3)
+        chunk_size = int(size / 4)  # 16
 
         chunk_quantified_features_map = torch.chunk(quantified_features_map, chunks=chunk_size, dim=0)
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
