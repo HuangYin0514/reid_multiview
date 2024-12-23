@@ -10,22 +10,34 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.backbone = Backbone()
 
-        # 解耦
-        self.decoupling = FeatureDecoupling(config)
-        self.decoupling_reconstruction = FeatureDecouplingReconstruction(config)
-        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
-
-        # 多视角特征聚合
-        self.feature_integrating = FeatureIntegrating(config)
-
-        # 特征融合
-        self.feature_fusion = FeatureFusion(config)
-
+        ###########################################################
         # 分类
         self.gap_bn = GAP_BN(2048)
         self.bn_classifier = BN_Classifier(2048, config.pid_num)
+
+        self.gap_bn2 = GAP_BN(2048)
         self.bn_classifier2 = BN_Classifier(2048, config.pid_num)
+
+        ###########################################################
+        # 解耦
+        self.decoupling = FeatureDecoupling(config)
+        self.decoupling_reconstruction = FeatureDecouplingReconstruction(config)
+
+        self.decoupling_gap_bn = GAP_BN(2048)
+
+        self.decoupling_shared_gap_bn = GAP_BN(2048)
+        self.decoupling_shared_bn_classifier = BN_Classifier(1024, config.pid_num)
+
+        self.decoupling_special_gap_bn = GAP_BN(2048)
+        self.decoupling_special_bn_classifier = BN_Classifier(1024, config.pid_num)
+
+        ###########################################################
+        # 多视角特征聚合
+        self.feature_integrating = FeatureIntegrating(config)
+
+        ###########################################################
+        # 特征融合
+        self.feature_fusion = FeatureFusion(config)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)

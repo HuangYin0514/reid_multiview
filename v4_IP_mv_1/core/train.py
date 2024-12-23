@@ -22,7 +22,7 @@ def train(base, loaders, config):
             ###########################################################
             # 定位
             localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
-            bn_localized_features = base.model.module.gap_bn(localized_features_map)
+            bn_localized_features = base.model.module.gap_bn2(localized_features_map)
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
 
             # ###########################################################
@@ -40,17 +40,19 @@ def train(base, loaders, config):
             ###########################################################
             # 聚合
             quantified_features_map = FeatureMapQuantifiedProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
-            quantified_integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, pids)
-            bn_quantified_integrating_features = base.model.module.gap_bn(quantified_integrating_features_map)
-            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.bn_classifier2(bn_quantified_integrating_features)
-            localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
-            # 对比损失
-            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
+            quantified_bn_features = base.model.module.decoupling_gap_bn(quantified_features_map)
+
+            # 解耦
+            shared_features, special_features = base.model.module.decoupling(quantified_bn_features)
+            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
+            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
+            special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
             ###########################################################
             # 损失函数
             # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
-            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
+            total_loss = ide_loss + shared_ide_loss + special_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -59,8 +61,8 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
-                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+                    "shared_pid_loss": shared_ide_loss.data,
+                    "special_pid_loss": special_ide_loss.data,
                 }
             )
 

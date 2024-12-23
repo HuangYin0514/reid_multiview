@@ -62,3 +62,23 @@ class FeatureMapIntegrating:
             integrating_pids[i] = chunk_pids[i][0]
 
         return quantified_integrating_features_map, integrating_pids
+
+
+class BNFeatureIntegrating:
+    def __init__(self, config):
+        super(BNFeatureIntegrating, self).__init__()
+        self.config = config
+
+    def __call__(self, features, pids):
+        bs, f_dim = features.size()
+        chunk_bs = int(bs / 4)  # 16
+
+        chunk_features = torch.chunk(features, chunks=chunk_bs, dim=0)
+        chunk_pids = torch.chunk(pids, chunks=chunk_bs, dim=0)
+        quantified_integrating_features_map = torch.zeros([chunk_bs, f_dim]).cuda()
+        integrating_pids = torch.zeros([chunk_bs]).cuda()
+        for i in range(chunk_bs):
+            quantified_integrating_features_map[i, :] = chunk_features[i][0].unsqueeze(0) + chunk_features[i][1].unsqueeze(0) + chunk_features[i][2].unsqueeze(0) + chunk_features[i][3].unsqueeze(0)
+            integrating_pids[i] = chunk_pids[i][0]
+
+        return quantified_integrating_features_map, integrating_pids
