@@ -58,6 +58,7 @@ def train(base, loaders, config):
             shared_special_features = base.model.module.feature_fusion(shared_features, special_features)
             _, shared_special_cls_score = base.model.module.bn_classifier3(shared_special_features)
             shared_special_loss = CrossEntropyLabelSmooth().forward(shared_special_cls_score, pids)
+            # 全局对比
             reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
 
             # # 重构
@@ -67,7 +68,7 @@ def train(base, loaders, config):
             ###########################################################
             # 损失函数
             # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
-            total_loss = ide_loss + decoupling_loss + shared_special_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + shared_special_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
