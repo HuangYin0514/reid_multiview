@@ -16,7 +16,7 @@ def train(base, loaders, config):
             # Backbone
             features_map = base.model(imgs)
             bn_features = base.model.module.gap_bn(features_map)
-            bn_features, cls_score = base.model.module.bn_classifier(bn_features)
+            _, cls_score = base.model.module.bn_classifier(bn_features)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
             ###########################################################
@@ -31,7 +31,7 @@ def train(base, loaders, config):
             # # 聚合
             integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, pids)
             bn_integrating_features = base.model.module.gap_bn2(integrating_features_map)
-            bn_integrating_features, integrating_cls_score = base.model.module.bn_classifier2(bn_integrating_features)
+            _, integrating_cls_score = base.model.module.bn_classifier2(bn_integrating_features)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             # 全局对比
