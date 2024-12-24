@@ -26,13 +26,13 @@ def train(base, loaders, config):
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
             # 量化
             quantified_features_map = WeightedFeatureMapLocalized(config).__call__(localized_features_map, localized_cls_score, pids)
-            bn_quantified_features = base.model.module.quantified_gap_bn(quantified_features_map)
 
             ###########################################################
             # # 聚合
             # quantified_features_map = BNFeatureIntegrating(config).__call__(localized_features_map, localized_cls_score, pids)
 
             # 解耦
+            bn_quantified_features = base.model.module.quantified_gap_bn(quantified_features_map)
             shared_features, special_features = base.model.module.decoupling(bn_quantified_features)
             _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
             shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
@@ -54,6 +54,10 @@ def train(base, loaders, config):
                 # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
                 decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
+            # 对比
+            shared_special_features = base.model.module.feature_fusion(shared_features, special_features)
+            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
+
             # # 重构
             # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
             # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
@@ -61,7 +65,7 @@ def train(base, loaders, config):
             ###########################################################
             # 损失函数
             # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
-            total_loss = ide_loss + shared_ide_loss + special_ide_loss + decoupling_loss
+            total_loss = ide_loss + shared_ide_loss + special_ide_loss + decoupling_loss + 0.007 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
