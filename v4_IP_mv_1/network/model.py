@@ -18,6 +18,9 @@ class Model(nn.Module):
         self.gap_bn2 = GAP_BN(2048)
         self.bn_classifier2 = BN_Classifier(2048, config.pid_num)
 
+        self.gap_bn3 = GAP_BN(2048)
+        self.bn_classifier3 = BN_Classifier(2048, config.pid_num)
+
         ###########################################################
         # 解耦
         self.decoupling = FeatureDecoupling(config)

@@ -34,10 +34,10 @@ def train(base, loaders, config):
             # 解耦
             bn_quantified_features = base.model.module.quantified_gap_bn(quantified_features_map)
             shared_features, special_features = base.model.module.decoupling(bn_quantified_features)
-            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+            # _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
+            # shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+            # _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
+            # special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
 
             num_views = 4
             bs = cls_score.size(0)
@@ -56,7 +56,9 @@ def train(base, loaders, config):
 
             # 对比
             shared_special_features = base.model.module.feature_fusion(shared_features, special_features)
-            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
+            _, shared_special_cls_score = base.model.module.bn_classifier3(shared_special_features)
+            shared_special_loss = CrossEntropyLabelSmooth().forward(shared_special_cls_score, pids)
+            reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
 
             # # 重构
             # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
@@ -65,7 +67,7 @@ def train(base, loaders, config):
             ###########################################################
             # 损失函数
             # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
-            total_loss = ide_loss + shared_ide_loss + special_ide_loss + decoupling_loss + 0.007 * localized_integrating_reasoning_loss
+            total_loss = ide_loss + decoupling_loss + shared_special_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -74,9 +76,9 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "shared_pid_loss": shared_ide_loss.data,
-                    "special_pid_loss": special_ide_loss.data,
                     "decoupling_loss": decoupling_loss.data,
+                    "shared_special_loss": shared_special_loss.data,
+                    "reasoning_loss": reasoning_loss.data,
                 }
             )
 
