@@ -29,13 +29,14 @@ def train(base, loaders, config):
 
             ###########################################################
             # # 聚合
-            integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, localized_cls_score, pids)
+            integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, pids)
             bn_integrating_features = base.model.module.gap_bn(integrating_features_map)
             bn_integrating_features, integrating_cls_score = base.model.module.bn_classifier2(bn_integrating_features)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             # 全局对比
             reasoning_loss = ReasoningLoss().forward(bn_features, bn_integrating_features)
+
             ###########################################################
             # 损失函数
             total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
