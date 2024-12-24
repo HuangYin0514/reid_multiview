@@ -33,6 +33,10 @@ def main(config):
     print("#" * 10)
     print("Main running...")
 
+    global best_mAP
+    global best_rank1
+    global best_epoch
+
     loaders = Loader(config)
     model = Base(config)
 
