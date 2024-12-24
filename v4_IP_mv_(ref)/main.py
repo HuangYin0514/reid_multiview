@@ -30,7 +30,10 @@ def seed_torch(seed):
 
 
 def main(config):
-    print("Main running...")
+    global best_mAP
+    global best_rank1
+    global best_epoch
+
     loaders = Loader(config)
     model = Base(config)
 
