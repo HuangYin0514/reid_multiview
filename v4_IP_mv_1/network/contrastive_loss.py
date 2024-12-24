@@ -58,7 +58,7 @@ class ReasoningLoss(nn.Module):
 
 class ReasoningLoss_ori(nn.Module):
     def __init__(self):
-        super(ReasoningLoss, self).__init__()
+        super(ReasoningLoss_ori, self).__init__()
 
     def forward(self, bn_features, bn_features2):
         new_bn_features2 = torch.zeros(bn_features.size()).cuda()
