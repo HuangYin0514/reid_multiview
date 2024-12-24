@@ -48,20 +48,20 @@ class FeatureMapIntegrating:
         super(FeatureMapIntegrating, self).__init__()
         self.config = config
 
-    def __call__(self, quantified_features_map, pids):
-        size = quantified_features_map.size(0)
-        c, h, w = quantified_features_map.size(1), quantified_features_map.size(2), quantified_features_map.size(3)
+    def __call__(self, features_map, pids):
+        size = features_map.size(0)
+        c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
         chunk_size = int(size / 4)  # 16
 
-        chunk_quantified_features_map = torch.chunk(quantified_features_map, chunks=chunk_size, dim=0)
+        chunk_features_map = torch.chunk(features_map, chunks=chunk_size, dim=0)
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
-        quantified_integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
+        integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
         integrating_pids = torch.zeros([chunk_size]).cuda()
         for i in range(chunk_size):
-            quantified_integrating_features_map[i, :, :, :] = chunk_quantified_features_map[i][0].unsqueeze(0) + chunk_quantified_features_map[i][1].unsqueeze(0) + chunk_quantified_features_map[i][2].unsqueeze(0) + chunk_quantified_features_map[i][3].unsqueeze(0)
+            integrating_features_map[i, :, :, :] = chunk_features_map[i][0].unsqueeze(0) + chunk_features_map[i][1].unsqueeze(0) + chunk_features_map[i][2].unsqueeze(0) + chunk_features_map[i][3].unsqueeze(0)
             integrating_pids[i] = chunk_pids[i][0]
 
-        return quantified_integrating_features_map, integrating_pids
+        return integrating_features_map, integrating_pids
 
 
 class BNFeatureIntegrating:

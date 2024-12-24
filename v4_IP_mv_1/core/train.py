@@ -29,46 +29,17 @@ def train(base, loaders, config):
 
             ###########################################################
             # # 聚合
-            # quantified_features_map = BNFeatureIntegrating(config).__call__(localized_features_map, localized_cls_score, pids)
+            integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, localized_cls_score, pids)
+            bn_integrating_features = base.model.module.gap_bn(integrating_features_map)
+            bn_integrating_features, integrating_cls_score = base.model.module.bn_classifier2(bn_integrating_features)
+            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
-            # 解耦
-            bn_quantified_features = base.model.module.quantified_gap_bn(quantified_features_map)
-            shared_features, special_features = base.model.module.decoupling(bn_quantified_features)
-            # _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            # shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            # _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            # special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
-
-            num_views = 4
-            bs = cls_score.size(0)
-            chunk_bs = int(bs / num_views)
-            decoupling_loss = 0
-            for i in range(chunk_bs):
-                shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-                special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-                # (共享-指定)损失
-                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
-                # (共享)损失
-                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-                # (指定)损失
-                # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
-
-            # 对比
-            shared_special_features = base.model.module.feature_fusion(shared_features, special_features)
-            _, shared_special_cls_score = base.model.module.bn_classifier3(shared_special_features)
-            shared_special_loss = CrossEntropyLabelSmooth().forward(shared_special_cls_score, pids)
             # 全局对比
-            reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
-
-            # # 重构
-            # bn_features_reconstruction = base.model.module.decoupling_reconstruction(shared_features, special_features)
-            # reconstruction_loss = nn.MSELoss().forward(bn_features_reconstruction, bn_features)
+            reasoning_loss = ReasoningLoss().forward(bn_features, bn_integrating_features)
 
             ###########################################################
             # 损失函数
-            # total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss + shared_ide_loss + special_ide_loss + reconstruction_loss
-            total_loss = ide_loss + shared_special_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
