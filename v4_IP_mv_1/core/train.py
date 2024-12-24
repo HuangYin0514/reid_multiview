@@ -35,7 +35,7 @@ def train(base, loaders, config):
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             # 全局对比
-            reasoning_loss = ReasoningLoss().forward(bn_features, bn_integrating_features)
+            reasoning_loss = ReasoningLoss_ori().forward(bn_features, bn_integrating_features)
             ###########################################################
             # 损失函数
             total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
