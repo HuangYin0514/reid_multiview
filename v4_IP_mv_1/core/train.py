@@ -47,8 +47,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "decoupling_loss": decoupling_loss.data,
-                    "shared_special_loss": shared_special_loss.data,
+                    "integrating_pid_loss": integrating_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
                 }
             )
