@@ -18,7 +18,7 @@ def train(base, loaders, config):
             #################################################################
             # Baseline
             features_map = base.model(imgs)
-            bn_features, cls_score = base.model.module.classifier(bn_features)
+            bn_features, cls_score = base.model.module.classifier(features_map)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
             #################################################################
