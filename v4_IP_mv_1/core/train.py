@@ -23,7 +23,7 @@ def train(base, loaders, config):
 
             #################################################################
             # 定位
-            localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.classifier)
+            localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.classifier)
             _, localized_cls_score = base.model.module.classifier(localized_features_map)
 
             #################################################################
