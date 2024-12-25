@@ -1,9 +1,6 @@
-from network.contrastive_loss import *
-from network.processing import (
-    FeatureMapLocalizedIntegratingNoRelu,
-    FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights,
-)
-from tools import CrossEntropyLabelSmooth, KLDivLoss, MultiItemAverageMeter
+from network.loss_function import *
+from network.processing import *
+from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
 

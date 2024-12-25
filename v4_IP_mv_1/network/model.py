@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from .common import *
+from .gem_pool import GeneralizedMeanPoolingP
 
 
 class Classifier(nn.Module):
@@ -61,8 +62,8 @@ class Model(nn.Module):
 
     def __init__(self, config):
         super(Model, self).__init__()
-        self.backbone = Backbone()
 
+        self.backbone = Backbone()
         self.classifier = Classifier(2048, config.pid_num)
         self.classifier2 = Classifier(2048, config.pid_num)
 
