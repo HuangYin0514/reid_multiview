@@ -90,10 +90,12 @@ class FeatureFusion(nn.Module):
     def __init__(self, config):
         super(FeatureFusion, self).__init__()
         self.config = config
+        self.bn = nn.BatchNorm1d(2048)
 
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
         out = torch.cat([features_1, features_2], dim=1)
+        out = self.bn(out)
         return out
 
 
@@ -122,6 +124,25 @@ class FeatureDecoupling(nn.Module):
         shared_features = self.mlp1(features)
         special_features = self.mlp2(features)
         return shared_features, special_features
+
+
+class FeatureDecouplingReconstruction(nn.Module):
+    def __init__(self, config):
+        super(FeatureDecouplingReconstruction, self).__init__()
+        self.config = config
+
+        ic = 2048
+        oc = 2048
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
+    def forward(self, shared_features, special_features):
+        cat_features = torch.cat([shared_features, special_features], dim=1)
+        out = self.mlp1(cat_features)
+        return out
 
 
 class ReasoningLoss(nn.Module):

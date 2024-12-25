@@ -1,5 +1,8 @@
 from network.contrastive_loss import *
-from network.processing import *
+from network.processing import (
+    FeatureMapLocalizedIntegratingNoRelu,
+    FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights,
+)
 from tools import CrossEntropyLabelSmooth, KLDivLoss, MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -12,33 +15,27 @@ def train(base, loaders, config):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
-            ###########################################################
-            # Backbone
+            # Baseline
             features_map = base.model(imgs)
             bn_features = base.model.module.gap_bn(features_map)
-            _, cls_score = base.model.module.bn_classifier(bn_features)
-            ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            bn_features, cls_score = base.model.module.bn_classifier(bn_features)
 
-            ###########################################################
             # 定位
-            localized_features_map = FeatureMapLocalized(config).__call__(features_map, pids, base.model.module.bn_classifier)
-            bn_localized_features = base.model.module.gap_bn2(localized_features_map)
+            localized_features_map = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.bn_classifier)
+            bn_localized_features = base.model.module.gap_bn(localized_features_map)
             _, localized_cls_score = base.model.module.bn_classifier2(bn_localized_features)
+
             # 量化
-            quantified_features_map = WeightedFeatureMapLocalized(config).__call__(localized_features_map, localized_cls_score, pids)
+            quantified_integrating_features_map, integrating_pids = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
+            bn_quantified_integrating_features = base.model.module.gap_bn(quantified_integrating_features_map)
+            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.bn_classifier2(bn_quantified_integrating_features)
 
-            ###########################################################
-            # # 聚合
-            integrating_features_map, integrating_pids = FeatureMapIntegrating(config).__call__(quantified_features_map, pids)
-            bn_integrating_features = base.model.module.gap_bn2(integrating_features_map)
-            _, integrating_cls_score = base.model.module.bn_classifier2(bn_integrating_features)
-            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            # Loss
+            ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
+            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
 
-            # 全局对比
-            reasoning_loss = ReasoningLoss_ori().forward(bn_features, bn_integrating_features)
-            ###########################################################
-            # 损失函数
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -47,8 +44,8 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "integrating_pid_loss": integrating_ide_loss.data,
-                    "reasoning_loss": reasoning_loss.data,
+                    "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
+                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
                 }
             )
 

@@ -1,9 +1,9 @@
 import torch
 
 
-class FeatureMapLocalized:
+class FeatureMapLocalizedIntegratingNoRelu:
     def __init__(self, config):
-        super(FeatureMapLocalized, self).__init__()
+        super(FeatureMapLocalizedIntegratingNoRelu, self).__init__()
         self.config = config
 
     def __call__(self, features_map, pids, classifier):
@@ -27,58 +27,28 @@ class FeatureMapLocalized:
         return localized_features_map
 
 
-class WeightedFeatureMapLocalized:
+class FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights:
     def __init__(self, config):
-        super(WeightedFeatureMapLocalized, self).__init__()
+        super(FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights, self).__init__()
         self.config = config
 
     def __call__(self, features_map, cls_scores, pids):
         size = features_map.size(0)
+        c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
+        chunk_size = int(size / 4)  # 16
 
         prob = torch.log_softmax(cls_scores, dim=1)
         probs = prob[torch.arange(size), pids]
         weights = torch.softmax(probs.view(-1, 4), dim=1).view(-1).clone().detach()
+
         quantified_features_map = weights.unsqueeze(1).unsqueeze(2).unsqueeze(3) * features_map
 
-        return quantified_features_map
-
-
-class FeatureMapIntegrating:
-    def __init__(self, config):
-        super(FeatureMapIntegrating, self).__init__()
-        self.config = config
-
-    def __call__(self, features_map, pids):
-        size = features_map.size(0)
-        c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
-        chunk_size = int(size / 4)  # 16
-
-        chunk_features_map = torch.chunk(features_map, chunks=chunk_size, dim=0)
+        chunk_quantified_features_map = torch.chunk(quantified_features_map, chunks=chunk_size, dim=0)
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
-        integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
+        quantified_integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
         integrating_pids = torch.zeros([chunk_size]).cuda()
         for i in range(chunk_size):
-            integrating_features_map[i, :, :, :] = chunk_features_map[i][0].unsqueeze(0) + chunk_features_map[i][1].unsqueeze(0) + chunk_features_map[i][2].unsqueeze(0) + chunk_features_map[i][3].unsqueeze(0)
-            integrating_pids[i] = chunk_pids[i][0]
-
-        return integrating_features_map, integrating_pids
-
-
-class BNFeatureIntegrating:
-    def __init__(self, config):
-        super(BNFeatureIntegrating, self).__init__()
-        self.config = config
-
-    def __call__(self, features, pids):
-        bs, f_dim = features.size()
-        chunk_bs = int(bs / 4)  # 16
-
-        chunk_features = torch.chunk(features, chunks=chunk_bs, dim=0)
-        chunk_pids = torch.chunk(pids, chunks=chunk_bs, dim=0)
-        quantified_integrating_features_map = torch.zeros([chunk_bs, f_dim]).cuda()
-        integrating_pids = torch.zeros([chunk_bs]).cuda()
-        for i in range(chunk_bs):
-            quantified_integrating_features_map[i, :] = chunk_features[i][0].unsqueeze(0) + chunk_features[i][1].unsqueeze(0) + chunk_features[i][2].unsqueeze(0) + chunk_features[i][3].unsqueeze(0)
+            quantified_integrating_features_map[i, :, :, :] = chunk_quantified_features_map[i][0].unsqueeze(0) + chunk_quantified_features_map[i][1].unsqueeze(0) + chunk_quantified_features_map[i][2].unsqueeze(0) + chunk_quantified_features_map[i][3].unsqueeze(0)
             integrating_pids[i] = chunk_pids[i][0]
 
         return quantified_integrating_features_map, integrating_pids
