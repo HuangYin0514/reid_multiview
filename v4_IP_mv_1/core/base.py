@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from network import Model
-from tools import CrossEntropyLabelSmooth, KLDivLoss, ReasoningLoss, os_walk
+from tools import os_walk
 
 
 class Base:
