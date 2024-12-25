@@ -13,7 +13,7 @@ class Classifier(nn.Module):
         self.BN.apply(weights_init_kaiming)
 
         self.classifier = nn.Linear(c_dim, self.pid_num, bias=False)
-        self.classifier.apply(weights_init_kaiming)
+        self.classifier.apply(weights_init_classifier)
 
     def forward(self, features_map):
         features = self.GAP(features_map)

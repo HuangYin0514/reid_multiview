@@ -7,6 +7,14 @@ from .resnet50 import resnet50
 from .resnet_ibn_a import resnet50_ibn_a
 
 
+def weights_init_classifier(m):
+    classname = m.__class__.__name__
+    if classname.find("Linear") != -1:
+        nn.init.normal_(m.weight, std=0.001)
+        if m.bias:
+            nn.init.constant_(m.bias, 0.0)
+
+
 def weights_init_kaiming(m):
     classname = m.__class__.__name__
     if classname.find("Linear") != -1:
