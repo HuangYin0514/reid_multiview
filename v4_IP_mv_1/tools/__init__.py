@@ -1,4 +1,4 @@
-from .loss import *
+from .distance import *
 from .utils import *
 from .meter import *
 from .evaluation import *
