@@ -13,7 +13,7 @@ class FeatureMapLocation:
         c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
         localized_features_map = torch.zeros([size, c, h, w]).cuda()
 
-        heatmaps = torch.zeros((size, h, w))
+        heatmaps = torch.zeros((size, h, w), device=features_map.device)
         for i in range(size):
             classifier_name = []
             classifier_params = []
