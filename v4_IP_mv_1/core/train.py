@@ -20,13 +20,16 @@ def train(base, loaders, config):
 
             #################################################################
             # 定位
-            localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.classifier)
+            # localized_features_map, localized_integrating_features_map, integrating_pids = FeatureMapLocalizedIntegratingNoRelu(config).__call__(features_map, pids, base.model.module.classifier)
+            # _, localized_cls_score = base.model.module.classifier(localized_features_map)
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
             _, localized_cls_score = base.model.module.classifier(localized_features_map)
 
             #################################################################
             # 量化
-            quantified_features_map, quantified_integrating_features_map, integrating_pids = FeatureMapQuantifiedIntegratingProbLogSoftmaxWeights(config).__call__(localized_features_map, localized_cls_score, pids)
-            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(quantified_integrating_features_map)
+            quantified_features_map = FeatureMapQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
+            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(quantified_features_map, localized_cls_score, pids)
+            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(integrating_features_map)
             localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
             localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
 
