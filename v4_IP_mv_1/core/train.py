@@ -28,7 +28,7 @@ def train(base, loaders, config):
             #################################################################
             # 量化
             quantified_features_map = FeatureMapQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
-            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(quantified_features_map, localized_cls_score, pids)
+            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(quantified_features_map, pids)
             localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(integrating_features_map)
             localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
             localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
