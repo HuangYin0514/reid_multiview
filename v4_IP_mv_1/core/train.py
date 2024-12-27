@@ -33,7 +33,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_integrating_ide_loss + localized_integrating_reasoning_loss / (localized_integrating_reasoning_loss / ide_loss).detach()
+            total_loss = ide_loss + localized_integrating_ide_loss / (localized_integrating_ide_loss / ide_loss).detach() + localized_integrating_reasoning_loss / (localized_integrating_reasoning_loss / ide_loss).detach()
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
