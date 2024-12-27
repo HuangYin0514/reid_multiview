@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from .gem_pool import GeneralizedMeanPoolingP
+
 
 def weights_init_classifier(m):
     classname = m.__class__.__name__
@@ -28,3 +30,17 @@ def weights_init_kaiming(m):
         if m.affine:
             nn.init.constant_(m.weight, 1.0)
             nn.init.constant_(m.bias, 0.0)
+
+
+class GAP_BN(nn.Module):
+    def __init__(self, channel=2048):
+        super(GAP_BN, self).__init__()
+        self.GAP = GeneralizedMeanPoolingP()
+        # self.GAP = nn.AdaptiveAvgPool2d(1)
+        self.BN = nn.BatchNorm1d(channel)
+        self.BN.apply(weights_init_kaiming)
+
+    def forward(self, features_map):
+        features = self.GAP(features_map)
+        bn_features = self.BN(features.squeeze())
+        return bn_features
