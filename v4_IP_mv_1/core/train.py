@@ -35,10 +35,10 @@ def train(base, loaders, config):
 
             # 3个损失
             # 共享特征损失
-            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
+            _, shared_cls_score = base.model.module.decoupling_shared_classifier(shared_features)
             shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
             # 指定特征损失
-            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
+            _, special_cls_score = base.model.module.decoupling_special_classifier(special_features)
             special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
             # 融合特征损失
             _, fusion_cls_score = base.model.module.decoupling_fusion_classifier(shared_special_features)

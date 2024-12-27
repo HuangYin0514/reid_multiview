@@ -135,7 +135,6 @@ class Model(nn.Module):
         self.decoupling_fusion = FeatureFusion(config)
         self.decoupling_shared_classifier = BN_Classifier(1024, config.pid_num)
         self.decoupling_special_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_shared_classifier = BN_Classifier(1024, config.pid_num)
         self.decoupling_fusion_classifier = BN_Classifier(2048, config.pid_num)
 
     def heatmap(self, x):
