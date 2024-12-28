@@ -47,9 +47,24 @@ def train(base, loaders, config):
 
             localized_integrating_reasoning_loss = FeatureRegularizationLoss().forward(bn_features)
 
+            num_views = 4
+            bs = cls_score.size(0)
+            chunk_bs = int(bs / num_views)
+            decoupling_loss = 0
+            for i in range(chunk_bs):
+                shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
+                special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
+                # (共享-指定)损失
+                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
+                # (共享)损失
+                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+                # (指定)损失
+                # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
+                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
+
             #################################################################
             # Loss
-            total_loss = ide_loss + decopling_loss / (decopling_loss / ide_loss).detach() + localized_integrating_reasoning_loss / (localized_integrating_reasoning_loss / ide_loss).detach()
+            total_loss = ide_loss + decopling_loss / (decopling_loss / ide_loss).detach() + localized_integrating_reasoning_loss / (localized_integrating_reasoning_loss / ide_loss).detach() + decoupling_loss / (decoupling_loss / ide_loss).detach()
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -60,6 +75,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "decopling_loss": decopling_loss.data,
                     "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+                    "decoupling_loss": decoupling_loss.data,
                 }
             )
 
