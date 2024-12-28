@@ -44,7 +44,8 @@ def train(base, loaders, config):
             _, fusion_cls_score = base.model.module.decoupling_fusion_classifier(shared_special_features)
             fusion_ide_loss = CrossEntropyLabelSmooth().forward(fusion_cls_score, pids)
             decopling_loss = shared_ide_loss + special_ide_loss + fusion_ide_loss
-            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, shared_special_features)
+
+            localized_integrating_reasoning_loss = FeatureRegularizationLoss().forward(bn_features)
 
             #################################################################
             # Loss
