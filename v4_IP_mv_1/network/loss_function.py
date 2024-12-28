@@ -61,7 +61,7 @@ class ReasoningLoss(nn.Module):
 
 class FeatureRegularizationLoss(nn.Module):
     def __init__(self):
-        super(ReasoningLoss, self).__init__()
+        super(FeatureRegularizationLoss, self).__init__()
 
     def forward(self, bn_features):
         loss = torch.norm((bn_features), p=2)
