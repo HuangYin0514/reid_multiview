@@ -163,7 +163,6 @@ if __name__ == "__main__":
 
     wandb.init(
         project="multi-view",
-        config=config,
     )
     main(config)
     wandb.finish()
