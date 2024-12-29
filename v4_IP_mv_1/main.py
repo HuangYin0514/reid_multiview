@@ -162,7 +162,10 @@ if __name__ == "__main__":
     seed_torch(config.seed)
 
     wandb.init(
+        entity="yinhuang-team-projects",
         project="multi-view",
+        name="Lucky",
+        config=config,
     )
     main(config)
     wandb.finish()
