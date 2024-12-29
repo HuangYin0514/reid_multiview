@@ -42,7 +42,7 @@ def train(base, loaders, config):
 
             loss_record = {
                 "pid_loss": ide_loss.data,
-                "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
+                "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
                 "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
             }
             meter.update(loss_record)
