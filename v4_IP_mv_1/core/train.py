@@ -1,3 +1,4 @@
+import wandb
 from network.loss_function import *
 from network.processing import *
 from tools import MultiItemAverageMeter
@@ -39,12 +40,12 @@ def train(base, loaders, config):
             total_loss.backward()
             base.model_optimizer.step()
 
-            meter.update(
-                {
-                    "pid_loss": ide_loss.data,
-                    "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
-                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
-                }
-            )
+            loss_record = {
+                "pid_loss": ide_loss.data,
+                "localized_integrating_pid_loss": localized_integrating_ide_loss.data,
+                "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+            }
+            meter.update(loss_record)
+            wandb.log(loss_record)
 
     return meter.get_val(), meter.get_str()

@@ -115,7 +115,6 @@ class Loader:
         return loader
 
     def _get_test_loader(self, samples, transform, batch_size):
-
         dataset = Dataset(samples, transform=transform)
         loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
         return loader
@@ -127,7 +126,6 @@ class Loader:
 
 
 class IterLoader:
-
     def __init__(self, loader):
         self.loader = loader
         self.iter = iter(self.loader)

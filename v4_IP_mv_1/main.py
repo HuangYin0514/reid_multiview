@@ -13,6 +13,7 @@ from tools import Logger, make_dirs, os_walk, time_now
 
 warnings.filterwarnings("ignore")
 
+
 best_mAP = 0
 best_rank1 = 0
 best_epoch = 0
@@ -38,9 +39,9 @@ def main(config):
     global best_rank1
     global best_epoch
 
-    print("loading data...")
+    print("Loading data...")
     loaders = Loader(config)
-    print("loading model...")
+    print("Loading model...")
     model = Base(config)
 
     make_dirs(model.output_path)
@@ -83,6 +84,16 @@ def main(config):
                 best_epoch = current_epoch if is_best_rank else best_epoch
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+                wandb.log(
+                    {
+                        "test_dataset": config.test_dataset,
+                        "mAP": mAP,
+                        "Rank1": CMC[0],
+                        "Rank5": CMC[4],
+                        "Rank10": CMC[9],
+                        "Rank20": CMC[19],
+                    }
+                )
 
         if best_rank1:
             logger("=" * 50)
@@ -149,4 +160,10 @@ if __name__ == "__main__":
 
     config = parser.parse_args()
     seed_torch(config.seed)
+
+    wandb.init(
+        project="multi-view",
+        config=config,
+    )
     main(config)
+    wandb.finish()
