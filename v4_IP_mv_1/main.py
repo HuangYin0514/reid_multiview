@@ -3,10 +3,10 @@ import ast
 import os
 import random
 import warnings
-import wandb
 
 import numpy as np
 import torch
+import wandb
 from core import Base, test, train, visualization
 from data_loader.loader import Loader
 from tools import Logger, make_dirs, os_walk, time_now
@@ -38,7 +38,9 @@ def main(config):
     global best_rank1
     global best_epoch
 
+    print("loading data...")
     loaders = Loader(config)
+    print("loading model...")
     model = Base(config)
 
     make_dirs(model.output_path)
