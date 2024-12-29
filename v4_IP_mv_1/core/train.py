@@ -57,10 +57,10 @@ def train(base, loaders, config):
                 # (共享-指定)损失
                 sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
                 # (共享)损失
-                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
+                # sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
                 # (指定)损失
                 # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-                decoupling_loss += sharedSpecialLoss + sharedSharedLoss / (sharedSharedLoss / sharedSpecialLoss).detach()
+                decoupling_loss += sharedSpecialLoss
 
             #################################################################
             # Loss
