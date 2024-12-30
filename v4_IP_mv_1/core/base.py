@@ -40,6 +40,7 @@ class Base:
             self.model = None
         else:
             self.model = Model(self.config)
+            wandb.watch(self.model, log="all")
         self.model = nn.DataParallel(self.model).to(self.device)
 
     def _init_optimizer(self):
