@@ -80,13 +80,22 @@ def main(config):
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
-                best_rank1 = max(CMC[0], best_rank1)
-                best_epoch = current_epoch if is_best_rank else best_epoch
+                if is_best_rank:
+                    best_epoch = current_epoch
+                    best_rank1 = CMC[0]
+                    best_mAP = mAP
+                    wandb.log(
+                        {
+                            "best_epoch": best_epoch,
+                            "best_rank1": best_rank1,
+                            "best_mAP": best_mAP,
+                        }
+                    )
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
                 wandb.log(
                     {
-                        "test_dataset": config.test_dataset,
+                        "test_epoch": current_epoch,
                         "mAP": mAP,
                         "Rank1": CMC[0],
                         "Rank5": CMC[4],

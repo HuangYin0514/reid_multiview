@@ -41,6 +41,7 @@ def train(base, loaders, config):
             base.model_optimizer.step()
 
             loss_record = {
+                "train_epoch": epoch,
                 "pid_loss": ide_loss.data,
                 "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
                 "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
