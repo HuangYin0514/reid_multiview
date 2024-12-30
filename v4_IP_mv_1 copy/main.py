@@ -103,7 +103,6 @@ def main(config):
                         "Rank1": CMC[0],
                         "Rank5": CMC[4],
                         "Rank10": CMC[9],
-                        "Rank20": CMC[19],
                     }
                 )
 
