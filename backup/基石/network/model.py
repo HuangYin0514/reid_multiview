@@ -75,6 +75,7 @@ class Model(nn.Module):
 
     def forward(self, x):
         if self.training:
+            return torch.randn(x.size(0), 2048, 16, 8)
             x1, x2, x3, x4, features_map = self.backbone(x)
             return features_map
         else:
