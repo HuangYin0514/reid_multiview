@@ -28,7 +28,6 @@ class MultiItemAverageMeter:
         self.content = {}
 
     def update(self, val):
-
         for key in list(val.keys()):
             value = val[key]
             if key not in list(self.content.keys()):
@@ -39,8 +38,15 @@ class MultiItemAverageMeter:
                 self.content[key]["avg"] = self.content[key]["sum"] / self.content[key]["count"]
 
     def get_dict(self):
-        return self.content
-
+        keys = list(self.content.keys())
+        values = {}
+        for key in keys:
+            try:
+                values[key] = self.content[key]["avg"].data.cpu().numpy()
+            except:
+                values[key] = self.content[key]["avg"]
+        return values
+1
     def get_val(self):
         keys = list(self.content.keys())
         values = []
