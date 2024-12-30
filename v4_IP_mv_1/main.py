@@ -96,7 +96,6 @@ def main(config):
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
                 wandb.log(
                     {
-                        "test_epoch": current_epoch,
                         "mAP": mAP,
                         "Rank1": CMC[0],
                         "Rank5": CMC[4],
