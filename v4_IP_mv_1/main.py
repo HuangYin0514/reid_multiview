@@ -135,12 +135,13 @@ def main(config):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task_name", type=str, default="Lucky")
+    # Task
+    parser.add_argument("--task_name", type=str, default="kaggle version")
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--cuda", type=str, default="cuda")
     parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
     parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
-    parser.add_argument("--backbone", type=str, default="resnet50", help="resnet50, resnet50ibna")
+    # Dataset
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")
     parser.add_argument("--occluded_reid_path", type=str, default="/opt/data/private/data/Occluded_REID")
     parser.add_argument("--partial_duke_path", type=str, default="/opt/data/private/data/P_Duke_OURS/new")
@@ -151,27 +152,27 @@ if __name__ == "__main__":
     parser.add_argument("--msmt_path", type=str, default="/opt/data/private/data/MSMT17")
     parser.add_argument("--train_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
     parser.add_argument("--test_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
+    parser.add_argument("--pid_num", type=int, default=702)
+    # Data loader
     parser.add_argument("--image_size", type=int, nargs="+", default=[256, 128])
     parser.add_argument("--use_rea", type=ast.literal_eval, default=True, help="use random erasing augmentation")
     parser.add_argument("--use_colorjitor", type=ast.literal_eval, default=False, help="use random erasing augmentation")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--batchsize", type=int, default=64)
     parser.add_argument("--num_instances", type=int, default=8)
-    parser.add_argument("--pid_num", type=int, default=702)
-    parser.add_argument("--in_dim", type=int, default=2048)
+    # Train
     parser.add_argument("--learning_rate", type=float, default=0.0003)
-    parser.add_argument("--lambda1", type=float, default=0.007)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument("--milestones", nargs="+", type=int, default=[40, 70], help="milestones for the learning rate decay")
-    parser.add_argument("--output_path", type=str, default="occluded_duke/base/", help="path to save related informations")
-    parser.add_argument("--max_save_model_num", type=int, default=1, help="0 for max num is infinit")
-    parser.add_argument("--resume_train_epoch", type=int, default=-1, help="-1 for no resuming")
-    parser.add_argument("--auto_resume_training_from_lastest_step", type=ast.literal_eval, default=True)
     parser.add_argument("--total_train_epoch", type=int, default=120)
     parser.add_argument("--eval_epoch", type=int, default=5)
     parser.add_argument("--resume_test_model", type=int, default=119, help="-1 for no resuming")
     parser.add_argument("--test_mode", type=str, default="inter-camera", help="inter-camera, intra-camera, all")
-
+    # Save
+    parser.add_argument("--output_path", type=str, default="occluded_duke/base/", help="path to save related informations")
+    parser.add_argument("--max_save_model_num", type=int, default=1, help="0 for max num is infinit")
+    parser.add_argument("--resume_train_epoch", type=int, default=-1, help="-1 for no resuming")
+    parser.add_argument("--auto_resume_training_from_lastest_step", type=ast.literal_eval, default=True)
     config = parser.parse_args()
     seed_torch(config.seed)
 
