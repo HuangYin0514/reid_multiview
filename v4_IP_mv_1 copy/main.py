@@ -90,7 +90,7 @@ def main(config):
                     best_mAP = mAP
                     wandb.log(
                         {
-                            "Train_epoch": current_epoch
+                            "Train_epoch": current_epoch,
                             "best_epoch": best_epoch,
                             "best_rank1": best_rank1,
                             "best_mAP": best_mAP,
