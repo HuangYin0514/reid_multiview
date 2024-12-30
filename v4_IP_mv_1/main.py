@@ -43,7 +43,6 @@ def main(config):
     loaders = Loader(config)
     print("Loading model...")
     model = Base(config)
-    wandb.watch(model.model, log="all")
 
     make_dirs(model.output_path)
     make_dirs(model.save_model_path)
@@ -54,6 +53,21 @@ def main(config):
     logger(config)
 
     if config.mode == "train":
+        ########################################################
+        # 训练
+        ########################################################
+        # 初始化wandb
+        wandb.init(
+            entity="yinhuang-team-projects",
+            project="multi-view",
+            name=config.task_name,
+            notes=config.notes,
+            tags=config.tags,
+            config=config,
+        )
+        wandb.watch(model.model, log="all")
+
+        # 恢复训练
         if config.resume_train_epoch >= 0:
             model.resume_model(config.resume_train_epoch)
             start_train_epoch = config.resume_train_epoch
@@ -71,6 +85,7 @@ def main(config):
                 start_train_epoch = indexes[-1]
                 logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
 
+        # 训练
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
 
@@ -116,11 +131,13 @@ def main(config):
             logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
             logger("=" * 50)
 
+    # 测试
     elif config.mode == "test":
         model.resume_model(config.resume_test_model)
         mAP, CMC = test(config, model, loaders)
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
+    # 可视化
     elif config.mode == "visualization":
         loaders._visualization_load()
         if config.auto_resume_training_from_lastest_step:
@@ -181,13 +198,5 @@ if __name__ == "__main__":
     config = parser.parse_args()
     seed_torch(config.seed)
 
-    wandb.init(
-        entity="yinhuang-team-projects",
-        project="multi-view",
-        name=config.task_name,
-        notes=config.notes,
-        tags=config.tags,
-        config=config,
-    )
     main(config)
     wandb.finish()
