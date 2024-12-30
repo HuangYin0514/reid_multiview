@@ -79,6 +79,7 @@ class Model(nn.Module):
             x1, x2, x3, x4, features_map = self.backbone(x)
             return features_map
         else:
+            return torch.randn(x.size(0), 2048)
             x1, x2, x3, x4, features_map = self.backbone(x)
             bn_features, cls_score = self.classifier(features_map)
             return bn_features
