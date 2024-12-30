@@ -74,8 +74,9 @@ def main(config):
             model.model_lr_scheduler.step(current_epoch)
 
             if current_epoch < config.total_train_epoch:
-                _, result = train(model, loaders, config)
+                dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
+                wandb.log(dict_result)
 
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
