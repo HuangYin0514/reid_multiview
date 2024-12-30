@@ -74,7 +74,7 @@ def main(config):
             model.model_lr_scheduler.step(current_epoch)
 
             current_lr = model.model_optimizer.param_groups[0]["lr"]
-            wandb.log({"Epoch": current_epoch, "Lr": current_lr})
+            wandb.log({"Lr": current_lr})
 
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
@@ -90,6 +90,7 @@ def main(config):
                     best_mAP = mAP
                     wandb.log(
                         {
+                            "Train_epoch": current_epoch
                             "best_epoch": best_epoch,
                             "best_rank1": best_rank1,
                             "best_mAP": best_mAP,
