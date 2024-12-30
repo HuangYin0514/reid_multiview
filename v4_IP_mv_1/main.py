@@ -79,7 +79,6 @@ def main(config):
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
                 wandb.log(
                     {
-                        "train_epoch": current_epoch,
                         "Lr": model.model_optimizer.param_groups[0]["lr"],
                         **dict_result,
                     }
