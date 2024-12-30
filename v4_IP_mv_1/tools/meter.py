@@ -46,7 +46,7 @@ class MultiItemAverageMeter:
             except:
                 values[key] = self.content[key]["avg"]
         return values
-1
+
     def get_val(self):
         keys = list(self.content.keys())
         values = []
