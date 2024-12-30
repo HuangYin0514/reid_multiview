@@ -74,13 +74,16 @@ def main(config):
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
 
-            current_lr = model.model_optimizer.param_groups[0]["lr"]
-            wandb.log({"Lr": current_lr})
-
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
-                wandb.log(dict_result)
+                wandb.log(
+                    {
+                        "train_epoch": current_epoch,
+                        "Lr": model.model_optimizer.param_groups[0]["lr"],
+                        **dict_result,
+                    }
+                )
 
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
@@ -91,7 +94,6 @@ def main(config):
                     best_mAP = mAP
                     wandb.log(
                         {
-                            "train_epoch": current_epoch,
                             "best_epoch": best_epoch,
                             "best_rank1": best_rank1,
                             "best_mAP": best_mAP,
