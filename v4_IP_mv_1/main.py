@@ -76,7 +76,7 @@ def main(config):
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
-                wandb.log(dict_result)
+                wandb.log({"Epoch": current_epoch, **dict_result})
 
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
@@ -93,7 +93,7 @@ def main(config):
                         }
                     )
                 model.save_model(current_epoch, is_best_rank)
-                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
                 wandb.log(
                     {
                         "mAP": mAP,
@@ -133,6 +133,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--task_name", type=str, default="Lucky")
+    parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--cuda", type=str, default="cuda")
     parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
     parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
@@ -175,6 +176,7 @@ if __name__ == "__main__":
         entity="yinhuang-team-projects",
         project="multi-view",
         name=config.task_name,
+        notes=config.notes,
         config=config,
     )
     main(config)
