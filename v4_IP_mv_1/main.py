@@ -132,6 +132,7 @@ def main(config):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--task_name", type=str, default="Lucky")
     parser.add_argument("--cuda", type=str, default="cuda")
     parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
     parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
@@ -173,7 +174,7 @@ if __name__ == "__main__":
     wandb.init(
         entity="yinhuang-team-projects",
         project="multi-view",
-        name="Lucky",
+        name=config.task_name,
         config=config,
     )
     main(config)
