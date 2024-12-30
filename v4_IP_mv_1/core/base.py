@@ -4,6 +4,7 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import wandb
 from network import Model
 from tools import os_walk
 
@@ -40,6 +41,7 @@ class Base:
         else:
             self.model = Model(self.config)
         self.model = nn.DataParallel(self.model).to(self.device)
+        wandb.watch(self.model, log="all")
 
     def _init_optimizer(self):
 
