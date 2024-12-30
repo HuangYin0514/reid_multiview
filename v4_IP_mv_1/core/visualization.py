@@ -220,7 +220,9 @@ def visualization(config, base, loader):
             for data in loader_i:
                 images, pids, cids, path = data
                 bn_features = base.model(images)
-
+                flip_images = torch.flip(images, [3])
+                flip_bn_features = base.model(flip_images)
+                bn_features = bn_features + flip_bn_features
                 if loader_id == 0:
                     query_features_meter.update(bn_features.data)
                     query_pids_meter.update(pids)
@@ -278,7 +280,9 @@ def visualization(config, base, loader):
             for data in loader_i:
                 images, pids, cids, path = data
                 bn_features = base.model(images)
-
+                flip_images = torch.flip(images, [3])
+                flip_bn_features = base.model(flip_images)
+                bn_features = bn_features + flip_bn_features
                 if loader_id == 0:
                     query_features_meter.update(bn_features.data)
                     query_pids_meter.update(pids)
