@@ -40,11 +40,12 @@ def train(base, loaders, config):
             total_loss.backward()
             base.model_optimizer.step()
 
-            loss_record = {
-                "pid_loss": ide_loss.data,
-                "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
-                "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
-            }
-            meter.update(loss_record)
+            meter.update(
+                {
+                    "pid_loss": ide_loss.data,
+                    "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
+                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+                }
+            )
 
     return meter.get_dict(), meter.get_str()
