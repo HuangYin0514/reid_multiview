@@ -43,6 +43,7 @@ def main(config):
     loaders = Loader(config)
     print("Loading model...")
     model = Base(config)
+    wandb.watch(model, log="all")
 
     make_dirs(model.output_path)
     make_dirs(model.save_model_path)
