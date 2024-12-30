@@ -139,8 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--task_name", type=str, default="kaggle version")
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--cuda", type=str, default="cuda")
-    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
-    parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
+
     # Dataset
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")
     parser.add_argument("--occluded_reid_path", type=str, default="/opt/data/private/data/Occluded_REID")
@@ -161,6 +160,8 @@ if __name__ == "__main__":
     parser.add_argument("--batchsize", type=int, default=64)
     parser.add_argument("--num_instances", type=int, default=8)
     # Train
+    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
+    parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
     parser.add_argument("--learning_rate", type=float, default=0.0003)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument("--milestones", nargs="+", type=int, default=[40, 70], help="milestones for the learning rate decay")
