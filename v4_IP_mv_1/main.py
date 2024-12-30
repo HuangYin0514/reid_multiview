@@ -76,6 +76,7 @@ def main(config):
 
         if config.auto_resume_training_from_lastest_step:
             root, _, files = os_walk(model.save_model_path)
+            print(files)
             if len(files) > 0:
                 indexes = []
                 for file in files:
