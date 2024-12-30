@@ -79,7 +79,7 @@ def main(config):
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
-                wandb.log({"Epoch": current_epoch, **dict_result})
+                wandb.log({dict_result})
 
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
@@ -90,6 +90,7 @@ def main(config):
                     best_mAP = mAP
                     wandb.log(
                         {
+                            "train_epoch": current_epoch,
                             "best_epoch": best_epoch,
                             "best_rank1": best_rank1,
                             "best_mAP": best_mAP,
@@ -99,6 +100,7 @@ def main(config):
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
                 wandb.log(
                     {
+                        "test_epoch": current_epoch,
                         "mAP": mAP,
                         "Rank1": CMC[0],
                         "Rank5": CMC[4],
