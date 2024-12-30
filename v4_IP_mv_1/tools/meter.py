@@ -37,16 +37,6 @@ class MultiItemAverageMeter:
                 self.content[key]["count"] += 1.0
                 self.content[key]["avg"] = self.content[key]["sum"] / self.content[key]["count"]
 
-    def get_dict(self):
-        keys = list(self.content.keys())
-        values = {}
-        for key in keys:
-            try:
-                values[key] = self.content[key]["avg"].data.cpu().numpy()
-            except:
-                values[key] = self.content[key]["avg"]
-        return values
-
     def get_val(self):
         keys = list(self.content.keys())
         values = []
@@ -66,5 +56,14 @@ class MultiItemAverageMeter:
             result += ": "
             result += str(value)
             result += ";  "
+
+        return result
+
+    def get_dict(self):
+        result = {}
+        keys, values = self.get_val()
+
+        for key, value in zip(keys, values):
+            result[key] = value
 
         return result
