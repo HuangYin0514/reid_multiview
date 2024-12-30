@@ -73,6 +73,9 @@ def main(config):
         for current_epoch in range(start_train_epoch, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
 
+            current_lr = model.model_optimizer.param_groups[0]["lr"]
+            wandb.log({"Learning Rate:": current_lr})
+
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))

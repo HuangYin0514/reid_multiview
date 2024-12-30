@@ -45,7 +45,6 @@ class Base:
     def _init_optimizer(self):
 
         model_params_group = [{"params": self.model.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
-
         self.model_optimizer = optim.Adam(model_params_group)
         self.model_lr_scheduler = WarmupMultiStepLR(self.model_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
 
