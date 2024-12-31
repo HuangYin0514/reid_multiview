@@ -23,13 +23,13 @@ def train(base, loaders, config):
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
             _, localized_cls_score = base.model.module.classifier(localized_features_map)
 
-            #################################################################
-            # 量化
-            quantified_features_map = FeatureMapQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
+            # #################################################################
+            # # 量化
+            # quantified_features_map = FeatureMapQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
 
             #################################################################
             # 解耦
-            bn_quantified_features = base.model.module.gap_bn(quantified_features_map)
+            bn_quantified_features = base.model.module.gap_bn(localized_features_map)
             shared_features, special_features = base.model.module.decoupling(bn_quantified_features)
             shared_special_features = base.model.module.decoupling_fusion(shared_features, special_features)
 

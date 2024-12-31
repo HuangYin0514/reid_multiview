@@ -59,6 +59,15 @@ class ReasoningLoss(nn.Module):
         return loss
 
 
+class FeatureRegularizationLoss(nn.Module):
+    def __init__(self):
+        super(FeatureRegularizationLoss, self).__init__()
+
+    def forward(self, bn_features):
+        loss = torch.norm((bn_features), p=2)
+        return loss
+
+
 class CrossEntropyLabelSmooth(nn.Module):
     def __init__(self, epsilon=0.1, use_gpu=True):
         super(CrossEntropyLabelSmooth, self).__init__()
