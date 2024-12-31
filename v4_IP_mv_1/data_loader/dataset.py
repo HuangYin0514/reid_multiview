@@ -18,16 +18,16 @@ class PersonReIDSamples:
         self.samples = samples
 
     def _reorder_labels(self, samples, label_index):
+        # 获取所有唯一标签并排序
+        unique_ids = sorted({sample[label_index] for sample in samples})
 
-        ids = []
+        # 创建标签到索引的映射
+        id_to_index = {label: idx for idx, label in enumerate(unique_ids)}
+
+        # 更新 samples 中的标签
         for sample in samples:
-            ids.append(sample[label_index])
+            sample[label_index] = id_to_index[sample[label_index]]
 
-        ids = list(set(ids))
-        ids.sort()
-
-        for sample in samples:
-            sample[label_index] = ids.index(sample[label_index])
         return samples
 
     def _load_samples(self, floder_dir):
