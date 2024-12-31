@@ -126,17 +126,6 @@ class Model(nn.Module):
         # 分类器
         self.classifier = Classifier(2048, config.pid_num)
 
-        # 多视角分类器
-        self.classifier2 = Classifier(2048, config.pid_num)
-
-        # 特征解耦
-        self.gap_bn = GAP_BN(2048)
-        self.decoupling = FeatureDecoupling(config)
-        self.decoupling_fusion = FeatureFusion(config)
-        self.decoupling_shared_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_special_classifier = BN_Classifier(1024, config.pid_num)
-        self.decoupling_fusion_classifier = BN_Classifier(2048, config.pid_num)
-
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
         return features_map
