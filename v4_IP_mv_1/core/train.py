@@ -22,6 +22,9 @@ def train(base, loaders, config):
             _, classification_scores = base.model.module.classifier(reconstructed_features)  # Final classification features and scores
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
+            bn_features, cls_score = base.model.module.pclassifier(feature_map)
+            ide_loss2 = CrossEntropyLabelSmooth().forward(cls_score, pids)
+
             # ===========================================================
             # Feature Decoupling Loss Calculation
             # ===========================================================
@@ -59,7 +62,7 @@ def train(base, loaders, config):
             # ===========================================================
             # Total Loss Calculation
             # ===========================================================
-            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss
+            total_loss = ide_loss + ide_loss2 + decoupling_loss + shared_ide_loss + specific_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -68,6 +71,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
+                    "pid_loss2": ide_loss2.data,
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
