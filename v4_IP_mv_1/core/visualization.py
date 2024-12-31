@@ -195,11 +195,12 @@ def visualization(config, base, loader):
     # ###########################################################################################
     print(time_now(), "CAM start")
     base.set_eval()
-    train_loader = loader.loader
+    cam_loader = loader.loader
+    # cam_loader = loader.query_loader
     Visualization_CAM_fn = Visualization_CAM(config)
     with torch.no_grad():
-        for index, data in enumerate(train_loader):
-            print(time_now(), "CAM: {}/{}".format(index, len(train_loader)))
+        for index, data in enumerate(cam_loader):
+            print(time_now(), "CAM: {}/{}".format(index, len(cam_loader)))
             images, pids, cids = data
             images = images.to(base.device)
             Visualization_CAM_fn.__call__(images, base.model, base.model.module.classifier, pids)
