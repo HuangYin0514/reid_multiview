@@ -65,7 +65,7 @@ def main(config):
             tags=config.tags,
             config=config,
         )
-        wandb.watch(model.model, log="all")
+        # wandb.watch(model.model, log="all")
 
         # 恢复训练
         if config.resume_train_epoch >= 0:
