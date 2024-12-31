@@ -7,9 +7,9 @@ from .resnet50 import resnet50
 from .resnet_ibn_a import resnet50_ibn_a
 
 
-class FeatureFusion(nn.Module):
+class FeatureReconstruction(nn.Module):
     def __init__(self, config):
-        super(FeatureFusion, self).__init__()
+        super(FeatureReconstruction, self).__init__()
         self.config = config
         self.BN = nn.BatchNorm1d(2048)
         self.BN.apply(weights_init_kaiming)
@@ -63,9 +63,9 @@ class FeatureDecoupling(nn.Module):
         return shared_features, special_features
 
 
-class Classifier(nn.Module):
+class PClassifier(nn.Module):
     def __init__(self, c_dim, pid_num):
-        super(Classifier, self).__init__()
+        super(PClassifier, self).__init__()
         self.pid_num = pid_num
         self.GAP = GeneralizedMeanPoolingP()
         self.BN = nn.BatchNorm1d(c_dim)
@@ -76,6 +76,22 @@ class Classifier(nn.Module):
 
     def forward(self, features_map):
         features = self.GAP(features_map)
+        bn_features = self.BN(features.squeeze())
+        cls_score = self.classifier(bn_features)
+        return bn_features, cls_score
+
+
+class Classifier(nn.Module):
+    def __init__(self, c_dim, pid_num):
+        super(Classifier, self).__init__()
+        self.pid_num = pid_num
+        self.BN = nn.BatchNorm1d(c_dim)
+        self.BN.apply(weights_init_kaiming)
+
+        self.classifier = nn.Linear(c_dim, self.pid_num, bias=False)
+        self.classifier.apply(weights_init_classifier)
+
+    def forward(self, features):
         bn_features = self.BN(features.squeeze())
         cls_score = self.classifier(bn_features)
         return bn_features, cls_score
@@ -121,10 +137,20 @@ class Model(nn.Module):
     def __init__(self, config):
         super(Model, self).__init__()
 
+        ####################################
+        # IDE
         self.backbone = Backbone()
-
-        # 分类器
+        self.pclassifier = PClassifier(2048, config.pid_num)
         self.classifier = Classifier(2048, config.pid_num)
+
+        ####################################
+        # 解耦
+        self.decoupling_gap_bn = GAP_BN(2048)
+        self.featureDecoupling = FeatureDecoupling(config)
+        # self.featureReconstruction = FeatureReconstruction(config)
+        self.featureReconstruction = FeatureReconstruction(config)
+        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
+        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)

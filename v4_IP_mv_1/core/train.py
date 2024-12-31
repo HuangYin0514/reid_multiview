@@ -12,40 +12,54 @@ def train(base, loaders, config):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
-            #################################################################
-            # Baseline
-            features_map = base.model(imgs)
-            bn_features, cls_score = base.model.module.classifier(features_map)
-            ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            # ===========================================================
+            # Identity Embedding (IDE) Loss Calculation
+            # ===========================================================
+            feature_map = base.model(imgs)
+            global_features = base.model.module.gap_bn(feature_map)  # Global Average Pooling + Batch Norm
+            shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
+            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)  # Feature Fusion
+            _, classification_scores = base.model.module.classifier(reconstructed_features)  # Final classification features and scores
+            ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
-            #################################################################
-            # 特征解耦
-            gap_features = base.model.module.gap_bn(features_map)
-            shared_features, special_features = base.model.module.decoupling(gap_features)
-            features = base.model.module.feature_fusion(shared_features, special_features)
-            _, shared_cls_score = base.model.module.decoupling_shared_bn_classifier(shared_features)
-            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
-            _, special_cls_score = base.model.module.decoupling_special_bn_classifier(special_features)
-            special_ide_loss = CrossEntropyLabelSmooth().forward(special_cls_score, pids)
+            # ===========================================================
+            # Feature Decoupling Loss Calculation
+            # ===========================================================
+            # Shared feature classification loss
+            _, shared_class_scores = base.model.module.decoupling_shared_classifier(shared_features)
+            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_class_scores, pids)
 
-            num_views = 4
-            bs = cls_score.size(0)
-            chunk_bs = int(bs / num_views)
+            # Specific feature classification loss
+            _, specific_class_scores = base.model.module.decoupling_special_classifier(specific_features)
+            specific_ide_loss = CrossEntropyLabelSmooth().forward(specific_class_scores, pids)
+
+            # ===========================================================
+            # Decoupling Consistency Loss Calculation
+            # ===========================================================
+            num_views = 4  # Number of views per identity
+            batch_size = classification_scores.size(0)
+            chunk_size = batch_size // num_views
             decoupling_loss = 0
-            for i in range(chunk_bs):
-                shared_feature_i = shared_features[num_views * i : num_views * (i + 1), ...]
-                special_feature_i = special_features[num_views * i : num_views * (i + 1), ...]
-                # (共享-指定)损失
-                sharedSpecialLoss = SharedSpecialLoss().forward(shared_feature_i, special_feature_i)
-                # (共享)损失
-                sharedSharedLoss = SharedSharedLoss().forward(shared_feature_i)
-                # (指定)损失
-                # specialSpecialLoss = SpecialSpecialLoss().forward(special_feature_i)
-                decoupling_loss += sharedSpecialLoss + 0.1 * sharedSharedLoss
 
-            #################################################################
-            # Loss
-            total_loss = ide_loss + decoupling_loss + shared_ide_loss + special_ide_loss
+            for i in range(chunk_size):
+                shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
+                specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+
+                # Loss between shared and specific features
+                shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
+
+                # Loss within shared features
+                shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
+
+                # Optionally, add a loss within specific features if needed:
+                # specific_consistency_loss = SpecialSpecialLoss().forward(specific_features_chunk)
+
+                decoupling_loss += shared_specific_loss + 0.1 * shared_consistency_loss
+
+            # ===========================================================
+            # Total Loss Calculation
+            # ===========================================================
+            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -56,7 +70,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
-                    "special_ide_loss": special_ide_loss.data,
+                    "specific_ide_loss": specific_ide_loss.data,
                 }
             )
 
