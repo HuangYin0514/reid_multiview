@@ -28,7 +28,6 @@ def train(base, loaders, config):
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
             global_features = base.model.module.decoupling_gap_bn(localized_features_map)  # Global Average Pooling + Batch Norm
             shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
-            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)  # Feature Fusion
 
             # ===========================================================
             # Feature Decoupling Loss Calculation
