@@ -110,3 +110,12 @@ class DecouplingConsistencyLoss(nn.Module):
 
             decoupling_loss += shared_specific_loss
         return decoupling_loss
+
+
+class FeatureRegularizationLoss(nn.Module):
+    def __init__(self):
+        super(FeatureRegularizationLoss, self).__init__()
+
+    def forward(self, bn_features):
+        loss = torch.norm((bn_features), p=2)
+        return loss

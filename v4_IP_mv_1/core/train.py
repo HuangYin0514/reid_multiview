@@ -25,6 +25,11 @@ def train(base, loaders, config):
             # ===========================================================
             # Feature Decoupling Loss Calculation
             # ===========================================================
+            # 定位
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
+            global_features = base.model.module.decoupling_gap_bn(localized_features_map)
+            shared_features, specific_features = base.model.module.featureDecoupling(global_features)
+
             # Shared feature classification loss
             _, shared_class_scores = base.model.module.decoupling_shared_classifier(shared_features)
             shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_class_scores, pids)
@@ -34,6 +39,8 @@ def train(base, loaders, config):
             specific_ide_loss = CrossEntropyLabelSmooth().forward(specific_class_scores, pids)
 
             decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
+
+            regularization_loss = FeatureRegularizationLoss().forward(reconstructed_features)
 
             # ===========================================================
             # Total Loss Calculation
@@ -50,6 +57,7 @@ def train(base, loaders, config):
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
+                    "regularization_loss": regularization_loss.data,
                 }
             )
 
