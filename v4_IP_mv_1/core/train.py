@@ -15,15 +15,20 @@ def train(base, loaders, config):
             # ===========================================================
             # Identity Embedding (IDE) Loss Calculation
             # ===========================================================
-            feature_map = base.model(imgs)
-            global_features = base.model.module.decoupling_gap_bn(feature_map)  # Global Average Pooling + Batch Norm
+            features_map = base.model(imgs)
+            global_features = base.model.module.decoupling_gap_bn(features_map)  # Global Average Pooling + Batch Norm
             shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
             reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)  # Feature Fusion
             _, classification_scores = base.model.module.classifier(reconstructed_features)  # Final classification features and scores
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
-            bn_features, cls_score = base.model.module.pclassifier(feature_map)
-            ide_loss2 = CrossEntropyLabelSmooth().forward(cls_score, pids)
+            # ===========================================================
+            # 定位
+            # ===========================================================
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
+            global_features = base.model.module.decoupling_gap_bn(localized_features_map)  # Global Average Pooling + Batch Norm
+            shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
+            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)  # Feature Fusion
 
             # ===========================================================
             # Feature Decoupling Loss Calculation
