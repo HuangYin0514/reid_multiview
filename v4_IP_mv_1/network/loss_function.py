@@ -86,3 +86,27 @@ class CrossEntropyLabelSmooth(nn.Module):
         targets = (1 - self.epsilon) * targets + self.epsilon / size[1]
         loss = (-targets * log_probs).mean(0).sum()
         return loss
+
+
+class DecouplingConsistencyLoss(nn.Module):
+    def __init__(self):
+        super(DecouplingConsistencyLoss, self).__init__()
+
+    def forward(self, shared_features, specific_features):
+        num_views = 4  # Number of views per identity
+        batch_size = shared_features.size(0)
+        chunk_size = batch_size // num_views
+
+        decoupling_loss = 0
+        for i in range(chunk_size):
+            shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
+            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+
+            # Loss between shared and specific features
+            shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
+
+            # Loss within shared features
+            shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
+
+            decoupling_loss += shared_specific_loss + 0.1 * shared_consistency_loss
+        return decoupling_loss

@@ -23,13 +23,6 @@ def train(base, loaders, config):
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
             # ===========================================================
-            # 定位
-            # ===========================================================
-            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
-            global_features = base.model.module.decoupling_gap_bn(localized_features_map)  # Global Average Pooling + Batch Norm
-            shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
-
-            # ===========================================================
             # Feature Decoupling Loss Calculation
             # ===========================================================
             # Shared feature classification loss
@@ -43,25 +36,7 @@ def train(base, loaders, config):
             # ===========================================================
             # Decoupling Consistency Loss Calculation
             # ===========================================================
-            num_views = 4  # Number of views per identity
-            batch_size = classification_scores.size(0)
-            chunk_size = batch_size // num_views
-            decoupling_loss = 0
-
-            for i in range(chunk_size):
-                shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-                specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
-
-                # Loss between shared and specific features
-                shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
-
-                # Loss within shared features
-                shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
-
-                # Optionally, add a loss within specific features if needed:
-                # specific_consistency_loss = SpecialSpecialLoss().forward(specific_features_chunk)
-
-                decoupling_loss += shared_specific_loss + 0.1 * shared_consistency_loss
+            decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # ===========================================================
             # Total Loss Calculation
