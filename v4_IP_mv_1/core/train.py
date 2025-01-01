@@ -67,7 +67,7 @@ def train(base, loaders, config):
             # ===========================================================
             # Total Loss Calculation
             # ===========================================================
-            total_loss = ide_loss + ide_loss2 + decoupling_loss + shared_ide_loss + specific_ide_loss
+            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -76,7 +76,6 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "pid_loss2": ide_loss2.data,
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
