@@ -33,9 +33,6 @@ def train(base, loaders, config):
             _, specific_class_scores = base.model.module.decoupling_special_classifier(specific_features)
             specific_ide_loss = CrossEntropyLabelSmooth().forward(specific_class_scores, pids)
 
-            # ===========================================================
-            # Decoupling Consistency Loss Calculation
-            # ===========================================================
             decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # ===========================================================
