@@ -33,28 +33,7 @@ def train(base, loaders, config):
             _, specific_class_scores = base.model.module.decoupling_special_classifier(specific_features)
             specific_ide_loss = CrossEntropyLabelSmooth().forward(specific_class_scores, pids)
 
-            # ===========================================================
-            # Decoupling Consistency Loss Calculation
-            # ===========================================================
-            num_views = 4  # Number of views per identity
-            batch_size = classification_scores.size(0)
-            chunk_size = batch_size // num_views
-            decoupling_loss = 0
-
-            for i in range(chunk_size):
-                shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-                specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
-
-                # Loss between shared and specific features
-                shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
-
-                # Loss within shared features
-                shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
-
-                # Optionally, add a loss within specific features if needed:
-                # specific_consistency_loss = SpecialSpecialLoss().forward(specific_features_chunk)
-
-                decoupling_loss += shared_specific_loss + 0.1 * shared_consistency_loss
+            decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # ===========================================================
             # Total Loss Calculation

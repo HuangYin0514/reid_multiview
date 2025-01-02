@@ -56,15 +56,7 @@ def main(config):
         ########################################################
         # 训练
         ########################################################
-        # 初始化wandb
-        wandb.init(
-            entity="yinhuang-team-projects",
-            project="multi-view",
-            name=config.task_name,
-            notes=config.notes,
-            tags=config.tags,
-            config=config,
-        )
+
         # wandb.watch(model.model, log="all")
 
         # 恢复训练
@@ -199,5 +191,14 @@ if __name__ == "__main__":
     config = parser.parse_args()
     seed_torch(config.seed)
 
+    # 初始化wandb
+    wandb.init(
+        entity="yinhuang-team-projects",
+        project="multi-view",
+        name=config.task_name,
+        notes=config.notes,
+        tags=config.tags,
+        config=config,
+    )
     main(config)
     wandb.finish()

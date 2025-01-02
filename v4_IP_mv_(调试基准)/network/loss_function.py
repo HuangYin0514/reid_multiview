@@ -69,10 +69,9 @@ class FeatureRegularizationLoss(nn.Module):
 
 
 class CrossEntropyLabelSmooth(nn.Module):
-    def __init__(self, epsilon=0.1, use_gpu=True):
+    def __init__(self, epsilon=0.1):
         super(CrossEntropyLabelSmooth, self).__init__()
         self.epsilon = epsilon
-        self.use_gpu = use_gpu
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, inputs, targets):
@@ -81,8 +80,40 @@ class CrossEntropyLabelSmooth(nn.Module):
         size = log_probs.size()
         targets = torch.zeros((size[0], size[1])).scatter_(1, targets.unsqueeze(1).data.cpu(), 1)
 
-        if self.use_gpu:
-            targets = targets.to(torch.device("cuda"))
+        targets = targets.to(inputs.device)
         targets = (1 - self.epsilon) * targets + self.epsilon / size[1]
         loss = (-targets * log_probs).mean(0).sum()
+        return loss
+
+
+class DecouplingConsistencyLoss(nn.Module):
+    def __init__(self):
+        super(DecouplingConsistencyLoss, self).__init__()
+
+    def forward(self, shared_features, specific_features):
+        num_views = 4  # Number of views per identity
+        batch_size = shared_features.size(0)
+        chunk_size = batch_size // num_views
+
+        decoupling_loss = 0
+        for i in range(chunk_size):
+            shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
+            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+
+            # Loss between shared and specific features
+            shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
+
+            # Loss within shared features
+            # shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
+
+            decoupling_loss += shared_specific_loss
+        return decoupling_loss
+
+
+class FeatureRegularizationLoss(nn.Module):
+    def __init__(self):
+        super(FeatureRegularizationLoss, self).__init__()
+
+    def forward(self, bn_features):
+        loss = torch.norm((bn_features), p=2)
         return loss
