@@ -40,7 +40,7 @@ def train(base, loaders, config):
 
             decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
-            regularization_loss = FeatureRegularizationLoss().forward(reconstructed_features)
+            # regularization_loss = FeatureRegularizationLoss().forward(reconstructed_features)
 
             # ===========================================================
             # Total Loss Calculation
