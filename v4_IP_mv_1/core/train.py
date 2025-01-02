@@ -57,7 +57,6 @@ def train(base, loaders, config):
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
-                    "regularization_loss": regularization_loss.data,
                 }
             )
 
