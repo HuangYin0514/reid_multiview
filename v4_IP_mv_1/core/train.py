@@ -15,19 +15,19 @@ def train(base, loaders, config):
             #################################################################
             # Baseline
             features_map = base.model(imgs)
-            bn_features, cls_score = base.model.module.classifier(features_map)
+            bn_features, cls_score = base.model.module.pclassifier(features_map)
             ide_loss = CrossEntropyLabelSmooth().forward(cls_score, pids)
 
             #################################################################
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
-            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(localized_features_map)
-            localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, pids)
-            localized_integrating_reasoning_loss = ReasoningLoss().forward(bn_features, localized_integrating_bn_features)
+            localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+            localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * localized_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -36,8 +36,8 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
-                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
+                    "localized_ide_loss": localized_ide_loss.data,
+                    "localized_reasoning_loss": localized_reasoning_loss.data,
                 }
             )
 
