@@ -11,7 +11,7 @@ class FeatureMapLocation:
         size = features_map.size(0)
         chunk_size = int(size / 4)
         c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
-        localized_features_map = torch.zeros([size, c, h, w]).cuda()
+        localized_features_map = torch.zeros([size, c, h, w]).to(features_map.device)
 
         heatmaps = torch.zeros((size, h, w), device=features_map.device)
         for i in range(size):
@@ -58,8 +58,8 @@ class FeatureMapIntegration:
 
         chunk_features_map = torch.chunk(features_map, chunks=chunk_size, dim=0)
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
-        integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
-        integrating_pids = torch.zeros([chunk_size]).cuda()
+        integrating_features_map = torch.zeros([chunk_size, c, h, w]).to(features_map.device)
+        integrating_pids = torch.zeros([chunk_size]).to(features_map.device)
         for i in range(chunk_size):
             integrating_features_map[i, :, :, :] = chunk_features_map[i][0].unsqueeze(0) + chunk_features_map[i][1].unsqueeze(0) + chunk_features_map[i][2].unsqueeze(0) + chunk_features_map[i][3].unsqueeze(0)
             integrating_pids[i] = chunk_pids[i][0]
@@ -79,9 +79,9 @@ class FeatureMapLocalizedIntegratingNoRelu:
         size = features_map.size(0)
         chunk_size = int(size / 4)
         c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
-        localized_features_map = torch.zeros([size, c, h, w]).cuda()
-        localized_integrating_features_map = torch.zeros([chunk_size, c, h, w]).cuda()
-        integrating_pids = torch.zeros([chunk_size]).cuda()
+        localized_features_map = torch.zeros([size, c, h, w]).to(features_map.device)
+        localized_integrating_features_map = torch.zeros([chunk_size, c, h, w]).to(features_map.device)
+        integrating_pids = torch.zeros([chunk_size]).to(features_map.device)
         chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
 
         heatmaps = torch.zeros((size, h, w))

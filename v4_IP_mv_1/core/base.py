@@ -30,7 +30,7 @@ class Base:
         self._init_optimizer()
 
     def _init_device(self):
-        self.device = torch.device("cuda")
+        self.device = torch.device(self.config.cuda)
 
     def _init_model(self):
         self.model = Model(self.config)

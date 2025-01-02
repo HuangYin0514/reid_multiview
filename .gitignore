@@ -8,12 +8,13 @@
 .DS_Store
 
 # dir
+*results/
+*wandb/
 *v1_test_models/
 *v1_dataset_processing/
 *data/
 *analysis/results/
 *.ipynb_checkpoints/
-
 
 # file
 *.pyc

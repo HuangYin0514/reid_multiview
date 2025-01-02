@@ -69,10 +69,10 @@ class FeatureRegularizationLoss(nn.Module):
 
 
 class CrossEntropyLabelSmooth(nn.Module):
-    def __init__(self, epsilon=0.1, use_gpu=True):
+    def __init__(self, epsilon=0.1, device="cuda"):
         super(CrossEntropyLabelSmooth, self).__init__()
         self.epsilon = epsilon
-        self.use_gpu = use_gpu
+        self.use_gpu = device == "cuda"
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, inputs, targets):
