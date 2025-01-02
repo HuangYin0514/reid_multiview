@@ -23,6 +23,16 @@ def train(base, loaders, config):
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
             # ===========================================================
+            # 定位
+            # ===========================================================
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
+            localized_global_features = base.model.module.decoupling_gap_bn(localized_features_map)
+            localized_shared_features, localized_specific_features = base.model.module.featureDecoupling(localized_global_features)
+            localized_reconstructed_features = base.model.module.featureReconstruction(localized_shared_features, localized_specific_features)
+            _, localized_classification_scores = base.model.module.classifier(localized_reconstructed_features)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_classification_scores, pids)
+
+            # ===========================================================
             # Feature Decoupling Loss Calculation
             # ===========================================================
             # Shared feature classification loss
@@ -38,7 +48,7 @@ def train(base, loaders, config):
             # ===========================================================
             # Total Loss Calculation
             # ===========================================================
-            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss
+            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss + localized_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -50,6 +60,7 @@ def train(base, loaders, config):
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
+                    "localized_ide_loss": localized_ide_loss.data,
                 }
             )
 
