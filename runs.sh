@@ -30,12 +30,12 @@
 #################################################################################
 
 # #注意空格
-root_folder="/home/hy/project/reid_multiview/$folder"
-folder="v4_IP_mv_1"
-# folder="v4_IP_mv_2"
-# folder="v4_IP_mv_3"
-echo $root_folder/$folder
+# root_folder="/home/hy/project/reid_multiview/$folder"
+# folder="v4_IP_mv_1"
+# # folder="v4_IP_mv_2"
+# # folder="v4_IP_mv_3"
+# echo $root_folder/$folder
 
-rm -rf $root_folder/$folder/results
-cd $root_folder/$folder
-sh run.sh
+# rm -rf $root_folder/$folder/results
+# cd $root_folder/$folder
+# sh run.sh
