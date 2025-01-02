@@ -141,6 +141,7 @@ class Model(nn.Module):
         # IDE
         self.backbone = Backbone()
         self.pclassifier = PClassifier(2048, config.pid_num)
+        self.pclassifier2 = PClassifier(2048, config.pid_num)
         self.classifier = Classifier(2048, config.pid_num)
 
         ####################################
