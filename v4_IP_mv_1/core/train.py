@@ -23,16 +23,6 @@ def train(base, loaders, config):
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
             # ===========================================================
-            # 定位
-            # ===========================================================
-            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
-            localized_global_features = base.model.module.decoupling_gap_bn(localized_features_map)
-            localized_shared_features, localized_specific_features = base.model.module.featureDecoupling(localized_global_features)
-            localized_reconstructed_features = base.model.module.featureReconstruction(localized_shared_features, localized_specific_features)
-            _, localized_classification_scores = base.model.module.classifier(localized_reconstructed_features)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_classification_scores, pids)
-
-            # ===========================================================
             # Feature Decoupling Loss Calculation
             # ===========================================================
             # Shared feature classification loss
@@ -45,10 +35,23 @@ def train(base, loaders, config):
 
             decoupling_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
+            #################################################################
+            # 定位
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
+            _, localized_cls_score = base.model.module.classifier(localized_features_map)
+
+            #################################################################
+            # 量化
+            quantified_features_map = FeatureMapQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
+            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(quantified_features_map, pids)
+            localized_integrating_bn_features, localized_integrating_cls_score = base.model.module.classifier2(integrating_features_map)
+            localized_integrating_ide_loss = CrossEntropyLabelSmooth().forward(localized_integrating_cls_score, integrating_pids)
+            localized_integrating_reasoning_loss = ReasoningLoss().forward(reconstructed_features, localized_integrating_bn_features)
+
             # ===========================================================
             # Total Loss Calculation
             # ===========================================================
-            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss + localized_ide_loss
+            total_loss = ide_loss + decoupling_loss + shared_ide_loss + specific_ide_loss + localized_integrating_ide_loss + 0.007 * localized_integrating_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -60,7 +63,8 @@ def train(base, loaders, config):
                     "decoupling_loss": decoupling_loss.data,
                     "shared_ide_loss": shared_ide_loss.data,
                     "specific_ide_loss": specific_ide_loss.data,
-                    "localized_ide_loss": localized_ide_loss.data,
+                    "localized_integrating_ide_loss": localized_integrating_ide_loss.data,
+                    "localized_integrating_reasoning_loss": localized_integrating_reasoning_loss.data,
                 }
             )
 
