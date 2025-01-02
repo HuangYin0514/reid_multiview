@@ -147,7 +147,6 @@ class Model(nn.Module):
         # 解耦
         self.decoupling_gap_bn = GAP_BN(2048)
         self.featureDecoupling = FeatureDecoupling(config)
-        # self.featureReconstruction = FeatureReconstruction(config)
         self.featureReconstruction = FeatureReconstruction(config)
         self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
         self.decoupling_special_classifier = Classifier(1024, config.pid_num)

@@ -16,10 +16,10 @@ def train(base, loaders, config):
             # Identity Embedding (IDE) Loss Calculation
             # ===========================================================
             features_map = base.model(imgs)
-            global_features = base.model.module.decoupling_gap_bn(features_map)  # Global Average Pooling + Batch Norm
-            shared_features, specific_features = base.model.module.featureDecoupling(global_features)  # Decoupling features
-            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)  # Feature Fusion
-            _, classification_scores = base.model.module.classifier(reconstructed_features)  # Final classification features and scores
+            global_features = base.model.module.decoupling_gap_bn(features_map)
+            shared_features, specific_features = base.model.module.featureDecoupling(global_features)
+            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
+            _, classification_scores = base.model.module.classifier(reconstructed_features)
             ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
             # ===========================================================

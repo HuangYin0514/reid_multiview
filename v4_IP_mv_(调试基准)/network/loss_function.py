@@ -91,7 +91,7 @@ class DecouplingConsistencyLoss(nn.Module):
         super(DecouplingConsistencyLoss, self).__init__()
 
     def forward(self, shared_features, specific_features):
-        num_views = 4  # Number of views per identity
+        num_views = 4
         batch_size = shared_features.size(0)
         chunk_size = batch_size // num_views
 
