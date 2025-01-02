@@ -140,17 +140,24 @@ class Model(nn.Module):
         ####################################
         # IDE
         self.backbone = Backbone()
+
+        ####################################
+        # Person classifier [feature map -> bn -> classifier]
         self.pclassifier = PClassifier(2048, config.pid_num)
         self.pclassifier2 = PClassifier(2048, config.pid_num)
+
+        ####################################
+        # Classifer [bn -> classifier]
         self.classifier = Classifier(2048, config.pid_num)
+        self.classifier2 = Classifier(2048, config.pid_num)
+        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
+        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
         ####################################
         # 解耦
         self.decoupling_gap_bn = GAP_BN(2048)
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureReconstruction = FeatureReconstruction(config)
-        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
-        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
