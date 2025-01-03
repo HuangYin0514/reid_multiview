@@ -39,7 +39,8 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            localized_reasoning_loss = ReasoningLoss().forward(bn_features, reconstructed_features)
+            # localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
+            localized_reasoning_loss = FeatureRegularizationLoss().forward(bn_features)
 
             #################################################################
             # Loss
