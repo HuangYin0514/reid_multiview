@@ -168,9 +168,14 @@ class Model(nn.Module):
             x1, x2, x3, x4, features_map = self.backbone(x)
             return features_map
         else:
+            ###############
+            # x1, x2, x3, x4, features_map = self.backbone(x)
+            # bn_features, cls_score = self.pclassifier(features_map)
+
+            ###############
             x1, x2, x3, x4, features_map = self.backbone(x)
-            # global_features = self.decoupling_gap_bn(features_map)
-            # shared_features, special_features = self.featureDecoupling(global_features)
-            # reconstructed_features = self.featureReconstruction(shared_features, special_features)  # Feature Fusion
-            bn_features, cls_score = self.pclassifier(features_map)
+            global_features = self.decoupling_gap_bn(features_map)
+            shared_features, special_features = self.featureDecoupling(global_features)
+            reconstructed_features = self.featureReconstruction(shared_features, special_features)
+            bn_features, cls_score = self.classifier(reconstructed_features)
             return bn_features
