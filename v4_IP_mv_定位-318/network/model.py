@@ -149,14 +149,15 @@ class Model(nn.Module):
         ####################################
         # Classifer [bn -> classifier]
         self.classifier = Classifier(2048, config.pid_num)
+        self.classifier2 = Classifier(2048, config.pid_num)
+        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
+        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
         ####################################
         # 解耦
         self.decoupling_gap_bn = GAP_BN(2048)
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureReconstruction = FeatureReconstruction(config)
-        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
-        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
@@ -167,9 +168,7 @@ class Model(nn.Module):
             x1, x2, x3, x4, features_map = self.backbone(x)
             return features_map
         else:
+            ###############
             x1, x2, x3, x4, features_map = self.backbone(x)
-            # global_features = self.decoupling_gap_bn(features_map)
-            # shared_features, special_features = self.featureDecoupling(global_features)
-            # reconstructed_features = self.featureReconstruction(shared_features, special_features)  # Feature Fusion
             bn_features, cls_score = self.pclassifier(features_map)
             return bn_features

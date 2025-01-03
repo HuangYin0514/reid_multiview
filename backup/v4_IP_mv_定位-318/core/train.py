@@ -24,13 +24,6 @@ def train(base, loaders, config):
             localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
             localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
 
-            # 解耦
-            # global_features = base.model.module.decoupling_gap_bn(localized_features_map)
-            # shared_features, specific_features = base.model.module.featureDecoupling(global_features)
-            # localized_bn_features = base.model.module.featureReconstruction(shared_features, specific_features)
-            # _, localized_cls_score = base.model.module.classifier2(localized_bn_features)
-            # localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
-
             #################################################################
             # 蒸馏学习
             localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)

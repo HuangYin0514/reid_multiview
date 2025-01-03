@@ -21,12 +21,25 @@ def train(base, loaders, config):
             #################################################################
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
-            localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+
+            # ----------------
+            # ori
+            # ----------------
+            # localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
+            # localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+
+            # ----------------
+            # update
+            # ----------------
+            global_features = base.model.module.decoupling_gap_bn(features_map)
+            shared_features, specific_features = base.model.module.featureDecoupling(global_features)
+            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
+            _, classification_scores = base.model.module.classifier(reconstructed_features)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
 
             #################################################################
             # 蒸馏学习
-            localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
+            localized_reasoning_loss = ReasoningLoss().forward(bn_features, reconstructed_features)
 
             #################################################################
             # Loss
