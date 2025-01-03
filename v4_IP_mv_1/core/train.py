@@ -22,12 +22,24 @@ def train(base, loaders, config):
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
 
+            # 解耦
             global_features = base.model.module.decoupling_gap_bn(localized_features_map)
             shared_features, specific_features = base.model.module.featureDecoupling(global_features)
             reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
-
             localized_bn_features, localized_cls_score = base.model.module.classifier2(reconstructed_features)
             localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+
+            # 解耦损失
+            # Shared feature classification loss
+            _, shared_class_scores = base.model.module.decoupling_shared_classifier(shared_features)
+            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_class_scores, pids)
+
+            # Specific feature classification loss
+            _, specific_class_scores = base.model.module.decoupling_special_classifier(specific_features)
+            specific_ide_loss = CrossEntropyLabelSmooth().forward(specific_class_scores, pids)
+
+            decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
+            decoupling_loss = shared_ide_loss + specific_ide_loss + decoupling_consistency_loss
 
             #################################################################
             # 蒸馏学习
@@ -35,7 +47,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * localized_reasoning_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * localized_reasoning_loss + decoupling_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -46,6 +58,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": localized_ide_loss.data,
                     "localized_reasoning_loss": localized_reasoning_loss.data,
+                    "decoupling_loss": decoupling_loss.data,
                 }
             )
 
