@@ -23,6 +23,9 @@ def train(base, loaders, config):
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.classifier)
             localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
             localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+
+            #################################################################
+            # 蒸馏学习
             localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
 
             #################################################################
