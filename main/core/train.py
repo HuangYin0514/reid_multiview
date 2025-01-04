@@ -23,24 +23,18 @@ def train(base, loaders, config):
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.pclassifier)
 
             # ----------------
-            # update
+            # ori
             # ----------------
-            global_features = base.model.module.decoupling_gap_bn(localized_features_map)
-            shared_features, specific_features = base.model.module.featureDecoupling(global_features)
-            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
-            _, classification_scores = base.model.module.classifier(reconstructed_features)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
-
-            _, shared_cls_score = base.model.module.decoupling_shared_classifier(shared_features)
-            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_cls_score, pids)
+            localized_bn_features, localized_cls_score = base.model.module.pclassifier(localized_features_map)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(bn_features, reconstructed_features)
+            localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss + shared_ide_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * localized_reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -50,8 +44,7 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": localized_ide_loss.data,
-                    "reasoning_loss": reasoning_loss.data,
-                    "shared_ide_loss": shared_ide_loss,
+                    "localized_reasoning_loss": localized_reasoning_loss.data,
                 }
             )
 
