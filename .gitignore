@@ -10,8 +10,8 @@
 # dir
 *results/
 *wandb/
-*v1_test_models/
-*v1_dataset_processing/
+*_test_models/
+*_dataset_processing/
 *data/
 *analysis/results/
 *.ipynb_checkpoints/
