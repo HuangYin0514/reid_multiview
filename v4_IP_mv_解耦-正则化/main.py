@@ -6,10 +6,11 @@ import warnings
 
 import numpy as np
 import torch
-import wandb
 from core import Base, test, train, visualization
 from data_loader.loader import Loader
 from tools import Logger, make_dirs, os_walk, time_now
+
+import wandb
 
 warnings.filterwarnings("ignore")
 
