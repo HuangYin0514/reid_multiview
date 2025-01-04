@@ -31,7 +31,7 @@ def train(base, loaders, config):
             # ----------------
             # update
             # ----------------
-            global_features = base.model.module.decoupling_gap_bn(features_map)
+            global_features = base.model.module.decoupling_gap_bn(localized_features_map)
             shared_features, specific_features = base.model.module.featureDecoupling(global_features)
             reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
             _, classification_scores = base.model.module.classifier(reconstructed_features)
