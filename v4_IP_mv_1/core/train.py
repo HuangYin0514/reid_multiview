@@ -30,11 +30,11 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            localized_reasoning_loss = ReasoningLoss().forward(bn_features, localized_bn_features)
+            regularization_loss = FeatureRegularizationLoss().forward(bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * localized_reasoning_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * regularization_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -44,7 +44,7 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": localized_ide_loss.data,
-                    "localized_reasoning_loss": localized_reasoning_loss.data,
+                    "regularization_loss": regularization_loss.data,
                 }
             )
 
