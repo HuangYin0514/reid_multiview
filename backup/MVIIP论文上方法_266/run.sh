@@ -1,1 +1,0 @@
-python3 main.py --module CIP --output_path occluded_duke_CIP/base
