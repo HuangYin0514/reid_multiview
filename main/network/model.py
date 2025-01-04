@@ -16,7 +16,13 @@ class FeatureReconstruction(nn.Module):
 
     def __call__(self, features_1, features_2):
         bs = features_1.size(0)
-        out = torch.cat([features_1, features_2], dim=1)
+        chunk_size = int(bs // 4)
+
+        intergrate_features = torch.zeros(chunk_size, features_1.size(1), device=features_1.device)
+        for i in range(chunk_size):
+            intergrate_features[i] = 1 / 4 * (features_1[i] + features_1[4 * i + 1] + features_1[4 * i + 2] + features_1[4 * i + 3])
+        intergrate_features = intergrate_features.repeat_interleave(4, dim=0)
+        out = torch.cat([intergrate_features, features_2], dim=1)
         out = self.BN(out)
         return out
 
