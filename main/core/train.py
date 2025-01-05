@@ -22,28 +22,17 @@ def train(base, loaders, config):
             #################################################################
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-
-            # 解耦
-            localized_global_features = base.model.module.backbone_gap(localized_features_map).squeeze()
-            localized_shared_features, localized_specific_features = base.model.module.featureDecoupling(localized_global_features)
-
-            # 集成
-            localized_integrating_shared_features, localized_integrating_shared_pids = FeatureVectorIntegration(config).__call__(localized_shared_features, pids)
-            _, localized_integrating_shared_features_scores = base.model.module.localized_integrating_shared_features_classifier(localized_integrating_shared_features)
-            localized_integrating_shared_features_loss = CrossEntropyLabelSmooth().forward(localized_integrating_shared_features_scores, localized_integrating_shared_pids)
-
-            # 重建
-            localized_reconstructed_features = base.model.module.featureReconstruction(localized_shared_features, localized_specific_features)
-            localized_reconstructed_bn_features, localized_reconstructed_scores = base.model.module.intergarte_reconstructed_classifier(localized_reconstructed_features)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_reconstructed_scores, pids)
+            localized_features = base.model.module.backbone_gap(localized_features_map).squeeze()
+            localized_bn_features, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, localized_reconstructed_bn_features)
+            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, localized_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss + localized_integrating_shared_features_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -54,7 +43,6 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": localized_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
-                    "localized_integrating_shared_features_loss": localized_integrating_shared_features_loss.data,
                 }
             )
 
