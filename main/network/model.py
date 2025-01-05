@@ -11,15 +11,9 @@ class FeatureReconstruction(nn.Module):
     def __init__(self, config):
         super(FeatureReconstruction, self).__init__()
         self.config = config
-        self.BN = nn.BatchNorm1d(2048)
-        self.BN.apply(weights_init_kaiming)
 
     def __call__(self, features_1, features_2):
-        bs = features_1.size(0)
-        chunk_size = int(bs // 4)
-
         out = torch.cat([features_1, features_2], dim=1)
-        out = self.BN(out)
         return out
 
 
@@ -145,19 +139,20 @@ class Model(nn.Module):
 
         ####################################
         # Person classifier [feature map -> bn -> classifier]
-        self.pclassifier = PClassifier(2048, config.pid_num)
-        self.pclassifier2 = PClassifier(2048, config.pid_num)
+        # self.pclassifier = PClassifier(2048, config.pid_num)
+        # self.pclassifier2 = PClassifier(2048, config.pid_num)
 
         ####################################
         # Classifer [bn -> classifier]
-        self.classifier = Classifier(2048, config.pid_num)
-        self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
-        self.decoupling_special_classifier = Classifier(1024, config.pid_num)
+        self.backbone_gap = GeneralizedMeanPoolingP()
+        self.backbone_classifier = Classifier(2048, config.pid_num)
+        self.intergarte_reconstructed_classifier = Classifier(2048, config.pid_num)
         self.localized_integrating_shared_features_classifier = Classifier(1024, config.pid_num)
+        # self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
+        # self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
         ####################################
         # 解耦
-        self.decoupling_gap_bn = GAP_BN(2048)
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureReconstruction = FeatureReconstruction(config)
 
@@ -172,5 +167,6 @@ class Model(nn.Module):
         else:
             ###############
             x1, x2, x3, x4, features_map = self.backbone(x)
-            bn_features, cls_score = self.pclassifier(features_map)
-            return bn_features
+            backbone_features = self.backbone_gap(features_map).squeeze()
+            backbone_bn_features, backbone_cls_score = self.backbone_classifier(backbone_features)
+            return backbone_bn_features
