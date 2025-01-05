@@ -22,28 +22,28 @@ def train(base, loaders, config):
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.pclassifier)
 
-            # ----------------
-            # ori
-            # ----------------
-            # localized_bn_features, localized_cls_score = base.model.module.pclassifier2(localized_features_map)
-            # localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+            # 解耦
+            localized_global_features = base.model.module.decoupling_gap_bn(localized_features_map)
+            localized_shared_features, localized_specific_features = base.model.module.featureDecoupling(localized_global_features)
 
-            # ----------------
-            # update
-            # ----------------
-            global_features = base.model.module.decoupling_gap_bn(localized_features_map)
-            shared_features, specific_features = base.model.module.featureDecoupling(global_features)
-            reconstructed_features = base.model.module.featureReconstruction(shared_features, specific_features)
-            _, classification_scores = base.model.module.classifier(reconstructed_features)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(classification_scores, pids)
+            # 集成
+            localized_integrating_shared_features, localized_integrating_shared_pids = FeatureVectorIntegration(config).__call__(localized_shared_features, pids)
+            _, localized_integrating_shared_features_scores = base.model.module.localized_integrating_shared_features_classifier(localized_integrating_shared_features)
+            integrating_shared_features_loss = CrossEntropyLabelSmooth().forward(localized_integrating_shared_features_scores, localized_integrating_shared_pids)
+
+            # 重构
+            localized_intergrate_repeat_shared_features = localized_integrating_shared_features.repeat_interleave(4, dim=0)
+            localized_reconstructed_features = base.model.module.featureReconstruction(localized_intergrate_repeat_shared_features, localized_specific_features)
+            _, localized_reconstructed_scores = base.model.module.classifier(localized_reconstructed_features)
+            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_reconstructed_scores, pids)
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(bn_features, reconstructed_features)
+            reasoning_loss = ReasoningLoss().forward(bn_features, localized_reconstructed_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss + integrating_shared_features_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -54,6 +54,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": localized_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
+                    "integrating_shared_features_loss": integrating_shared_features_loss.data,
                 }
             )
 

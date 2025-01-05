@@ -18,11 +18,7 @@ class FeatureReconstruction(nn.Module):
         bs = features_1.size(0)
         chunk_size = int(bs // 4)
 
-        intergrate_features = torch.zeros(chunk_size, features_1.size(1), device=features_1.device)
-        for i in range(chunk_size):
-            intergrate_features[i] = 1 / 4 * (features_1[4 * i] + features_1[4 * i + 1] + features_1[4 * i + 2] + features_1[4 * i + 3])
-        intergrate_features = intergrate_features.repeat_interleave(4, dim=0)
-        out = torch.cat([intergrate_features, features_2], dim=1)
+        out = torch.cat([features_1, features_2], dim=1)
         out = self.BN(out)
         return out
 
@@ -155,9 +151,9 @@ class Model(nn.Module):
         ####################################
         # Classifer [bn -> classifier]
         self.classifier = Classifier(2048, config.pid_num)
-        self.classifier2 = Classifier(2048, config.pid_num)
         self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
         self.decoupling_special_classifier = Classifier(1024, config.pid_num)
+        self.localized_integrating_shared_features_classifier = Classifier(1024, config.pid_num)
 
         ####################################
         # 解耦
