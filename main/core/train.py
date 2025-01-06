@@ -22,17 +22,20 @@ def train(base, loaders, config):
             #################################################################
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-            localized_features = base.model.module.backbone_gap(localized_features_map).squeeze()
-            localized_bn_features, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-            localized_ide_loss = CrossEntropyLabelSmooth().forward(localized_cls_score, pids)
+            # 融合
+            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(localized_features_map, pids)
+
+            integrating_features = base.model.module.backbone_gap(integrating_features_map).squeeze()
+            integrating_bn_features, integrating_cls_score = base.model.module.backbone_classifier(integrating_features)
+            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, localized_bn_features)
+            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + localized_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -41,7 +44,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "localized_ide_loss": localized_ide_loss.data,
+                    "localized_ide_loss": integrating_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
                 }
             )
