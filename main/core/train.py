@@ -25,8 +25,8 @@ def train(base, loaders, config):
             # 融合
             integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(localized_features_map, pids)
 
-            integrating_features = base.model.module.backbone_gap(integrating_features_map).squeeze()
-            integrating_bn_features, integrating_cls_score = base.model.module.backbone_classifier(integrating_features)
+            integrating_features = base.model.module.intergarte_gap(integrating_features_map).squeeze()
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################

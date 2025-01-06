@@ -146,8 +146,9 @@ class Model(nn.Module):
         # Classifer [bn -> classifier]
         self.backbone_gap = GeneralizedMeanPoolingP()
         self.backbone_classifier = Classifier(2048, config.pid_num)
-        self.intergarte_reconstructed_classifier = Classifier(2048, config.pid_num)
-        self.localized_integrating_shared_features_classifier = Classifier(1024, config.pid_num)
+        self.intergarte_gap = GeneralizedMeanPoolingP()
+        self.intergarte_classifier = Classifier(2048, config.pid_num)
+        # self.localized_integrating_shared_features_classifier = Classifier(1024, config.pid_num)
         # self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
         # self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
