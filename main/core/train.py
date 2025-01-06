@@ -27,7 +27,7 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # 融合
-            integrating_feature, integrating_pids = FeatureMapIntegration(config).__call__(localized_features, pids)
+            integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(localized_features, pids)
 
             # 分类
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_feature)
