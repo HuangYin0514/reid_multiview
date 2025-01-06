@@ -56,14 +56,12 @@ class FeatureVectorIntegration:
         chunk_size = int(size / 4)  # 16
         c = features.size(1)
 
-        chunk_features = torch.chunk(features, chunks=chunk_size, dim=0)
-        chunk_pids = torch.chunk(pids, chunks=chunk_size, dim=0)
         integrating_features = torch.zeros([chunk_size, c]).to(features.device)
+        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
 
-        integrating_pids = torch.zeros([chunk_size]).to(features.device)
         for i in range(chunk_size):
-            integrating_features[i, :] = chunk_features[i][0].unsqueeze(0) + chunk_features[i][1].unsqueeze(0) + chunk_features[i][2].unsqueeze(0) + chunk_features[i][3].unsqueeze(0)
-            integrating_pids[i] = chunk_pids[i][0]
+            integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
+            integrating_pids[i] = pids[4 * i]
 
         return integrating_features, integrating_pids
 
