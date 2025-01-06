@@ -22,11 +22,15 @@ def train(base, loaders, config):
             #################################################################
             # 定位
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-            # 融合
-            integrating_features_map, integrating_pids = FeatureMapIntegration(config).__call__(localized_features_map, pids)
 
-            integrating_features = base.model.module.intergarte_gap(integrating_features_map).squeeze()
-            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
+            # 池化
+            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
+
+            # 融合
+            integrating_feature, integrating_pids = FeatureMapIntegration(config).__call__(localized_features, pids)
+
+            # 分类
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_feature)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
