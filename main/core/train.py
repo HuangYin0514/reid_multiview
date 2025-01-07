@@ -29,6 +29,7 @@ def train(base, loaders, config):
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             reconstructed_localized_features = base.model.module.featureReconstruction(shared_features, specific_features)
+            decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # 融合
             integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(reconstructed_localized_features, pids)
@@ -43,7 +44,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_consistency_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
