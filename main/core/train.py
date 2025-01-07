@@ -26,8 +26,12 @@ def train(base, loaders, config):
             # 池化
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
+            # 解耦
+            shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
+            reconstructed_localized_features = base.model.module.featureReconstruction(shared_features, specific_features)
+
             # 融合
-            integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(localized_features, pids)
+            integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(reconstructed_localized_features, pids)
 
             # 分类
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_feature)
