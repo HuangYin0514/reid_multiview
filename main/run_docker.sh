@@ -4,7 +4,7 @@
 wandb login c74133df8c2cf575304acf8a99fe03ab74b6fe6a
 
 ###########################################################
-# Runs: sh /Users/drhy/Documents/project/reid_multiview/main/run_mac.sh
+# Runs: sh /root/projects/reid_multiview/main/run_docker.sh
 ###########################################################
 cd /root/projects/reid_multiview/main
 rm -rf results/occluded_duke
