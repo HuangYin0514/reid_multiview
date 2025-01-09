@@ -12,6 +12,7 @@
 *wandb/
 *_test_models/
 *_dataset_processing/
+*_related_information/
 *backup/
 *.ipynb_checkpoints/
 
