@@ -28,14 +28,17 @@ def train(base, loaders, config):
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
-            reconstructed_localized_features = base.model.module.featureReconstruction(shared_features, specific_features)
+            # reconstructed_localized_features = base.model.module.featureReconstruction(shared_features, specific_features)
             decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # 融合
-            integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(reconstructed_localized_features, pids)
+            # integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(reconstructed_localized_features, pids)
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(shared_features, pids)
+            integrating_specific_features, integrating_pids = FeatureVectorIntegration(config).__call__(specific_features, pids)
+            integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
 
             # 分类
-            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_feature)
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
