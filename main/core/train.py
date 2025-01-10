@@ -27,8 +27,8 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # 量化
-            _, localized_cls_score = base.model.module.classifier(localized_features)
-            quantified_features = FeatureVectorQuantification(config).__call__(localized_features_map, localized_cls_score, pids)
+            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            quantified_features = FeatureVectorQuantification(config).__call__(localized_features, localized_cls_score, pids)
 
             # 融合
             integrating_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_features, pids)
