@@ -32,6 +32,20 @@ class FeatureMapLocation:
         return localized_features_map
 
 
+class FeatureVectorQuantification:
+    def __init__(self, config):
+        super(FeatureVectorQuantification, self).__init__()
+        self.config = config
+
+    def __call__(self, features, cls_scores, pids):
+        size = features.size(0)
+        prob = torch.log_softmax(cls_scores, dim=1)
+        probs = prob[torch.arange(size), pids]
+        weights = torch.softmax(probs.view(-1, 2), dim=1).view(-1).clone().detach()
+        quantified_features = weights.unsqueeze(1) * features
+        return quantified_features
+
+
 class FeatureMapQuantification:
     def __init__(self, config):
         super(FeatureMapQuantification, self).__init__()
