@@ -39,7 +39,8 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
+            # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
+            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Loss
