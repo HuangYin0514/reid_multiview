@@ -4,12 +4,12 @@
 wandb login c74133df8c2cf575304acf8a99fe03ab74b6fe6a
 
 ###########################################################
-# Runs: sh /Users/drhy/Documents/projects/reid_multiview/main/run_mac.sh
+# Runs: sh /Users/drhy/Documents/project/reid_multiview/main/run_mac.sh
 ###########################################################
-cd /Users/drhy/Documents/projects/reid_multiview/main
+cd /Users/drhy/Documents/project/reid_multiview/main
 rm -rf results/occluded_duke
 
-python main.py --task_name test --notes mac实验新方法 --tags mac dev resnet50 occluded_duke --module Lucky --mode train --output_path results/occluded_duke --occluded_duke_path /Users/drhy/Documents/projects/reid_multiview/_dataset_processing/Occluded_Duke/Occluded_Duke_mac --pid_num 702 --cuda cpu --batchsize 12 --eval_epoch 1 --total_train_epoch 1
+python main.py --task_name test --notes mac实验新方法 --tags mac dev resnet50 occluded_duke --module Lucky --mode train --output_path results/occluded_duke --occluded_duke_path /Users/drhy/Documents/project/reid_multiview/_dataset_processing/Occluded_Duke/Occluded_Duke_mac --pid_num 702 --cuda cpu --batchsize 12 --eval_epoch 1 --total_train_epoch 1
 
 
 ###########################################################

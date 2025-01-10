@@ -26,16 +26,8 @@ def train(base, loaders, config):
             # 池化
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
-            # 解耦
-            shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
-            # reconstructed_localized_features = base.model.module.featureReconstruction(shared_features, specific_features)
-            decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
-
             # 融合
-            # integrating_feature, integrating_pids = FeatureVectorIntegration(config).__call__(reconstructed_localized_features, pids)
-            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(shared_features, pids)
-            integrating_specific_features, integrating_pids = FeatureVectorIntegration(config).__call__(specific_features, pids)
-            integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
+            integrating_features, integrating_pids = FeatureVectorIntegration(config).__call__(localized_features, pids)
 
             # 分类
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
@@ -43,12 +35,11 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
-            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
+            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_consistency_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
