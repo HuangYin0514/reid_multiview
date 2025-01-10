@@ -28,10 +28,19 @@ def train(base, loaders, config):
 
             # 量化
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-            quantified_features = FeatureVectorQuantification(config).__call__(localized_features, localized_cls_score, pids)
+
+            # 解耦
+            shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
+            decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # 融合
-            integrating_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_features, pids)
+            ## 共享特征
+            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
+            ## 指定特征
+            quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
+            integrating_specific_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_specific_features, pids)
+            integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
 
             # 分类
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
@@ -44,7 +53,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_consistency_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -55,6 +64,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": integrating_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
+                    "decoupling_consistency_loss": decoupling_consistency_loss.data,
                 }
             )
 
