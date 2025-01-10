@@ -35,11 +35,11 @@ def train(base, loaders, config):
 
             # 融合
             ## 共享特征
-            # quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
-            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(shared_features, pids)
+            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
-            quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
-            integrating_specific_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_specific_features, pids)
+            # quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
+            integrating_specific_features, integrating_pids = FeatureVectorIntegration(config).__call__(specific_features, pids)
             integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
 
             # 分类
