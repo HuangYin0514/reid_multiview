@@ -17,6 +17,37 @@ class FeatureReconstruction(nn.Module):
         return out
 
 
+class FeatureVectorIntegrationNet(nn.Module):
+    def __init__(self, config):
+        super(FeatureVectorIntegrationNet, self).__init__()
+        self.config = config
+
+        # shared branch
+        ic = 1024 * 4
+        oc = 1024
+        self.mlp1 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
+    def __call__(self, features, pids):
+        size = features.size(0)
+        c = features.size(1)
+        chunk_size = int(size / 4)  # 16
+
+        integrate_features = torch.zeros([chunk_size, c * 4]).to(features.device)
+        integrate_pids = torch.zeros([chunk_size]).to(pids.device)
+
+        for i in range(chunk_size):
+            integrate_features[i] = torch.cat([features[4 * i].unsqueeze(0), features[4 * i + 1].unsqueeze(0), features[4 * i + 2].unsqueeze(0), features[4 * i + 3].unsqueeze(0)], dim=1)
+            integrate_pids[i] = pids[4 * i]
+
+        integrate_features = self.mlp1(integrate_features)
+
+        return integrate_features, integrate_pids
+
+
 class BN_Classifier(nn.Module):
     def __init__(self, channel=2048, pid_num=None):
         super(BN_Classifier, self).__init__()
@@ -156,6 +187,8 @@ class Model(nn.Module):
         # 解耦
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureReconstruction = FeatureReconstruction(config)
+
+        self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
