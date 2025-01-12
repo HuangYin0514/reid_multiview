@@ -106,7 +106,7 @@ class DecouplingConsistencyLoss(nn.Module):
             # Loss within shared features
             shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
 
-            decoupling_loss += shared_specific_loss + 0.1 * shared_consistency_loss
+            decoupling_loss += shared_specific_loss + 0.01 * shared_consistency_loss
         return decoupling_loss
 
 
