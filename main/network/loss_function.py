@@ -3,6 +3,28 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+def compute_euclidean_distance(inputs):
+    """
+    计算输入张量中每对样本之间的欧氏距离。
+
+    参数:
+    inputs (torch.Tensor): 输入张量，形状为 (n, d)，其中 n 是样本数量, d 是特征维度。
+
+    返回:
+    torch.Tensor: 输出张量，形状为 (n, n)，其中每个元素表示对应样本对之间的欧氏距离。
+    """
+    n = inputs.size(0)
+
+    # Compute pairwise distance, replace by the official when merged
+    # ||a-b||^2 = ||a||^2 -2 * <a,b> + ||b||^2
+    dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)
+    dist = dist + dist.t()
+    # dist.addmm_(1, -2, inputs, inputs.t())
+    dist = torch.addmm(input=dist, mat1=inputs, mat2=inputs.t(), alpha=-2, beta=1)
+    dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
+    return dist
+
+
 def cos_sim(embedded_a, embedded_b):
     embedded_a = F.normalize(embedded_a, dim=1)
     embedded_b = F.normalize(embedded_b, dim=1)
@@ -26,7 +48,7 @@ class SharedSharedLoss(nn.Module):
 
     def forward(self, embedded_a):
 
-        sims = cos_sim(embedded_a, embedded_a)
+        sims = compute_euclidean_distance(embedded_a)
         bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
         non_diag_sims = sims[mask]
@@ -95,18 +117,21 @@ class DecouplingConsistencyLoss(nn.Module):
         batch_size = shared_features.size(0)
         chunk_size = batch_size // num_views
 
-        decoupling_loss = 0
+        shared_specific_loss = 0
+        shared_shared_loss = 0
         for i in range(chunk_size):
-            shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+            shared_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
+            specific_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
 
             # Loss between shared and specific features
-            shared_specific_loss = SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
+            shared_specific_loss += SharedSpecialLoss().forward(shared_chunk, specific_chunk)
 
             # Loss within shared features
-            # shared_consistency_loss = SharedSharedLoss().forward(shared_features_chunk)
+            shared_shared_loss += SharedSharedLoss().forward(shared_chunk)
 
-            decoupling_loss += shared_specific_loss
+        decoupling_loss = shared_specific_loss + shared_shared_loss
+        print(shared_specific_loss, shared_shared_loss)
+
         return decoupling_loss
 
 
