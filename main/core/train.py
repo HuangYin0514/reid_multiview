@@ -32,9 +32,6 @@ def train(base, loaders, config):
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
-            _, shared_features_cls_score = base.model.module.shared_classifier(shared_features)
-            shared_ide_loss = CrossEntropyLabelSmooth().forward(shared_features_cls_score, pids)
-            decoupling_consistency_loss += shared_ide_loss
 
             # 融合
             ## 共享特征

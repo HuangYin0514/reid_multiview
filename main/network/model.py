@@ -180,13 +180,14 @@ class Model(nn.Module):
         self.intergarte_gap = GeneralizedMeanPoolingP()
         self.intergarte_classifier = Classifier(2048, config.pid_num)
         # self.localized_integrating_shared_features_classifier = Classifier(1024, config.pid_num)
-        self.shared_classifier = Classifier(1024, config.pid_num)
+        # self.decoupling_shared_classifier = Classifier(1024, config.pid_num)
         # self.decoupling_special_classifier = Classifier(1024, config.pid_num)
 
         ####################################
         # 解耦
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureReconstruction = FeatureReconstruction(config)
+
         self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
 
     def heatmap(self, x):
