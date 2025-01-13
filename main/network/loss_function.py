@@ -52,7 +52,12 @@ class SharedSharedLoss(nn.Module):
         bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
         non_diag_sims = sims[mask]
-        loss = -torch.log(1 - non_diag_sims)
+
+        # 找到距离最远的组
+        max_dist, _ = torch.max(non_diag_sims.view(bs, -1), dim=1)
+
+        # 计算损失
+        loss = -torch.log(1 - max_dist)
         return torch.mean(loss)
 
 
