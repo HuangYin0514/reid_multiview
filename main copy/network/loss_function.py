@@ -52,7 +52,7 @@ class SharedSharedLoss(nn.Module):
         bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
         non_diag_sims = sims[mask]
-        loss = -torch.log(1 - non_diag_sims)
+        loss = -torch.log(non_diag_sims)
         return torch.mean(loss)
 
 
@@ -108,9 +108,9 @@ class CrossEntropyLabelSmooth(nn.Module):
         return loss
 
 
-class DecouplingSharedSpecialLoss(nn.Module):
+class DecouplingConsistencyLoss(nn.Module):
     def __init__(self):
-        super(DecouplingSharedSpecialLoss, self).__init__()
+        super(DecouplingConsistencyLoss, self).__init__()
 
     def forward(self, shared_features, specific_features):
         num_views = 4
@@ -118,34 +118,21 @@ class DecouplingSharedSpecialLoss(nn.Module):
         chunk_size = batch_size // num_views
 
         shared_specific_loss = 0
+        shared_shared_loss = 0
         for i in range(chunk_size):
-            shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+            shared_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
+            specific_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
 
             # Loss between shared and specific features
-            shared_specific_loss += SharedSpecialLoss().forward(shared_features_chunk, specific_features_chunk)
-
-        return shared_specific_loss
-
-
-class DecouplingSharedSharedLoss(nn.Module):
-    def __init__(self):
-        super(DecouplingSharedSharedLoss, self).__init__()
-
-    def forward(self, shared_features, specific_features):
-        num_views = 4
-        batch_size = shared_features.size(0)
-        chunk_size = batch_size // num_views
-
-        shared_consistency_loss = 0
-        for i in range(chunk_size):
-            shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
+            shared_specific_loss += SharedSpecialLoss().forward(shared_chunk, specific_chunk)
 
             # Loss within shared features
-            shared_consistency_loss += SharedSharedLoss().forward(shared_features_chunk)
+            shared_shared_loss += SharedSharedLoss().forward(shared_chunk)
 
-        return shared_consistency_loss
+        decoupling_loss = shared_specific_loss + shared_shared_loss
+        print(shared_specific_loss, shared_shared_loss)
+
+        return decoupling_loss
 
 
 class FeatureRegularizationLoss(nn.Module):

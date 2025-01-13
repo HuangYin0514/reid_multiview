@@ -31,8 +31,7 @@ def train(base, loaders, config):
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
-            decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
+            decoupling_consistency_loss = DecouplingConsistencyLoss().forward(shared_features, specific_features)
 
             # 融合
             ## 共享特征
@@ -54,7 +53,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + decoupling_SharedShared_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_consistency_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -65,8 +64,7 @@ def train(base, loaders, config):
                     "pid_loss": ide_loss.data,
                     "localized_ide_loss": integrating_ide_loss.data,
                     "reasoning_loss": reasoning_loss.data,
-                    "decoupling_SharedSpecial_loss": decoupling_SharedSpecial_loss.data,
-                    "decoupling_SharedShared_loss": decoupling_SharedShared_loss.data,
+                    "decoupling_consistency_loss": decoupling_consistency_loss.data,
                 }
             )
 
