@@ -46,7 +46,7 @@ class SharedSharedLoss(nn.Module):
     def __init__(self):
         super(SharedSharedLoss, self).__init__()
 
-        margin = 0.3
+        margin = 0.1
         self.ranking_loss = nn.MarginRankingLoss(margin=margin)
 
     def forward(self, embedded_a):
@@ -60,9 +60,9 @@ class SharedSharedLoss(nn.Module):
         max_dist, _ = torch.max(non_diag_sims.view(bs, -1), dim=1)
 
         # 计算损失
-        dist_an = max_dist
+        dist_an = torch.zeros_like(max_dist)
+        dist_ap = max_dist
         y = torch.ones_like(max_dist)
-        dist_ap = torch.zeros_like(max_dist)
         loss = self.ranking_loss(dist_an, dist_ap, y)
         return loss
 
