@@ -46,8 +46,11 @@ class SharedSharedLoss(nn.Module):
     def __init__(self):
         super(SharedSharedLoss, self).__init__()
 
-    def forward(self, embedded_a):
+        margin = 0.3
+        self.ranking_loss = nn.MarginRankingLoss(margin=margin)
 
+    def forward(self, embedded_a):
+        embedded_a = F.normalize(embedded_a, dim=1)
         sims = compute_euclidean_distance(embedded_a)
         bs = embedded_a.shape[0]
         mask = ~torch.eye(bs, dtype=torch.bool)  # mask out diagonal
@@ -57,8 +60,11 @@ class SharedSharedLoss(nn.Module):
         max_dist, _ = torch.max(non_diag_sims.view(bs, -1), dim=1)
 
         # 计算损失
-        loss = -torch.log(1 - max_dist)
-        return torch.mean(loss)
+        dist_an = max_dist
+        y = torch.ones_like(max_dist)
+        dist_ap = torch.zeros_like(max_dist)
+        loss = self.ranking_loss(dist_an, dist_ap, y)
+        return loss
 
 
 class SpecialSpecialLoss(nn.Module):
