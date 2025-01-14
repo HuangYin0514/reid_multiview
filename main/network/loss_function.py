@@ -137,7 +137,7 @@ class DecouplingSharedSharedLoss(nn.Module):
     def __init__(self):
         super(DecouplingSharedSharedLoss, self).__init__()
 
-    def forward(self, shared_features, specific_features):
+    def forward(self, shared_features):
         num_views = 4
         batch_size = shared_features.size(0)
         chunk_size = batch_size // num_views
@@ -145,7 +145,6 @@ class DecouplingSharedSharedLoss(nn.Module):
         shared_consistency_loss = 0
         for i in range(chunk_size):
             shared_features_chunk = shared_features[num_views * i : num_views * (i + 1), ...]
-            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
 
             # Loss within shared features
             shared_consistency_loss += SharedSharedLoss().forward(shared_features_chunk)

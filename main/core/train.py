@@ -32,7 +32,7 @@ def train(base, loaders, config):
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
+            decoupling_SharedShared_loss = DecouplingSharedSharedLoss().forward(shared_features)
 
             # 融合
             ## 共享特征
