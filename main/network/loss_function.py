@@ -46,7 +46,7 @@ class SharedSharedLoss(nn.Module):
     def __init__(self):
         super(SharedSharedLoss, self).__init__()
 
-        margin = 0.1
+        margin = 0.3
         self.ranking_loss = nn.MarginRankingLoss(margin=margin)
 
     def forward(self, embedded_a):
