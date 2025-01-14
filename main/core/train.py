@@ -18,7 +18,6 @@ def train(base, loaders, config):
             backbone_features = base.model.module.backbone_gap(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = net_loss.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
-            # ide_tri_loss = triplet_loss(backbone_pool_feats, pids)
 
             #################################################################
             # 定位
