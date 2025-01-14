@@ -1,5 +1,5 @@
 import torch
-from network import net_common, net_loss, net_process
+from network import net_loss, net_process
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
