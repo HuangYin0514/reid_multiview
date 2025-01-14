@@ -1,10 +1,13 @@
 import torch
 import torch.nn as nn
 
-from .common import *
-from .gem_pool import GeneralizedMeanPoolingP
-from .resnet50 import resnet50
-from .resnet_ibn_a import resnet50_ibn_a
+from .net_common import (
+    GeneralizedMeanPoolingP,
+    resnet50,
+    resnet50_ibn_a,
+    weights_init_classifier,
+    weights_init_kaiming,
+)
 
 
 class FeatureReconstruction(nn.Module):
