@@ -1,4 +1,3 @@
+from .loss_function import *
 from .model import *
-from .net_common import *
-from .net_loss import *
-from .net_process import *
+from .net_module import *

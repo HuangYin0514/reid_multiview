@@ -1,5 +1,13 @@
 import torch
-from network import net_loss, net_process
+from network import (
+    CrossEntropyLabelSmooth,
+    DecouplingSharedSharedLoss,
+    DecouplingSharedSpecialLoss,
+    FeatureMapLocation,
+    FeatureRegularizationLoss,
+    FeatureVectorIntegration,
+    FeatureVectorQuantification,
+)
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -17,11 +25,11 @@ def train(base, loaders, config):
             features_map = base.model(imgs)
             backbone_features = base.model.module.backbone_gap(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
-            ide_loss = net_loss.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
+            ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
             # 定位
-            localized_features_map = net_process.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # 池化
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
@@ -31,13 +39,13 @@ def train(base, loaders, config):
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
-            decoupling_SharedSpecial_loss = net_loss.DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = net_loss.DecouplingSharedSharedLoss().forward(shared_features)
+            decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
+            decoupling_SharedShared_loss = DecouplingSharedSharedLoss().forward(shared_features)
 
             # 融合
             ## 共享特征
-            quantified_shared_features = net_process.FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
-            integrating_shared_features, integrating_pids = net_process.FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
+            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
             # quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
             integrating_specific_features, integrating_pids = base.model.module.featureVectorIntegrationNet(specific_features, pids)
@@ -45,12 +53,12 @@ def train(base, loaders, config):
 
             # 分类
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
-            integrating_ide_loss = net_loss.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
             # 蒸馏学习
             # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
-            reasoning_loss = net_loss.FeatureRegularizationLoss().forward(backbone_bn_features)
+            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Loss
