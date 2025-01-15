@@ -6,17 +6,13 @@ import warnings
 
 import numpy as np
 import torch
-import wandb
 from core import Base, test, train, visualization
 from data_loader.loader import Loader
 from tools import Logger, make_dirs, os_walk, time_now
 
+import wandb
+
 warnings.filterwarnings("ignore")
-
-
-best_mAP = 0
-best_rank1 = 0
-best_epoch = 0
 
 
 def seed_torch(seed):
@@ -35,9 +31,9 @@ def main(config):
     print("#" * 10)
     print("Main running...")
 
-    global best_mAP
-    global best_rank1
-    global best_epoch
+    best_mAP = 0
+    best_rank1 = 0
+    best_epoch = 0
 
     print("Loading data...")
     loaders = Loader(config)
