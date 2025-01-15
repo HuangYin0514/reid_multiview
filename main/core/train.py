@@ -7,7 +7,6 @@ from network import (
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
-    TripletLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -27,7 +26,6 @@ def train(base, loaders, config):
             backbone_features = base.model.module.backbone_gap(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
-            ide_tri_loss = TripletLoss(margin=0.3).__call__(backbone_features, pids)
 
             #################################################################
             # 定位
@@ -64,7 +62,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + ide_tri_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
