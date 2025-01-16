@@ -156,10 +156,8 @@ class ResNet(nn.Module):
 def resnet50_ibn_a(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        # model.load_state_dict(torch.load(join(realpath(dirname(__file__)), "pretrained_model/ResNet-50/r50_ibn_a.pth")))
-        # print("successfully load imagenet pre-trained resnet50-ibn model")
-        # return model
-        pretrained_state_dict = model_zoo.load_url(model_urls["resnet50"])
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        pretrained_state_dict = model_zoo.load_url(model_urls["resnet50"], map_location=device)
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
         model.load_state_dict(now_state_dict)
