@@ -8,15 +8,17 @@
 .DS_Store
 
 # dir
+*_commod/
+*_dataset_processing/
+*_local_module/
+*_related_information/
+*_test_models/
+*backup/
+*backup_running/
 *results/
 *wandb/
-*_test_models/
-*_dataset_processing/
-*_related_information/
-*_local_module/
-*_commod/
-*backup/
 *.ipynb_checkpoints/
+*__pycache__/
 
 # file
 *.pyc
