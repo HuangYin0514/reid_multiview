@@ -17,7 +17,6 @@ class Backbone(nn.Module):
         # Backbone structure
         self.resnet_conv1 = resnet.conv1
         self.resnet_bn1 = resnet.bn1
-        self.resnet_relu = resnet.relu
         self.resnet_maxpool = resnet.maxpool
         self.resnet_layer1 = resnet.layer1
         self.resnet_layer2 = resnet.layer2
@@ -27,7 +26,6 @@ class Backbone(nn.Module):
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
-        x = self.resnet_relu(x)
         x = self.resnet_maxpool(x)
 
         x1 = x
