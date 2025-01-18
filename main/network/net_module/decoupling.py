@@ -28,12 +28,16 @@ class FeatureDecoupling(nn.Module):
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
+            nn.Linear(oc, oc, bias=False),
+            nn.BatchNorm1d(oc),
         )
         self.mlp1.apply(weights_init_kaiming)
 
         # special branch
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
         self.mlp2.apply(weights_init_kaiming)
