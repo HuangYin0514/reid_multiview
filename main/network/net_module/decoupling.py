@@ -28,6 +28,7 @@ class FeatureDecoupling(nn.Module):
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
+            nn.ReLU(),
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
@@ -37,6 +38,7 @@ class FeatureDecoupling(nn.Module):
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
+            nn.ReLU(),
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
