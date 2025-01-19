@@ -44,6 +44,7 @@ def train(base, loaders, config):
 
             # 融合
             ## 共享特征
+            localized_cls_score = localized_cls_score * 0 + 1
             quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
             integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征

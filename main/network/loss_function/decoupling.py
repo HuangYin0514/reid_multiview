@@ -57,8 +57,7 @@ class SharedSharedLoss(nn.Module):
         non_diag_sims = sims[mask]
 
         # 找到距离最远的组
-        # max_dist, _ = torch.max(non_diag_sims.view(bs, -1), dim=1)
-        max_dist = non_diag_sims
+        max_dist, _ = torch.max(non_diag_sims.view(bs, -1), dim=1)
 
         # 计算损失
         dist_an = torch.zeros_like(max_dist)
