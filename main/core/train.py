@@ -34,9 +34,6 @@ def train(base, loaders, config):
             # 池化
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
-            # 量化
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
@@ -44,11 +41,8 @@ def train(base, loaders, config):
 
             # 融合
             ## 共享特征
-            localized_cls_score = localized_cls_score * 0 + 1
-            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
-            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(shared_features, pids)
             ## 指定特征
-            # quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
             integrating_specific_features, integrating_pids = base.model.module.featureVectorIntegrationNet(specific_features, pids)
             integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
 
