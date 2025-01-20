@@ -41,7 +41,8 @@ def train(base, loaders, config):
 
             # 融合
             ## 共享特征
-            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(shared_features, pids)
+            quantified_shared_features = 0.5 * shared_features
+            integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
             integrating_specific_features, integrating_pids = base.model.module.featureVectorIntegrationNet(specific_features, pids)
             integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
