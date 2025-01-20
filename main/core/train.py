@@ -45,13 +45,12 @@ def train(base, loaders, config):
             # 融合
             ## 共享特征
             localized_cls_score = localized_cls_score * 0 + 1
-            quantified_shared_features2 = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
-            weight = torch.ones([shared_features.size(0), 1]).to(shared_features.device)
-            quantified_shared_features = weight * shared_features
+            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
+            quantified_shared_features2 = FeatureVectorQuantification(config).test(shared_features, localized_cls_score, pids)
             quantified_shared_features3 = 0.5 * shared_features
 
-            print(torch.sum(quantified_shared_features2 - quantified_shared_features))
-            print(torch.sum(quantified_shared_features3 - quantified_shared_features))
+            print(torch.sum(quantified_shared_features - quantified_shared_features2))
+            print(torch.sum(quantified_shared_features - quantified_shared_features3))
 
             integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
