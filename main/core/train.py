@@ -55,12 +55,12 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
-            # reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
+            # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
+            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.07 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
