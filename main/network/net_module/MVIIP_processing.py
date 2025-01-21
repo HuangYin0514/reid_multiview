@@ -78,7 +78,7 @@ class FeatureVectorIntegration:
         integrating_pids = torch.zeros([chunk_size]).to(pids.device)
 
         for i in range(chunk_size):
-            integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
+            integrating_features[i] = 0.5 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
             integrating_pids[i] = pids[4 * i]
 
         return integrating_features, integrating_pids
