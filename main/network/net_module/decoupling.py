@@ -65,6 +65,7 @@ class FeatureVectorIntegrationNet(nn.Module):
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
