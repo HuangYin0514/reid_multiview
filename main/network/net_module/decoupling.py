@@ -65,12 +65,14 @@ class FeatureVectorIntegrationNet(nn.Module):
         self.mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
-            nn.Linear(oc, oc, bias=False),
-            nn.BatchNorm1d(oc),
+        )
+        self.mlp1.apply(weights_init_kaiming)
+
+        self.mlp2 = nn.Sequential(
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init_kaiming)
+        self.mlp2.apply(weights_init_kaiming)
 
     def __call__(self, features, pids):
         size = features.size(0)
@@ -85,5 +87,6 @@ class FeatureVectorIntegrationNet(nn.Module):
             integrate_pids[i] = pids[4 * i]
 
         integrate_features = self.mlp1(integrate_features)
+        integrate_features = self.mlp2(integrate_features) + integrate_features
 
         return integrate_features, integrate_pids
