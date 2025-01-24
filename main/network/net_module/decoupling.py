@@ -63,9 +63,9 @@ class FeatureVectorIntegrationNet(nn.Module):
         ic = 1024 * 4
         oc = 1024
         self.mlp1 = nn.Sequential(
-            nn.Linear(ic, oc, bias=True),
+            nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
-            nn.Linear(oc, oc, bias=True),
+            nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
         self.mlp1.apply(weights_init_kaiming)

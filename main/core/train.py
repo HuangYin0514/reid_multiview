@@ -29,13 +29,13 @@ def train(base, loaders, config):
 
             #################################################################
             # 定位
-            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+            # localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # 池化
-            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
+            localized_features = base.model.module.intergarte_gap(features_map).squeeze()
 
             # 量化
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
