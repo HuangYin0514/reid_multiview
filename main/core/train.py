@@ -3,6 +3,7 @@ from network import (
     CrossEntropyLabelSmooth,
     DecouplingSharedSharedLoss,
     DecouplingSharedSpecialLoss,
+    DecouplingSpecificSpecificLoss,
     FeatureMapLocation,
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
@@ -29,18 +30,19 @@ def train(base, loaders, config):
 
             #################################################################
             # 定位
-            # localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # 池化
-            localized_features = base.model.module.intergarte_gap(features_map).squeeze()
+            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # 量化
-            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = DecouplingSharedSharedLoss().forward(shared_features)
+            decoupling_SpecificSpecific_loss = DecouplingSpecificSpecificLoss().forward(specific_features)
 
             # 融合
             ## 共享特征
@@ -62,7 +64,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + decoupling_SpecificSpecific_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
