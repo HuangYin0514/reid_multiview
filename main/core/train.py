@@ -64,7 +64,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + 0.001 * decoupling_SpecificSpecific_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + 0.0001 * decoupling_SpecificSpecific_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
