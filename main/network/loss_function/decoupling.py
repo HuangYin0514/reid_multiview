@@ -67,19 +67,6 @@ class SharedSharedLoss(nn.Module):
         return loss
 
 
-class SpecificSpecificLoss(nn.Module):
-    def __init__(self):
-        super(SpecificSpecificLoss, self).__init__()
-
-        margin = 0.3
-        self.ranking_loss = nn.MarginRankingLoss(margin=margin)
-
-    def forward(self, embedded_a):
-        sim = compute_cosine_similarity(embedded_a, embedded_a)
-        loss = -torch.log(1 - sim)
-        return torch.mean(loss)
-
-
 class DecouplingSharedSpecialLoss(nn.Module):
     def __init__(self):
         super(DecouplingSharedSpecialLoss, self).__init__()
@@ -117,22 +104,3 @@ class DecouplingSharedSharedLoss(nn.Module):
             shared_consistency_loss += SharedSharedLoss().forward(shared_features_chunk)
 
         return shared_consistency_loss
-
-
-class DecouplingSpecificSpecificLoss(nn.Module):
-    def __init__(self):
-        super(DecouplingSpecificSpecificLoss, self).__init__()
-
-    def forward(self, specific_features):
-        num_views = 4
-        batch_size = specific_features.size(0)
-        chunk_size = batch_size // num_views
-
-        specific_consistency_loss = 0
-        for i in range(chunk_size):
-            specific_features_chunk = specific_features[num_views * i : num_views * (i + 1), ...]
-
-            # Loss within specific features
-            specific_consistency_loss += SpecificSpecificLoss().forward(specific_features_chunk)
-
-        return specific_consistency_loss

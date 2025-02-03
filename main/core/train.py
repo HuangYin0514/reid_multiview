@@ -3,11 +3,11 @@ from network import (
     CrossEntropyLabelSmooth,
     DecouplingSharedSharedLoss,
     DecouplingSharedSpecialLoss,
-    DecouplingSpecificSpecificLoss,
     FeatureMapLocation,
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
+    ReasoningLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -42,7 +42,6 @@ def train(base, loaders, config):
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = DecouplingSharedSharedLoss().forward(shared_features)
-            decoupling_SpecificSpecific_loss = DecouplingSpecificSpecificLoss().forward(specific_features)
 
             # 融合
             ## 共享特征
@@ -59,12 +58,12 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
-            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
+            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
+            # reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + 0.0001 * decoupling_SpecificSpecific_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -77,7 +76,6 @@ def train(base, loaders, config):
                     "reasoning_loss": reasoning_loss.data,
                     "decoupling_SharedSpecial_loss": decoupling_SharedSpecial_loss.data,
                     "decoupling_SharedShared_loss": decoupling_SharedShared_loss.data,
-                    "decoupling_SpecificSpecific_loss": decoupling_SpecificSpecific_loss.data,
                 }
             )
 
