@@ -33,8 +33,6 @@ class ReasoningLoss(nn.Module):
         super(ReasoningLoss, self).__init__()
 
     def forward(self, student_preds, teacher_preds):
-        new_teacher_preds = torch.zeros(student_preds.size()).to(student_preds.device)
-        for i in range(int(teacher_preds.size(0))):
-            new_teacher_preds[i * 4 : (i + 1) * 4] = teacher_preds[i]
-        loss = KLDiv()(student_preds, new_teacher_preds)
+        repeat_teacher_preds = teacher_preds.repeat_interleave(4, dim=0).clone().detach()
+        loss = KLDiv()(student_preds, repeat_teacher_preds)
         return loss

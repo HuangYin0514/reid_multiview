@@ -36,7 +36,7 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # 量化
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
@@ -58,12 +58,12 @@ def train(base, loaders, config):
 
             #################################################################
             # 蒸馏学习
-            reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
+            reasoning_loss = ReasoningLoss().forward(backbone_cls_score, integrating_cls_score)
             # reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            total_loss = ide_loss + integrating_ide_loss + reasoning_loss + decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
