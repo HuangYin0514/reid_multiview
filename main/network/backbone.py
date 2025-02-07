@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .net_module import SEAM, MultiSEAM, resnet50, resnet50_ibn_a
+from .net_module import SEAM, resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):

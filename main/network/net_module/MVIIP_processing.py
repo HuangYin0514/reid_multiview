@@ -44,11 +44,6 @@ class FeatureVectorQuantification:
         quantified_features = weights.unsqueeze(1) * features
         return quantified_features
 
-    def test(self, features, cls_scores, pids):
-        size = features.size(0)
-        quantified_features = 0.5 * features
-        return quantified_features
-
 
 class FeatureMapQuantification:
     def __init__(self, config):
