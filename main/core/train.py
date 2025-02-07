@@ -35,7 +35,7 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # 量化
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
             # 解耦
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
@@ -44,7 +44,7 @@ def train(base, loaders, config):
 
             # 融合
             ## 共享特征
-            quantified_shared_features = FeatureVectorQuantification(config).__call__(shared_features, localized_cls_score, pids)
+            quantified_shared_features = 0.5 * shared_features
             integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
             # quantified_specific_features = FeatureVectorQuantification(config).__call__(specific_features, localized_cls_score, pids)
