@@ -3,6 +3,9 @@ import torch.nn.functional as F
 from torch import nn
 
 
+# https://github.com/iscyy/yoloair
+# https://github.com/iscyy/yoloair2/blob/204eb01f0568b95c50f4252d8cf08cc6a3ef14f9/models/Models/FaceV2.py#L143
+# https://github.com/wanning-chu/Sheep-YOLO/blob/824fef4f0a4d29aadedbf1a6ad667c08f3d78045/ultralytics/nn/modules/compare_test/SEAM.py#L63
 class Residual(nn.Module):
     """
     残差模块类，用于实现残差连接。
@@ -67,10 +70,46 @@ class SEAM(nn.Module):
                 torch.nn.init.constant_(layer.bias, 0)
 
 
-123
-# if __name__ == "__main__":
-#     model = SEAM(c1=256, c2=256, n=1)
-#     # model = nn.Conv2d(256, 512, 3, 3, 1)
-#     x = torch.rand(2, 256, 16, 16)
-#     y = model(x)
-#     print(y.shape)
+def DcovN(c1, c2, depth, kernel_size=3, patch_size=3):  # mg
+    dcovn = nn.Sequential(nn.Conv2d(c1, c2, kernel_size=patch_size, stride=patch_size), nn.GELU(), nn.BatchNorm2d(c2), *[nn.Sequential(Residual(nn.Sequential(nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=kernel_size, stride=1, padding=1, groups=c2), nn.GELU(), nn.BatchNorm2d(c2))), nn.Conv2d(in_channels=c2, out_channels=c2, kernel_size=1, stride=1, padding=0, groups=1), nn.GELU(), nn.BatchNorm2d(c2)) for i in range(depth)])
+    return dcovn
+
+
+class MultiSEAM(nn.Module):
+    def __init__(self, c1, c2, depth, kernel_size=3, patch_size=[3, 5, 7], reduction=16):
+        super(MultiSEAM, self).__init__()
+        if c1 != c2:
+            c2 = c1
+        self.DCovN0 = DcovN(c1, c2, depth, kernel_size=kernel_size, patch_size=patch_size[0])
+        self.DCovN1 = DcovN(c1, c2, depth, kernel_size=kernel_size, patch_size=patch_size[1])
+        self.DCovN2 = DcovN(c1, c2, depth, kernel_size=kernel_size, patch_size=patch_size[2])
+        self.avg_pool = torch.nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(nn.Linear(c2, c2 // reduction, bias=False), nn.ReLU(inplace=True), nn.Linear(c2 // reduction, c2, bias=False), nn.Sigmoid())
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y0 = self.DCovN0(x)
+        y1 = self.DCovN1(x)
+        y2 = self.DCovN2(x)
+        y0 = self.avg_pool(y0).view(b, c)
+        y1 = self.avg_pool(y1).view(b, c)
+        y2 = self.avg_pool(y2).view(b, c)
+        y4 = self.avg_pool(x).view(b, c)
+        y = (y0 + y1 + y2 + y4) / 4
+        y = self.fc(y).view(b, c, 1, 1)
+        y = torch.exp(y)
+        return x * y.expand_as(x)
+
+
+if __name__ == "__main__":
+    model = SEAM(c1=256, c2=256, n=1)
+    # model = nn.Conv2d(256, 512, 3, 3, 1)
+    x = torch.rand(2, 256, 16, 16)
+    y = model(x)
+    print(y.shape)
+
+    model = MultiSEAM(c1=256, c2=256, depth=1)
+    # model = nn.Conv2d(256, 512, 3, 3, 1)
+    x = torch.rand(2, 256, 16, 16)
+    y = model(x)
+    print(y.shape)
