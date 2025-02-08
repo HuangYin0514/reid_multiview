@@ -10,7 +10,7 @@
 # dir
 *_commod/
 *_dataset_processing/
-*_local_module/
+*_common_modules/
 *_related_information/
 *_test_models/
 *backup/
