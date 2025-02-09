@@ -23,7 +23,7 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        # self.seam_layer2 = SEAM(512, 512, 2)
+        self.seam_layer2 = SEAM(512, 512, 2)
         self.seam_layer3 = SEAM(1024, 1024, 2)
         self.seam_layer4 = SEAM(2048, 2048, 2)
 
@@ -37,7 +37,7 @@ class Backbone(nn.Module):
         x2 = x
         x = self.resnet_layer2(x)  # torch.Size([16, 512, 32, 16])
         x3 = x
-        # x = self.seam_layer2(x)
+        x = self.seam_layer2(x)
         x = self.resnet_layer3(x)  # torch.Size([16, 1024, 16, 8])
         x4 = x
         x = self.seam_layer3(x)
