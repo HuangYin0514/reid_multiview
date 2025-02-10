@@ -7,6 +7,7 @@ from network import (
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
+    ReasoningLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
