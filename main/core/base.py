@@ -4,9 +4,10 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import wandb
 from network import Model
-from tools import os_walk
+from tools import CosineLRScheduler, os_walk
+
+import wandb
 
 
 class Base:
@@ -38,9 +39,61 @@ class Base:
 
     def _init_optimizer(self):
 
-        model_params_group = [{"params": self.model.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
-        self.model_optimizer = optim.Adam(model_params_group)
-        self.model_lr_scheduler = WarmupMultiStepLR(self.model_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
+        ########################################
+        # Optimizer
+        ########################################
+        BASE_LR = 0.008
+        WEIGHT_DECAY = 1e-4
+        BIAS_LR_FACTOR = 2
+        WEIGHT_DECAY_BIAS = 1e-4
+        LARGE_FC_LR = False
+        params = []
+        for key, value in self.model.named_parameters():
+            if not value.requires_grad:
+                continue
+            lr = BASE_LR
+            weight_decay = WEIGHT_DECAY
+            if "bias" in key:
+                lr = BASE_LR * BIAS_LR_FACTOR
+                weight_decay = WEIGHT_DECAY_BIAS
+            if LARGE_FC_LR:
+                if "classifier" in key or "arcface" in key:
+                    lr = BASE_LR * 2
+                    print("Using two times learning rate for fc ")
+            params += [
+                {
+                    "params": [value],
+                    "lr": lr,
+                    "weight_decay": weight_decay,
+                }
+            ]
+        MOMENTUM = 0.9
+        self.model_optimizer = getattr(torch.optim, "SGD")(params, momentum=MOMENTUM)
+
+        ########################################
+        # Scheduler
+        ########################################
+        # self.model_lr_scheduler = WarmupMultiStepLR(self.model_optimizer, self.milestones, gamma=0.1, warmup_factor=0.01, warmup_iters=10)
+        num_epochs = 120
+        lr_min = 0.002 * BASE_LR
+        warmup_lr_init = 0.01 * BASE_LR
+        warmup_t = 5
+        noise_range = None
+        self.model_lr_scheduler = CosineLRScheduler(
+            self.model_optimizer,
+            t_initial=num_epochs,
+            lr_min=lr_min,
+            t_mul=1.0,
+            decay_rate=0.1,
+            warmup_lr_init=warmup_lr_init,
+            warmup_t=warmup_t,
+            cycle_limit=1,
+            t_in_epochs=True,
+            noise_range_t=noise_range,
+            noise_pct=0.67,
+            noise_std=1.0,
+            noise_seed=42,
+        )
 
     def save_model(self, save_epoch, is_best):
         if is_best:

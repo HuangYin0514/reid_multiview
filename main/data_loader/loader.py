@@ -25,15 +25,24 @@ from torch.utils.data import DataLoader
 class Loader:
 
     def __init__(self, config):
-        transform_train = [transforms.Resize(config.image_size, interpolation=3), transforms.RandomHorizontalFlip(p=0.5), transforms.Pad(10), transforms.RandomCrop(config.image_size)]
-        if config.use_colorjitor:
-            transform_train.append(transforms.ColorJitter(brightness=0.25, contrast=0.15, saturation=0.25, hue=0))
-        transform_train.extend([transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-        if config.use_rea:
-            transform_train.append(RandomErasing(probability=0.5, mean=[0.485, 0.456, 0.406]))
+        transform_train = [
+            transforms.Resize(config.image_size, interpolation=3),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.Pad(10),
+            transforms.RandomCrop(config.image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            RandomErasing(probability=0.5, mode="pixel", max_count=1, device="cpu"),
+        ]
         self.transform_train = transforms.Compose(transform_train)
 
-        self.transform_test = transforms.Compose([transforms.Resize(config.image_size, interpolation=3), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+        self.transform_test = transforms.Compose(
+            [
+                transforms.Resize(config.image_size, interpolation=3),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            ]
+        )
 
         self.datasets = ["occluded_duke, occluded_reid, partial_duke, partial_reid, partial_ilids, market, duke, msmt"]
         self.train_dataset = config.train_dataset
