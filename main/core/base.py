@@ -4,10 +4,8 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from network import Model
-from tools import CosineLRScheduler, os_walk
-
-import wandb
+from network import CosineLRScheduler, Model
+from tools import os_walk
 
 
 class Base:

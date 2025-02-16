@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from network import (
     CrossEntropyLabelSmooth,
     DecouplingSharedSharedLoss,
@@ -7,6 +8,7 @@ from network import (
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
+    TripletLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -24,11 +26,12 @@ def train(base, loaders, config):
             # Baseline
             features = base.model(imgs)
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(features)
-            ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
+            ide_loss = F.cross_entropy(backbone_cls_score, pids)
+            tri_loss = TripletLoss()(features, pids)[0]
 
             #################################################################
             # Loss
-            total_loss = ide_loss
+            total_loss = ide_loss + tri_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -37,6 +40,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
+                    "tri_loss": tri_loss.data,
                 }
             )
 
