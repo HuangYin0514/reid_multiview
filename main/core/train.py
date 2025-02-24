@@ -24,7 +24,7 @@ def train(base, loaders, config):
         if config.module == "Lucky":
             #################################################################
             # Baseline
-            features = base.model(imgs)
+            features = base.model(imgs, cids)
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(features)
             ide_loss = F.cross_entropy(backbone_cls_score, pids)
             tri_loss = TripletLoss()(features, pids)[0]

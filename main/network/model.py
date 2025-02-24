@@ -24,12 +24,12 @@ class Model(nn.Module):
         # Classifer [bn -> classifier]
         self.backbone_classifier = Classifier(768, config.pid_num)
 
-    def forward(self, x):
+    def forward(self, x, cids):
         if self.training:
-            features = self.backbone(x)
+            features = self.backbone(x, cids)
             return features
         else:
             ###############
-            features = self.backbone(x)
+            features = self.backbone(x, cids)
             backbone_bn_features, backbone_cls_score = self.backbone_classifier(features)
             return backbone_bn_features
