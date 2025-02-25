@@ -19,9 +19,9 @@ def test(config, base, loader):
                 images, pids, cids = data
                 images = images.to(base.device)
 
-                bn_features = base.model(images, cids)
+                bn_features = base.model(images)
                 flip_images = torch.flip(images, [3])
-                flip_bn_features = base.model(flip_images, cids)
+                flip_bn_features = base.model(flip_images)
                 bn_features = bn_features + flip_bn_features
 
                 if loader_id == 0:

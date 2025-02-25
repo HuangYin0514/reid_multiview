@@ -1,17 +1,39 @@
 import torch
 import torch.nn as nn
 
-from .net_module import resnet50, resnet50_ibn_a, vit_base_patch16_224_TransReID
+from .net_module import resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        model = vit_base_patch16_224_TransReID(img_size=[256, 128], sie_xishu=3.0, local_feature=False, camera=8, view=0, stride_size=[16, 16], drop_path_rate=0.1, drop_rate=0.0, attn_drop_rate=0.0)
-        model.load_param()
-        self.model = model
+        resnet = resnet50(pretrained=True)
+        # resnet = resnet50_ibn_a(pretrained=True)
+        # resnet = torchvision.models.resnet50(pretrained=True)
 
-    def forward(self, x, cids):
-        cids -= 1  # index from 0
-        output = self.model(x, cids, None)
-        return output
+        # Modifiy backbone
+        resnet.layer4[0].downsample[0].stride = (1, 1)
+        resnet.layer4[0].conv2.stride = (1, 1)
+        # Backbone structure
+        self.resnet_conv1 = resnet.conv1
+        self.resnet_bn1 = resnet.bn1
+        self.resnet_maxpool = resnet.maxpool
+        self.resnet_layer1 = resnet.layer1
+        self.resnet_layer2 = resnet.layer2
+        self.resnet_layer3 = resnet.layer3
+        self.resnet_layer4 = resnet.layer4
+
+    def forward(self, x):
+        x = self.resnet_conv1(x)
+        x = self.resnet_bn1(x)
+        x = self.resnet_maxpool(x)
+
+        x1 = x
+        x = self.resnet_layer1(x)
+        x2 = x
+        x = self.resnet_layer2(x)
+        x3 = x
+        x = self.resnet_layer3(x)
+        x4 = x
+        x = self.resnet_layer4(x)
+        return x1, x2, x3, x4, x

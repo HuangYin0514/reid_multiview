@@ -22,14 +22,28 @@ class Model(nn.Module):
 
         ####################################
         # Classifer [bn -> classifier]
-        self.backbone_classifier = Classifier(768, config.pid_num)
+        self.backbone_gap = GeneralizedMeanPoolingP()
+        self.backbone_classifier = Classifier(2048, config.pid_num)
 
-    def forward(self, x, cids):
+        self.intergarte_gap = GeneralizedMeanPoolingP()
+        self.intergarte_classifier = Classifier(2048, config.pid_num)
+
+        ####################################
+        # 解耦
+        self.featureDecoupling = FeatureDecoupling(config)
+        self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
+
+    def heatmap(self, x):
+        _, _, _, _, features_map = self.backbone(x)
+        return features_map
+
+    def forward(self, x):
         if self.training:
-            features = self.backbone(x, cids)
-            return features
+            x1, x2, x3, x4, features_map = self.backbone(x)
+            return features_map
         else:
             ###############
-            features = self.backbone(x, cids)
-            backbone_bn_features, backbone_cls_score = self.backbone_classifier(features)
+            x1, x2, x3, x4, features_map = self.backbone(x)
+            backbone_features = self.backbone_gap(features_map).squeeze()
+            backbone_bn_features, backbone_cls_score = self.backbone_classifier(backbone_features)
             return backbone_bn_features
