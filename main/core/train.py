@@ -21,28 +21,29 @@ def train(base, loaders, config):
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.module == "Lucky":
             #################################################################
-            # Baseline
+            # Resnet
             features_map = base.model(imgs)
-            backbone_features = base.model.module.backbone_gap(features_map).squeeze()
+
+            #################################################################
+            # IDLoss
+            backbone_features = base.model.module.backbone_pooling(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
-            # 定位
+            # Positioning
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
-            # 池化
-            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
+            localized_features = base.model.module.intergarte_pooling(localized_features_map).squeeze()  # Pooling 池化
 
-            # 量化
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features) # Quantization 量化
 
-            # 解耦
+            # Decoupling
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
             decoupling_SharedSpecial_loss = DecouplingSharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = DecouplingSharedSharedLoss().forward(shared_features)
 
-            # 融合
+            # Fusion
             ## 共享特征
             quantified_shared_features = 0.5 * shared_features
             integrating_shared_features, integrating_pids = FeatureVectorIntegration(config).__call__(quantified_shared_features, pids)
@@ -51,12 +52,12 @@ def train(base, loaders, config):
             integrating_specific_features, integrating_pids = base.model.module.featureVectorIntegrationNet(specific_features, pids)
             integrating_features = torch.cat([integrating_shared_features, integrating_specific_features], dim=1)
 
-            # 分类
+            # IDLoss
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
-            # 蒸馏学习
+            # Regularization
             # reasoning_loss = ReasoningLoss().forward(backbone_bn_features, integrating_bn_features)
             reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 

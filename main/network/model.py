@@ -17,21 +17,21 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         ####################################
-        # IDE
+        # Backbone
         self.backbone = Backbone()
 
         ####################################
-        # Classifer [bn -> classifier]
-        self.backbone_gap = GeneralizedMeanPoolingP()
-        self.backbone_classifier = Classifier(2048, config.pid_num)
-
-        self.intergarte_gap = GeneralizedMeanPoolingP()
-        self.intergarte_classifier = Classifier(2048, config.pid_num)
-
-        ####################################
-        # 解耦
+        # Decoupling
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
+
+        ####################################
+        # Classifer [bn -> classifier]
+        self.backbone_pooling = GeneralizedMeanPoolingP()
+        self.backbone_classifier = Classifier(2048, config.pid_num)
+
+        self.intergarte_pooling = GeneralizedMeanPoolingP()
+        self.intergarte_classifier = Classifier(2048, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
@@ -44,6 +44,6 @@ class Model(nn.Module):
         else:
             ###############
             x1, x2, x3, x4, features_map = self.backbone(x)
-            backbone_features = self.backbone_gap(features_map).squeeze()
+            backbone_features = self.backbone_pooling(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = self.backbone_classifier(backbone_features)
             return backbone_bn_features
