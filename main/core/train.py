@@ -36,7 +36,7 @@ def train(base, loaders, config):
 
             localized_features = base.model.module.intergarte_pooling(localized_features_map).squeeze()  # Pooling 池化
 
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)  # Quantization 量化
+            # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)  # Quantization 量化
 
             # Decoupling
             shared_features, specific_features = base.model.module.featureDecoupling(localized_features)
