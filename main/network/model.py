@@ -21,17 +21,17 @@ class Model(nn.Module):
         self.backbone = Backbone()
 
         ####################################
-        # Decoupling
-        self.featureDecoupling = FeatureDecoupling(config)
-        self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
-
-        ####################################
         # Classifer [bn -> classifier]
         self.backbone_pooling = GeneralizedMeanPoolingP()
         self.backbone_classifier = Classifier(2048, config.pid_num)
 
         self.intergarte_pooling = GeneralizedMeanPoolingP()
         self.intergarte_classifier = Classifier(2048, config.pid_num)
+
+        ####################################
+        # Decoupling
+        self.featureDecoupling = FeatureDecoupling(config)
+        self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
