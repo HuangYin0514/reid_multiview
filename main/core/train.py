@@ -31,11 +31,11 @@ def train(base, loaders, config):
             ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
-            # Attention
-            attention_features_map = base.model.module.seam_attention(features_map)
-
             # Positioning
-            localized_features_map = FeatureMapLocation(config).__call__(attention_features_map, pids, base.model.module.backbone_classifier)
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+
+            # Attention
+            localized_features_map = base.model.module.seam_attention(localized_features_map)
 
             localized_features = base.model.module.intergarte_pooling(localized_features_map).squeeze()  # Pooling 池化
             base.model.module.backbone_classifier.BN(localized_features)  # BN, 影响分类器中统计量，不影响特征
