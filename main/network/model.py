@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from .backbone import Backbone
 from .net_module import (
+    SEAM,
     Classifier,
     FeatureDecoupling,
     FeatureReconstruction,
@@ -32,6 +33,10 @@ class Model(nn.Module):
         # Decoupling
         self.featureDecoupling = FeatureDecoupling(config)
         self.featureVectorIntegrationNet = FeatureVectorIntegrationNet(config)
+
+        ####################################
+        # Attention
+        self.seam_attention = SEAM(2048, 2048, 2)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
