@@ -34,9 +34,6 @@ def train(base, loaders, config):
             # Positioning
             localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
-            # Attention
-            localized_features_map = base.model.module.seam_attention(localized_features_map)
-
             localized_features = base.model.module.intergarte_pooling(localized_features_map).squeeze()  # Pooling 池化
             base.model.module.backbone_classifier.BN(localized_features)  # BN, 影响分类器中统计量，不影响特征
             # _, localized_cls_score = base.model.module.backbone_classifier(localized_features)

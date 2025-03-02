@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .net_module import resnet50, resnet50_ibn_a
+from .net_module import SEAM, resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):
@@ -23,17 +23,22 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
+        self.seam_layer2 = SEAM(512, 512, 2)
+        self.seam_layer3 = SEAM(1024, 1024, 2)
+
     def forward(self, x):
-        x = self.resnet_conv1(x)
+        x = self.resnet_conv1(x)  # torch.Size([16, 64, 64, 32])
         x = self.resnet_bn1(x)
         x = self.resnet_maxpool(x)
 
         x1 = x
-        x = self.resnet_layer1(x)
+        x = self.resnet_layer1(x)  # torch.Size([16, 256, 64, 32])
         x2 = x
-        x = self.resnet_layer2(x)
+        x = self.resnet_layer2(x)  # torch.Size([16, 512, 32, 16])
         x3 = x
-        x = self.resnet_layer3(x)
+        x = self.seam_layer2(x)
+        x = self.resnet_layer3(x)  # torch.Size([16, 1024, 16, 8])
         x4 = x
-        x = self.resnet_layer4(x)
+        x = self.seam_layer3(x)
+        x = self.resnet_layer4(x)  # torch.Size([16, 2048, 16, 8])
         return x1, x2, x3, x4, x
