@@ -1,26 +1,33 @@
-# idea
+# System ----------------------------------------------------------------
+# IDEA
 *.iml
 .idea/
 *.ipr
 *.iws
 
-# osx
+# OSX
 .DS_Store
 
-# dir
-*_commod/
-*_dataset_processing/
-*_common_modules/
-*_related_information/
-*_test_models/
-*backup/
-*backup_running/
-*results/
-*wandb/
+# Dir -----------------------------------------------------------------
+# Common
 *.ipynb_checkpoints/
 *__pycache__/
 
-# file
+# Project
+*_dataset_processing/
+*backup/
+*results/
+
+# Log
+*wandb/
+
+# Other
+*_测试/
+*_常用模块/
+*_常用shell脚本/
+*_论文/
+
+# File ----------------------------------------------------------------
 *.pyc
 *.txt
 *.pkl

@@ -7,6 +7,7 @@ from network import (
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
+    TripletLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -23,13 +24,19 @@ def train(base, loaders, config):
             #################################################################
             # R: Resnet
             features_map = base.model(imgs)
+
+            #################################################################
+            # I: IDLoss
             backbone_features = base.model.module.backbone_gap(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
+            # T: TripletLoss
+            triplet_loss = TripletLoss()(backbone_features, pids)[0]
+
             #################################################################
-            # Loss
-            total_loss = ide_loss
+            # Total loss
+            total_loss = ide_loss + triplet_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
