@@ -7,7 +7,6 @@ from network import (
     FeatureRegularizationLoss,
     FeatureVectorIntegration,
     FeatureVectorQuantification,
-    TripletLoss,
 )
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -31,12 +30,12 @@ def train(base, loaders, config):
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
-            # T: TripletLoss
-            triplet_loss = TripletLoss()(backbone_features, pids)[0]
+            # R: Regularization
+            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + triplet_loss
+            total_loss = ide_loss + 0.007 * reasoning_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
