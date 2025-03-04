@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .net_module import resnet50, resnet50_ibn_a
+from .model_module import resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):

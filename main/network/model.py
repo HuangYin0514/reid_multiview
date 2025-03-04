@@ -2,13 +2,7 @@ import torch
 import torch.nn as nn
 
 from .backbone import Backbone
-from .net_module import (
-    Classifier,
-    FeatureDecoupling,
-    FeatureReconstruction,
-    FeatureVectorIntegrationNet,
-    GeneralizedMeanPoolingP,
-)
+from .model_module import Classifier, GeneralizedMeanPoolingP
 
 
 class Model(nn.Module):

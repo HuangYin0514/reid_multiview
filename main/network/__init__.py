@@ -1,3 +1,2 @@
-from .loss_function import *
+from . import loss_function, model_module
 from .model import *
-from .net_module import *

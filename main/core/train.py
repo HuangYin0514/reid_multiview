@@ -1,13 +1,5 @@
 import torch
-from network import (
-    CrossEntropyLabelSmooth,
-    DecouplingSharedSharedLoss,
-    DecouplingSharedSpecialLoss,
-    FeatureMapLocation,
-    FeatureRegularizationLoss,
-    FeatureVectorIntegration,
-    FeatureVectorQuantification,
-)
+from network import loss_function, model_module
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -28,22 +20,19 @@ def train(base, loaders, config):
             # I: IDLoss
             backbone_features = base.model.module.backbone_gap(features_map).squeeze()
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
-            ide_loss = CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
+            ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             # R: Regularization
-            reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
+            reasoning_loss = loss_function.FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
-            # P: Positioning
-            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-
             # F: Fusion
-            gap_intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            integrating_features, integrating_pids = FeatureVectorIntegration(config).__call__(gap_intergarte_features, pids)
+            intergarte_features = base.model.module.intergarte_gap(features_map).squeeze()
+            integrating_features, integrating_pids = model_module.multi_view.FeatureIntegration(config).__call__(intergarte_features, pids)
 
             # I: IDLoss
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
-            integrating_ide_loss = CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
             # Total loss
