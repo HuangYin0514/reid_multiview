@@ -34,8 +34,11 @@ def train(base, loaders, config):
             reasoning_loss = FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
+            # P: Positioning
+            localized_features_map = FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+
             # F: Fusion
-            gap_intergarte_features = base.model.module.intergarte_gap(features_map).squeeze()
+            gap_intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             integrating_features, integrating_pids = FeatureVectorIntegration(config).__call__(gap_intergarte_features, pids)
 
             # I: IDLoss
