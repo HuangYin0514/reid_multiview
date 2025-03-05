@@ -6,8 +6,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from method import evaluation
 from sklearn.manifold import TSNE
-from tools import CatMeter, ReIDEvaluator, time_now
+from tools import CatMeter, time_now
 from torch.nn import functional as F
 
 

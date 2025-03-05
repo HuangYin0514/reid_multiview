@@ -7,6 +7,9 @@ from PIL import Image
 from tools import os_walk
 
 
+############################################################################################################
+# Train Samples
+############################################################################################################
 class PersonReIDSamples:
 
     def __init__(self, dataset_path):
@@ -16,19 +19,6 @@ class PersonReIDSamples:
         samples = self._reorder_labels(samples, 1)
 
         self.samples = samples
-
-    def _reorder_labels(self, samples, label_index):
-        # 获取所有唯一标签并排序
-        unique_ids = sorted({sample[label_index] for sample in samples})
-
-        # 创建标签到索引的映射
-        id_to_index = {label: idx for idx, label in enumerate(unique_ids)}
-
-        # 更新 samples 中的标签
-        for sample in samples:
-            sample[label_index] = id_to_index[sample[label_index]]
-
-        return samples
 
     def _load_samples(self, floder_dir):
         samples = []
@@ -44,6 +34,19 @@ class PersonReIDSamples:
         split_list = file_name.replace(".jpg", "").replace("c", "").split("_")
         identi_id, camera_id = int(split_list[0]), int(split_list[1])
         return identi_id, camera_id
+
+    def _reorder_labels(self, samples, label_index):
+        # 获取所有唯一标签并排序
+        unique_ids = sorted({sample[label_index] for sample in samples})
+
+        # 创建标签到索引的映射
+        id_to_index = {label: idx for idx, label in enumerate(unique_ids)}
+
+        # 更新 samples 中的标签
+        for sample in samples:
+            sample[label_index] = id_to_index[sample[label_index]]
+
+        return samples
 
 
 class Samples4OccludedDuke(PersonReIDSamples):
@@ -109,6 +112,9 @@ class Samples4MSMT17(PersonReIDSamples):
         return identi_id, camera_id
 
 
+############################################################################################################
+# Test Samples
+############################################################################################################
 class TestPersonReIDSamples:
 
     def __init__(self, dataset_path):

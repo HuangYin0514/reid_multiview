@@ -1,4 +1,3 @@
-from . import decoupling, multi_view
 from .classifier import Classifier
 from .gem_pool import GeneralizedMeanPoolingP
 from .resnet50 import resnet50

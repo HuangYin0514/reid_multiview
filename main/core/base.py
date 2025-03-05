@@ -4,9 +4,10 @@ from bisect import bisect_right
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import wandb
-from network import Model
+from method import Model
 from tools import os_walk
+
+import wandb
 
 
 class Base:

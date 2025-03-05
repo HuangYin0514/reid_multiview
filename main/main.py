@@ -31,20 +31,27 @@ def main(config):
     print("#" * 10)
     print("Main running...")
 
+    # 加载数据
+    print("Loading data...")
+    loaders = Loader(config)
+
+    # 加载模型
+    print("Loading model...")
+    model = Base(config)
+
+    # 初始化最佳指标
     best_mAP = 0
     best_rank1 = 0
     best_epoch = 0
 
-    print("Loading data...")
-    loaders = Loader(config)
-    print("Loading model...")
-    model = Base(config)
-
+    # 创建必要的目录
     make_dirs(model.output_path)
     make_dirs(model.save_model_path)
     make_dirs(model.save_logs_path)
 
-    logger = Logger(os.path.join(os.path.join(config.output_path, "logs/"), "logger.log"))
+    # 初始化日志记录器
+    logger_path = os.path.join(config.output_path, "logs/", "logger.log")
+    logger = Logger(logger_path)
     logger("\n" * 3)
     logger(config)
 
@@ -52,42 +59,15 @@ def main(config):
         ########################################################
         # 训练
         ########################################################
-
-        # wandb.watch(model.model, log="all")
-
-        # 恢复训练
-        if config.resume_train_epoch >= 0:
-            model.resume_model(config.resume_train_epoch)
-            start_train_epoch = config.resume_train_epoch
-        else:
-            start_train_epoch = 0
-
-        if config.auto_resume_training_from_lastest_step:
-            root, _, files = os_walk(model.save_model_path)
-            print(files)
-            if len(files) > 0:
-                indexes = []
-                for file in files:
-                    indexes.append(int(file.replace(".pth", "").split("_")[-1]))
-                indexes = sorted(list(set(indexes)), reverse=False)
-                model.resume_model(indexes[-1])
-                start_train_epoch = indexes[-1]
-                logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
-
-        # 训练
-        for current_epoch in range(start_train_epoch, config.total_train_epoch):
+        for current_epoch in range(0, config.total_train_epoch):
             model.model_lr_scheduler.step(current_epoch)
 
             if current_epoch < config.total_train_epoch:
                 dict_result, result = train(model, loaders, config)
                 logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, result))
-                wandb.log(
-                    {
-                        "Lr": model.model_optimizer.param_groups[0]["lr"],
-                        **dict_result,
-                    }
-                )
+                wandb.log({"Lr": model.model_optimizer.param_groups[0]["lr"], **dict_result})
 
+            # 每隔一定的epoch进行评估
             if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
@@ -95,50 +75,31 @@ def main(config):
                     best_epoch = current_epoch
                     best_rank1 = CMC[0]
                     best_mAP = mAP
-                    wandb.log(
-                        {
-                            "best_epoch": best_epoch,
-                            "best_rank1": best_rank1,
-                            "best_mAP": best_mAP,
-                        }
-                    )
+                    wandb.log({"best_epoch": best_epoch, "best_rank1": best_rank1, "best_mAP": best_mAP})
                 model.save_model(current_epoch, is_best_rank)
                 logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
-                wandb.log(
-                    {
-                        "test_epoch": current_epoch,
-                        "mAP": mAP,
-                        "Rank1": CMC[0],
-                        "Rank5": CMC[4],
-                        "Rank10": CMC[9],
-                        "Rank20": CMC[19],
-                    }
-                )
+                wandb.log({"test_epoch": current_epoch, "mAP": mAP, "Rank1": CMC[0], "Rank5": CMC[4], "Rank10": CMC[9], "Rank20": CMC[19]})
 
+        # 训练结束后打印最佳指标
         if best_rank1:
             logger("=" * 50)
             logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
             logger("=" * 50)
 
-    # 测试
     elif config.mode == "test":
+        ########################################################
+        # 测试
+        ########################################################
         model.resume_model(config.resume_test_model)
         mAP, CMC = test(config, model, loaders)
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
-    # 可视化
     elif config.mode == "visualization":
+        ########################################################
+        # 可视化
+        ########################################################
         loaders._visualization_load()
-        if config.auto_resume_training_from_lastest_step:
-            root, _, files = os_walk(model.save_model_path)
-            if len(files) > 0:
-                indexes = []
-                for file in files:
-                    indexes.append(int(file.replace(".pth", "").split("_")[-1]))
-                indexes = sorted(list(set(indexes)), reverse=False)
-                model.resume_model(indexes[-1])
-                start_train_epoch = indexes[-1]
-                logger("Time: {}, automatically resume training from the latest step (model {})".format(time_now(), indexes[-1]))
+        model.resume_model(config.resume_test_model)
         visualization(config, model, loaders)
 
 
@@ -183,7 +144,6 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", type=str, default="occluded_duke/base/", help="path to save related informations")
     parser.add_argument("--max_save_model_num", type=int, default=1, help="0 for max num is infinit")
     parser.add_argument("--resume_train_epoch", type=int, default=-1, help="-1 for no resuming")
-    parser.add_argument("--auto_resume_training_from_lastest_step", type=ast.literal_eval, default=True)
     config = parser.parse_args()
     seed_torch(config.seed)
 

@@ -54,17 +54,32 @@ class Loader:
 
     def _load(self):
         samples = self._get_samples(self.train_dataset)
-        self.loader = self._get_train_iter(samples, self.transform_train, self.batchsize)
+        self.train_loader = self._get_train_loader(samples, self.transform_train, self.batchsize)
         query_samples, gallery_samples = self._get_test_samples(self.test_dataset)
         self.query_loader = self._get_test_loader(query_samples, self.transform_test, 128)
         self.gallery_loader = self._get_test_loader(gallery_samples, self.transform_test, 128)
 
+    def _get_train_loader(self, samples, transform, batchsize):
+        dataset = Dataset(samples.samples, transform=transform)
+        loader = DataLoader(dataset, batch_size=batchsize, sampler=TripletSampler(dataset.samples, batchsize, self.num_instances), num_workers=8)
+        return loader
+
+    def _get_test_loader(self, samples, transform, batch_size):
+        dataset = Dataset(samples, transform=transform)
+        loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
+        return loader
+
     def _visualization_load(self):
         samples = self._get_samples(self.train_dataset)
-        self.loader = self._get_train_iter(samples, self.transform_train, self.batchsize)
+        self.train_loader = self._get_train_loader(samples, self.transform_train, self.batchsize)
         query_samples, gallery_samples = self._get_test_samples(self.test_dataset)
         self.query_loader = self._get_visualization_loader(query_samples, self.transform_test, 128)
         self.gallery_loader = self._get_visualization_loader(gallery_samples, self.transform_test, 128)
+
+    def _get_visualization_loader(self, samples, transform, batch_size):
+        dataset = VisualizationDataset(samples, transform=transform)
+        loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
+        return loader
 
     def _get_samples(self, dataset):
         if dataset == "occluded_duke":
@@ -108,31 +123,3 @@ class Loader:
             gallery_samples = TestSamples4MSMT17(self.msmt_path).gallery_samples
 
         return query_samples, gallery_samples
-
-    def _get_train_iter(self, samples, transform, batchsize):
-        dataset = Dataset(samples.samples, transform=transform)
-        loader = DataLoader(dataset, batch_size=batchsize, sampler=TripletSampler(dataset.samples, batchsize, self.num_instances), num_workers=8)
-        return loader
-
-    def _get_test_loader(self, samples, transform, batch_size):
-        dataset = Dataset(samples, transform=transform)
-        loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
-        return loader
-
-    def _get_visualization_loader(self, samples, transform, batch_size):
-        dataset = VisualizationDataset(samples, transform=transform)
-        loader = DataLoader(dataset, batch_size=batch_size, num_workers=8, drop_last=False, shuffle=False)
-        return loader
-
-
-class IterLoader:
-    def __init__(self, loader):
-        self.loader = loader
-        self.iter = iter(self.loader)
-
-    def next_one(self):
-        try:
-            return next(self.iter)
-        except:
-            self.iter = iter(self.loader)
-            return next(self.iter)

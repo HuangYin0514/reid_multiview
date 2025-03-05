@@ -1,5 +1,6 @@
 import torch
-from tools import CatMeter, ReIDEvaluator, time_now
+from method import evaluation
+from tools import CatMeter, time_now
 
 
 def test(config, base, loader):
@@ -38,6 +39,6 @@ def test(config, base, loader):
     query_features = query_features_meter.get_val_numpy()
     gallery_features = gallery_features_meter.get_val_numpy()
 
-    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
+    mAP, CMC = evaluation.ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
 
     return mAP, CMC[0:20]
