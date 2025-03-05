@@ -1,2 +1,2 @@
-from . import evaluation, loss_function, module, scheduler
+from . import evaluation, innovation, loss_function, module, scheduler
 from .model import *
