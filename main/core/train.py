@@ -36,4 +36,4 @@ def train(base, loaders, config):
                 }
             )
 
-    return meter.get_dict(), meter.get_str()
+    return meter
