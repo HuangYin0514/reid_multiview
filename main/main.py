@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # Task
     parser.add_argument("--task_name", type=str, default="kaggle version")
     parser.add_argument("--notes", type=str, default="")
-    parser.add_argument("--cuda", type=str, default="cuda")
+    parser.add_argument("--device", type=str, default="cuda", help="cuda, cpu")
     parser.add_argument("--tags", type=str, nargs="+", help="master, dev, 对比实验")
     # Dataset
     parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")
