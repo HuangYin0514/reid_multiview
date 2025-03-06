@@ -115,3 +115,23 @@ class FeatureQuantification:
         weights = torch.softmax(probs.view(-1, self.num_views), dim=1).view(-1).clone().detach()
         quantified_features = weights.unsqueeze(1) * features  #  注意：调整weight的维度
         return quantified_features
+
+
+class MultiviewFeatureIntegration:
+    def __init__(self, config):
+        super(MultiviewFeatureIntegration, self).__init__()
+        self.config = config
+
+    def __call__(self, features, pids):
+        size = features.size(0)
+        chunk_size = int(size / 4)  # 16
+        c = features.size(1)
+
+        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
+        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
+
+        for i in range(chunk_size):
+            integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
+            integrating_pids[i] = pids[4 * i]
+
+        return integrating_features, integrating_pids
