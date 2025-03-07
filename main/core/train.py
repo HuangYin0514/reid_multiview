@@ -36,7 +36,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * reasoning_loss
+            total_loss = ide_loss + integrating_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -45,7 +45,6 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "reasoning_loss": reasoning_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
                 }
             )
