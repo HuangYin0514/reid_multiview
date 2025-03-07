@@ -1,1 +1,1 @@
-from . import multi_view, regularization, decoupling
+from . import multi_view, regularization
