@@ -1,5 +1,5 @@
 import torch
-from method import loss_function, module, innovation
+from method import innovation, loss_function, module
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -27,7 +27,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + 0.01 * regularization_loss
+            total_loss = ide_loss + 0.007 * regularization_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
