@@ -1,5 +1,5 @@
 import torch
-from method import innovation, loss_function
+from method import loss_function, module, innovation
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -22,25 +22,12 @@ def train(base, loaders, config):
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
-            #################################################################
-            # P: Positioning
-            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-
-            # F: Fusion
-            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            integrating_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(intergarte_features, pids)
-
-            # I: IDLoss
-            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
-            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
-
-            #################################################################
-            # C: ContrastLoss
-            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features)
+            # R: Regularization
+            regularization_loss = innovation.regularization.FeatureRegularizationLoss().forward(backbone_bn_features)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.1 * contrast_loss
+            total_loss = ide_loss + 0.01 * regularization_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -49,7 +36,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "integrating_pid_loss": integrating_ide_loss.data,
+                    "regularization_loss": regularization_loss.data,
                 }
             )
 
