@@ -1,4 +1,5 @@
 import torch
+from torch.nn import functional as F
 
 
 class FeatureIntegration:
@@ -19,3 +20,15 @@ class FeatureIntegration:
             integrating_pids[i] = pids[4 * i]
 
         return integrating_features, integrating_pids
+
+
+class ContrastLoss:
+
+    def __init__(self, config):
+        super(ContrastLoss, self).__init__()
+        self.config = config
+
+    def __call__(self, features_1, features_2):
+        new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+        loss = F.normalize(features_1 - new_features_2, p=2, dim=1).mean(0).sum() + F.normalize(features_1, p=2, dim=1).mean(0).sum()
+        return loss
