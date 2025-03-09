@@ -1,1 +1,1 @@
-from . import regularization
+from . import multi_view, regularization

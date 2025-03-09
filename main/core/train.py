@@ -1,5 +1,5 @@
 import torch
-from method import innovation, loss_function, module
+from method import innovation, loss_function
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -22,12 +22,18 @@ def train(base, loaders, config):
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
-            # R: Regularization
-            regularization_loss = innovation.regularization.FeatureRegularizationLoss().forward(backbone_bn_features)
+            #################################################################
+            # F: Fusion
+            intergarte_features = base.model.module.intergarte_gap(features_map).squeeze()
+            integrating_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(intergarte_features, pids)
+
+            # I: IDLoss
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
+            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + 0.007 * regularization_loss
+            total_loss = ide_loss + integrating_ide_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -36,7 +42,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "regularization_loss": regularization_loss.data,
+                    "integrating_pid_loss": integrating_ide_loss.data,
                 }
             )
 
