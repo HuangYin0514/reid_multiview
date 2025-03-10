@@ -37,7 +37,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.0007 * contrast_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * contrast_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -47,6 +47,7 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
+                    "contrast_loss": contrast_loss.data,
                 }
             )
 

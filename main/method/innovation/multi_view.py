@@ -30,5 +30,7 @@ class ContrastLoss:
 
     def __call__(self, features_1, features_2):
         new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
-        loss = F.normalize(features_1 - new_features_2, p=2, dim=1).mean(0).sum() + F.normalize(features_1, p=2, dim=1).mean(0).sum()
+        # loss = F.normalize(features_1 - new_features_2, p=2, dim=1).mean(0).sum() + F.normalize(features_1, p=2, dim=1).mean(0).sum()
+        # print(F.normalize(features_2, p=2, dim=1).mean(0))
+        loss = torch.norm((features_2), p=2)
         return loss
