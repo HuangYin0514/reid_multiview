@@ -32,5 +32,6 @@ class ContrastLoss:
         new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
         # loss = F.normalize(features_1 - new_features_2, p=2, dim=1).mean(0).sum() + F.normalize(features_1, p=2, dim=1).mean(0).sum()
         # print(F.normalize(features_2, p=2, dim=1).mean(0))
-        loss = torch.norm((features_2), p=2)
+        euclidean_distance = F.pairwise_distance(features_1, new_features_2)
+        loss = torch.pow(euclidean_distance, 2).mean()
         return loss
