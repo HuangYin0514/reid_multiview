@@ -22,15 +22,15 @@ class FeatureIntegration:
         return integrating_features, integrating_pids
 
 
-class ContrastLoss:
+# class ContrastLoss:
 
-    def __init__(self, config):
-        super(ContrastLoss, self).__init__()
-        self.config = config
+#     def __init__(self, config):
+#         super(ContrastLoss, self).__init__()
+#         self.config = config
 
-    def __call__(self, features_1, features_2):
-        loss = torch.norm(features_1, p=2)
-        return loss
+#     def __call__(self, features_1, features_2):
+#         loss = torch.norm(features_1, p=2)
+#         return loss
 
 
 # class ContrastLoss:
@@ -47,13 +47,14 @@ class ContrastLoss:
 #         loss = torch.norm((features_1 - new_features_2), p=2)
 #         return loss
 
-# class ContrastLoss:
 
-#     def __init__(self, config):
-#         super(ContrastLoss, self).__init__()
-#         self.config = config
+class ContrastLoss:
 
-#     def __call__(self, features_1, features_2):
-#         new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
-#         loss = torch.norm((features_1 - new_features_2), p=2)
-#         return loss
+    def __init__(self, config):
+        super(ContrastLoss, self).__init__()
+        self.config = config
+
+    def __call__(self, features_1, features_2):
+        new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+        loss = torch.norm((features_1 - new_features_2), p=2)
+        return loss
