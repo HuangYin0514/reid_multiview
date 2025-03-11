@@ -29,6 +29,21 @@ class ContrastLoss:
         self.config = config
 
     def __call__(self, features_1, features_2):
-        new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+        # new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+        for i in range(int(new_features_2.size(0) / 4)):
+            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
         loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
+
+
+# class ContrastLoss:
+
+#     def __init__(self, config):
+#         super(ContrastLoss, self).__init__()
+#         self.config = config
+
+#     def __call__(self, features_1, features_2):
+#         new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+#         loss = torch.norm((features_1 - new_features_2), p=2)
+#         return loss
