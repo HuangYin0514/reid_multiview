@@ -17,6 +17,7 @@
 *_dataset_processing/
 *backup/
 *results/
+*running/
 
 # Log
 *wandb/
