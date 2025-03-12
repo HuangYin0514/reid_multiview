@@ -45,15 +45,15 @@ class ContrastLoss:
         loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
 
-    def v1(self, features_1, features_2):
-        # v463
-        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(new_features_2.size(0) / 4)):
-            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = torch.norm((features_1 - new_features_2), p=2)
-        return loss
+    # def v1(self, features_1, features_2):
+    #     # v463
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(new_features_2.size(0) / 4)):
+    #         new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+    #     loss = torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
 
-    def v2(self, features_1, features_2):
-        # v462
-        loss = torch.norm(features_1, p=2)
-        return loss
+    # def v2(self, features_1, features_2):
+    #     # v462
+    #     loss = torch.norm(features_1, p=2)
+    #     return loss
