@@ -26,9 +26,13 @@ def train(base, loaders, config):
             # P: Positioning
             localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
+            # Q: Quantification
+            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
+            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
+            quantified_localized_features = innovation.multi_view.FeatureQuantification(config).__call__(localized_features, localized_cls_score, pids)
+
             # F: Fusion
-            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            integrating_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(intergarte_features, pids)
+            integrating_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(quantified_localized_features, pids)
 
             # I: IDLoss
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)

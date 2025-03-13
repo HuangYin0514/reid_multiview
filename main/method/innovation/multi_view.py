@@ -46,6 +46,12 @@ class ContrastLoss:
     """
     ContrastLoss 类用于计算特征之间的对比损失。
 
+    本类提供三种计算损失的方法：
+      1. __call__: 默认调用方法，通过将 features_2 重复扩展4次，
+         然后计算 features_1 与扩展后的 features_2 之间的 L2 范数损失。
+      2. v1: 手动构造扩展后的 features_2，然后计算两组特征之间的 L2 范数损失。包含正则损失。
+      3. v2: 计算 features_1 自身的 L2 范数损失，用于辅助或简化计算。
+
     参数:
         config: 模型配置参数，用于设置损失计算中的相关参数。
     """
@@ -56,8 +62,8 @@ class ContrastLoss:
 
     def __call__(self, features_1, features_2):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(new_features_2.size(0) / 4)):
-            new_features_2[i * 4] = features_2[i]
+        for i in range(int(features_2.size(0) / 4)):
+            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
         loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
 
@@ -128,3 +134,38 @@ class FeatureMapLocation:
         localized_features_map = features_map * heatmaps.unsqueeze(1).clone().detach()
 
         return localized_features_map
+
+
+class FeatureQuantification:
+    """
+    FeatureQuantification 类用于对输入的特征进行量化处理。
+
+    功能描述：
+    - 根据模型输出的分类分数(cls_scores)计算每个样本对应类别的对数概率。
+    - 利用pids从对数概率中选择对应的类别概率，并进一步通过 softmax 计算权重。
+    - 利用权重对输入特征(features)进行加权，得到量化后的特征表示。
+
+    参数:
+        config: 类的配置信息，用于初始化相关设置。
+
+    调用:
+        输入:
+            - features: 输入特征张量，形状为 [batch_size, feature_dim]
+            - cls_scores: 模型输出的分类分数，形状为 [batch_size, num_classes]
+            - pids: 对应的身份标识，长度为 batch_size，表示每个样本对应的类别索引
+        输出:
+            - quantified_features: 量化后的特征张量，形状与 features 相同
+    """
+
+    def __init__(self, config):
+        super(FeatureQuantification, self).__init__()
+        self.config = config
+        self.num_views = 4
+
+    def __call__(self, features, cls_scores, pids):
+        size = features.size(0)
+        prob = torch.log_softmax(cls_scores, dim=1)
+        probs = prob[torch.arange(size), pids]
+        weights = torch.softmax(probs.view(-1, self.num_views), dim=1).view(-1).clone().detach()
+        quantified_features = weights.unsqueeze(1) * features  #  注意：调整weight的维度
+        return quantified_features
