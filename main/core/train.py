@@ -24,8 +24,7 @@ def train(base, loaders, config):
 
             #################################################################
             # P: Positioning
-            new_features_map = features_map.clone().detach()
-            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(new_features_map, pids, base.model.module.backbone_classifier)
+            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # F: Fusion
             intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
