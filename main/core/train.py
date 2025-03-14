@@ -26,11 +26,8 @@ def train(base, loaders, config):
             # P: Positioning
             localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
-            # Q: Quantification
+            # D: Decoupling
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-
-            # Decoupling
             shared_features, specific_features = base.model.module.featureDecouplingNet(localized_features)
             decoupling_SharedSpecial_loss = innovation.decoupling.MultiviewSharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.MultiviewSharedSharedLoss().forward(shared_features)
@@ -38,6 +35,7 @@ def train(base, loaders, config):
 
             # F: Fusion
             ## 共享特征
+            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
             quantified_shared_features = innovation.multi_view.FeatureQuantification(config).__call__(shared_features, localized_cls_score, pids)
             multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(quantified_shared_features, pids)
             ## 指定特征
