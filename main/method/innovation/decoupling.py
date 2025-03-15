@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ..module import weights_init
+
 
 #################################################################
 # SharedSpecialLoss
@@ -142,12 +144,14 @@ class FeatureDecouplingNet(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp1.apply(weights_init.weights_init_kaiming)
 
         # special branch
         self.mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp2.apply(weights_init.weights_init_kaiming)
 
     def forward(self, features):
         shared_features = self.mlp1(features)
@@ -169,6 +173,7 @@ class FeatureIntegrationNet(nn.Module):
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
+        self.mlp1.apply(weights_init.weights_init_kaiming)
 
     def __call__(self, features, pids):
         size = features.size(0)
