@@ -30,9 +30,9 @@ class FeatureIntegration:
     def __call__(self, features, pids):
         size = features.size(0)
         chunk_size = int(size / 4)  # 16
-        c = features.size(1)
+        dim = features.size(1)
 
-        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
+        integrating_features = torch.zeros([chunk_size, dim]).to(features.device)
         integrating_pids = torch.zeros([chunk_size]).to(pids.device)
 
         for i in range(chunk_size):

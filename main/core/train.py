@@ -30,16 +30,12 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
             shared_features, specific_features = base.model.module.featureDecouplingNet(localized_features)
-            decoupling_SharedSpecial_loss = innovation.decoupling.MultiviewSharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = innovation.decoupling.MultiviewSharedSharedLoss().forward(shared_features)
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
 
             # F: Fusion
-            ## 共享特征
-            quantified_shared_features = 0.5 * shared_features
-            multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(quantified_shared_features, pids)
-            ## 指定特征
-            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)
+            weighted_shared_features = 0.5 * shared_features
+            multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
+            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
 
             # F: Fusion
             integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
