@@ -1,5 +1,5 @@
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 def normalize(x, axis=-1):
@@ -25,8 +25,26 @@ def euclidean_dist(x, y):
     xx = torch.pow(x, 2).sum(1, keepdim=True).expand(m, n)
     yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
     dist = xx + yy
-    dist.addmm_(x, y.t(), beta=1, alpha=-2)
+    dist = dist - 2 * torch.matmul(x, y.t())
+    # dist.addmm_(1, -2, x, y.t())
     dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
+    return dist
+
+
+def cosine_dist(x, y):
+    """
+    Args:
+      x: pytorch Variable, with shape [m, d]
+      y: pytorch Variable, with shape [n, d]
+    Returns:
+      dist: pytorch Variable, with shape [m, n]
+    """
+    m, n = x.size(0), y.size(0)
+    x_norm = torch.pow(x, 2).sum(1, keepdim=True).sqrt().expand(m, n)
+    y_norm = torch.pow(y, 2).sum(1, keepdim=True).sqrt().expand(n, m).t()
+    xy_intersection = torch.mm(x, y.t())
+    dist = xy_intersection / (x_norm * y_norm)
+    dist = (1.0 - dist) / 2
     return dist
 
 
@@ -58,6 +76,7 @@ def hard_example_mining(dist_mat, labels, return_inds=False):
     # `dist_ap` means distance(anchor, positive)
     # both `dist_ap` and `relative_p_inds` with shape [N, 1]
     dist_ap, relative_p_inds = torch.max(dist_mat[is_pos].contiguous().view(N, -1), 1, keepdim=True)
+    # print(dist_mat[is_pos].shape)
     # `dist_an` means distance(anchor, negative)
     # both `dist_an` and `relative_n_inds` with shape [N, 1]
     dist_an, relative_n_inds = torch.min(dist_mat[is_neg].contiguous().view(N, -1), 1, keepdim=True)
@@ -80,12 +99,14 @@ def hard_example_mining(dist_mat, labels, return_inds=False):
 
 
 class TripletLoss(object):
-    """Modified from Tong Xiao's open-reid (https://github.com/Cysu/open-reid).
-    Related Triplet Loss theory can be found in paper 'In Defense of the Triplet
-    Loss for Person Re-Identification'."""
+    """
+    Triplet loss using HARDER example mining,
+    modified based on original triplet loss using hard example mining
+    """
 
-    def __init__(self, margin=None):
+    def __init__(self, margin=None, hard_factor=0.0):
         self.margin = margin
+        self.hard_factor = hard_factor
         if margin is not None:
             self.ranking_loss = nn.MarginRankingLoss(margin=margin)
         else:
@@ -96,59 +117,13 @@ class TripletLoss(object):
             global_feat = normalize(global_feat, axis=-1)
         dist_mat = euclidean_dist(global_feat, global_feat)
         dist_ap, dist_an = hard_example_mining(dist_mat, labels)
+
+        dist_ap *= 1.0 + self.hard_factor
+        dist_an *= 1.0 - self.hard_factor
+
         y = dist_an.new().resize_as_(dist_an).fill_(1)
         if self.margin is not None:
             loss = self.ranking_loss(dist_an, dist_ap, y)
         else:
             loss = self.ranking_loss(dist_an - dist_ap, y)
-        # return loss, dist_ap, dist_an
-        return loss
-
-
-# class TripletLoss_v2(nn.Module):
-#     """Triplet loss with hard positive/negative mining.
-#     Reference:
-#         Hermans et al. In Defense of the Triplet Loss for Person Re-Identification. arXiv:1703.07737.
-#     Imported from `<https://github.com/Cysu/open-reid/blob/master/reid/loss/triplet.py>`_.
-#     Args:
-#         margin (float, optional): margin for triplet. Default is 0.3.
-#     """
-
-#     def __init__(self, margin=0.3):
-#         super(TripletLoss_v2, self).__init__()
-#         self.margin = margin
-#         self.ranking_loss = nn.MarginRankingLoss(margin=margin)
-
-#     def forward(self, inputs, targets):
-#         """
-#         Args:
-#             inputs (torch.Tensor): feature matrix with shape (batch_size, feat_dim).
-#             targets (torch.LongTensor): ground truth labels with shape (num_classes).
-#         """
-#         n = inputs.size(0)
-
-#         # Compute pairwise distance, replace by the official when merged
-#         # ||a-b||^2 = ||a||^2 -2 * <a,b> + ||b||^2
-#         dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)
-#         dist = dist + dist.t()
-#         # dist.addmm_(1, -2, inputs, inputs.t())
-#         dist = torch.addmm(input=dist, mat1=inputs, mat2=inputs.t(), alpha=-2, beta=1)
-#         dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
-
-#         # For each anchor, find the hardest positive and negative
-#         mask = targets.expand(n, n).eq(targets.expand(n, n).t())
-
-#         dist_ap, dist_an = [], []
-
-#         for i in range(n):
-#             dist_ap.append(dist[i][mask[i] == True].max().unsqueeze(0))
-#             dist_an.append(dist[i][mask[i] == False].min().unsqueeze(0))
-
-#         dist_ap = torch.cat(dist_ap)
-
-#         dist_an = torch.cat(dist_an)
-
-#         # Compute ranking hinge loss
-#         y = torch.ones_like(dist_an)
-
-#         return self.ranking_loss(dist_an, dist_ap, y)
+        return loss, dist_ap, dist_an
