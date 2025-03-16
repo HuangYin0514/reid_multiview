@@ -33,7 +33,7 @@ def train(base, loaders, config):
             decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
 
             # F: Fusion
-            weighted_shared_features = 0.5 * shared_features
+            weighted_shared_features = innovation.multi_view.FeatureWeighting(config).__call__(shared_features, localized_cls_score, pids)
             multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
             integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
 
