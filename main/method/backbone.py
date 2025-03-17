@@ -1,15 +1,14 @@
 import torch
 import torch.nn as nn
 
-from . import innovation
 from .module import resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        resnet = resnet50(pretrained=True)
-        # resnet = resnet50_ibn_a(pretrained=True)
+        # resnet = resnet50(pretrained=True)
+        resnet = resnet50_ibn_a(pretrained=True)
         # resnet = torchvision.models.resnet50(pretrained=True)
 
         # Modifiy backbone
@@ -24,9 +23,6 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.seam_layer2 = innovation.seam.SEAM(512, 512, 2)
-        self.seam_layer3 = innovation.seam.SEAM(1024, 1024, 2)
-
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
@@ -37,9 +33,7 @@ class Backbone(nn.Module):
         x2 = x
         x = self.resnet_layer2(x)
         x3 = x
-        x = self.seam_layer2(x)
         x = self.resnet_layer3(x)
         x4 = x
-        x = self.seam_layer3(x)
         x = self.resnet_layer4(x)
         return x1, x2, x3, x4, x

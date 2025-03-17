@@ -102,7 +102,6 @@ class FeatureMapLocation:
     def __init__(self, config):
         super(FeatureMapLocation, self).__init__()
         self.config = config
-        self.num_views = 4
 
     def __call__(self, features_map, pids, classifier):
         size = features_map.size(0)
@@ -129,9 +128,9 @@ class FeatureMapLocation:
         return localized_features_map
 
 
-class FeatureWeighting:
+class FeatureQuantification:
     """
-    FeatureWeighting 类用于对输入的特征进行量化处理。
+    FeatureQuantification 类用于对输入的特征进行量化处理。
 
     功能描述：
     - 根据模型输出的分类分数(cls_scores)计算每个样本对应类别的对数概率。
@@ -151,7 +150,7 @@ class FeatureWeighting:
     """
 
     def __init__(self, config):
-        super(FeatureWeighting, self).__init__()
+        super(FeatureQuantification, self).__init__()
         self.config = config
         self.num_views = 4
 
