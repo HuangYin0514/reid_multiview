@@ -153,7 +153,7 @@ class FeatureWeighting:
     def __init__(self, config):
         super(FeatureWeighting, self).__init__()
         self.config = config
-        self.num_views = 2
+        self.num_views = 4
 
     def __call__(self, features, cls_scores, pids):
         size = features.size(0)
