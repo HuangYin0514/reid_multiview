@@ -35,10 +35,10 @@ def train(base, loaders, config):
             # F: Fusion
             weighted_shared_features = innovation.multi_view.FeatureWeighting(config).__call__(shared_features, localized_cls_score, pids)
             multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
-            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
+            multiview_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
 
             # F: Fusion
-            integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
+            integrating_features = torch.cat([multiview_shared_features, multiview_specific_features], dim=1)
 
             # I: IDLoss
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
