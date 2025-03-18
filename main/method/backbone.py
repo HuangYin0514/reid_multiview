@@ -24,8 +24,8 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.attention_layer2 = innovation.sk_module.SKLayer(512, 512)
-        self.attention_layer3 = innovation.sk_module.SKLayer(1024, 1024)
+        self.attention_layer2 = innovation.srm.SRM(512)
+        self.attention_layer3 = innovation.srm.SRM(1024)
 
     def forward(self, x):
         x = self.resnet_conv1(x)
