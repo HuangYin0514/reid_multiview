@@ -1,1 +1,1 @@
-from . import decoupling, multi_view, simam
+from . import decoupling, multi_view, simam, sk_module
