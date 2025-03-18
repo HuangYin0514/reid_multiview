@@ -24,8 +24,8 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.seam_layer2 = innovation.seam.SEAM(512, 512, 2)
-        self.seam_layer3 = innovation.seam.SEAM(1024, 1024, 2)
+        self.attention_layer2 = innovation.se_module.SELayer(512)
+        self.attention_layer3 = innovation.se_module.SELayer(1024)
 
     def forward(self, x):
         x = self.resnet_conv1(x)
@@ -37,9 +37,9 @@ class Backbone(nn.Module):
         x2 = x
         x = self.resnet_layer2(x)
         x3 = x
-        x = self.seam_layer2(x)
+        x = self.attention_layer2(x)
         x = self.resnet_layer3(x)
         x4 = x
-        x = self.seam_layer3(x)
+        x = self.attention_layer3(x)
         x = self.resnet_layer4(x)
         return x1, x2, x3, x4, x
