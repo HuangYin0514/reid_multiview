@@ -30,8 +30,10 @@ class Backbone(nn.Module):
         # self.attention_layer3 = innovation.triplet_attention.TripletAttention(kernel_size=5)
         # self.attention_layer2 = innovation.lct.LCT(512, 8)
         # self.attention_layer3 = innovation.lct.LCT(1024, 8)
-        self.attention_layer2 = innovation.gct.GCT(512)
-        self.attention_layer3 = innovation.gct.GCT(1024)
+        # self.attention_layer2 = innovation.gct.GCT(512)
+        # self.attention_layer3 = innovation.gct.GCT(1024)
+        self.attention_layer2 = innovation.gc_module.GCModule(512)
+        self.attention_layer3 = innovation.gc_module.GCModule(1024)
 
     def forward(self, x):
         x = self.resnet_conv1(x)
