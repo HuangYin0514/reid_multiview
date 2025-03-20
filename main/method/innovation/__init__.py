@@ -1,5 +1,7 @@
 from . import (
     decoupling,
+    dual_attention,
+    eca,
     gc_module,
     gct,
     lct,
