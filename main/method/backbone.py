@@ -39,8 +39,8 @@ class Backbone(nn.Module):
 
         # self.attention_layer2 = innovation.dual_attention.CAM()
         # self.attention_layer3 = innovation.dual_attention.CAM()
-        self.attention_layer2 = innovation.dual_attention.PAM()
-        self.attention_layer3 = innovation.dual_attention.PAM()
+        self.attention_layer2 = innovation.dual_attention.PAM(512)
+        self.attention_layer3 = innovation.dual_attention.PAM(1024)
         # self.attention_layer2 = innovation.dual_attention.CAM()
         # self.attention_layer3 = innovation.dual_attention.PAM()
         # self.attention_layer2 = innovation.dual_attention.PAM()
