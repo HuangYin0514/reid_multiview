@@ -23,8 +23,13 @@ def train(base, loaders, config):
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
+            # I: InfoNCE
+            infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, pids)
+            print(infoNCE_loss)
+
+            #################################################################
             # Total loss
-            total_loss = ide_loss
+            total_loss = ide_loss + 0.3 * infoNCE_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
