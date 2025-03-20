@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from . import innovation
 from .module import resnet50, resnet50_ibn_a
 
 
@@ -24,28 +23,6 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        # self.attention_layer2 = innovation.srm.SRM(512)
-        # self.attention_layer3 = innovation.srm.SRM(1024)
-        # self.attention_layer2 = innovation.triplet_attention.TripletAttention(kernel_size=5)
-        # self.attention_layer3 = innovation.triplet_attention.TripletAttention(kernel_size=5)
-        # self.attention_layer2 = innovation.lct.LCT(512, 8)
-        # self.attention_layer3 = innovation.lct.LCT(1024, 8)
-        # self.attention_layer2 = innovation.gct.GCT(512)
-        # self.attention_layer3 = innovation.gct.GCT(1024)
-        # self.attention_layer2 = innovation.gc_module.GCModule(512)
-        # self.attention_layer3 = innovation.gc_module.GCModule(1024)
-        # self.attention_layer2 = innovation.eca.ECALayer(512)
-        # self.attention_layer3 = innovation.eca.ECALayer(1024)
-
-        # self.attention_layer2 = innovation.dual_attention.CAM()
-        # self.attention_layer3 = innovation.dual_attention.CAM()
-        self.attention_layer2 = innovation.dual_attention.PAM(512)
-        self.attention_layer3 = innovation.dual_attention.PAM(1024)
-        # self.attention_layer2 = innovation.dual_attention.CAM()
-        # self.attention_layer3 = innovation.dual_attention.PAM()
-        # self.attention_layer2 = innovation.dual_attention.PAM()
-        # self.attention_layer3 = innovation.dual_attention.CAM()
-
     def forward(self, x):
         x = self.resnet_conv1(x)
         x = self.resnet_bn1(x)
@@ -56,9 +33,7 @@ class Backbone(nn.Module):
         x2 = x
         x = self.resnet_layer2(x)
         x3 = x
-        x = self.attention_layer2(x)
         x = self.resnet_layer3(x)
         x4 = x
-        x = self.attention_layer3(x)
         x = self.resnet_layer4(x)
         return x1, x2, x3, x4, x
