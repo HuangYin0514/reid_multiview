@@ -34,8 +34,16 @@ class Backbone(nn.Module):
         # self.attention_layer3 = innovation.gct.GCT(1024)
         # self.attention_layer2 = innovation.gc_module.GCModule(512)
         # self.attention_layer3 = innovation.gc_module.GCModule(1024)
-        self.attention_layer2 = innovation.eca.ECALayer(512)
-        self.attention_layer3 = innovation.eca.ECALayer(1024)
+        # self.attention_layer2 = innovation.eca.ECALayer(512)
+        # self.attention_layer3 = innovation.eca.ECALayer(1024)
+        self.attention_layer2 = innovation.dual_attention.CAM()
+        self.attention_layer3 = innovation.dual_attention.CAM()
+        # self.attention_layer2 = innovation.dual_attention.PAM()
+        # self.attention_layer3 = innovation.dual_attention.PAM()
+        # self.attention_layer2 = innovation.dual_attention.CAM()
+        # self.attention_layer3 = innovation.dual_attention.PAM()
+        # self.attention_layer2 = innovation.dual_attention.PAM()
+        # self.attention_layer3 = innovation.dual_attention.CAM()
 
     def forward(self, x):
         x = self.resnet_conv1(x)
