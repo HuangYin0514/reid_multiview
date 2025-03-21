@@ -25,7 +25,6 @@ def train(base, loaders, config):
             #################################################################
             # I: InfoNCE
             infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, pids)
-            print(infoNCE_loss)
 
             #################################################################
             # Total loss
@@ -38,6 +37,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
+                    "infoNCE_loss": infoNCE_loss.data,
                 }
             )
 
