@@ -28,7 +28,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + 1 * infoNCE_loss
+            total_loss = ide_loss + 0.01 * infoNCE_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
