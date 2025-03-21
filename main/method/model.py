@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from . import innovation, module
+from . import module
 from .backbone import Backbone
 
 
@@ -21,10 +21,6 @@ class Model(nn.Module):
 
         self.intergarte_gap = module.GeneralizedMeanPoolingP()
         self.intergarte_classifier = module.Classifier(2048, config.pid_num)
-
-        ####################################
-        # Memory bank
-        self.memoryBankNet = innovation.memory.MemoryBankNet(2048, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)

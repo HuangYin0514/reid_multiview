@@ -23,8 +23,11 @@ def train(base, loaders, config):
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
+            # P: Positioning
+            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
+
             # F: Fusion
-            intergarte_features = base.model.module.intergarte_gap(features_map).squeeze()
+            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             integrating_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(intergarte_features, pids)
 
             # I: IDLoss
@@ -32,12 +35,12 @@ def train(base, loaders, config):
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
-            # I: InfoNCE
-            infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, pids)
+            # C: ContrastLoss
+            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.3 * infoNCE_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.007 * contrast_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -47,7 +50,7 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
-                    "infoNCE_loss": infoNCE_loss.data,
+                    "contrast_loss": contrast_loss.data,
                 }
             )
 
