@@ -36,7 +36,7 @@ def train(base, loaders, config):
 
             #################################################################
             # I: InfoNCE
-            infoNCE_loss = base.model.module.memoryBankNet(integrating_bn_features, integrating_pids)
+            infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, integrating_bn_features, integrating_pids)
 
             #################################################################
             # Total loss

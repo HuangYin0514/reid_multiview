@@ -43,13 +43,24 @@ class MemoryBankNet(nn.Module):
         # 初始化样本记忆
         self.features = nn.Parameter(torch.randn(num_classes, num_features))
 
-    def forward(self, inputs, targets, epoch=None):
+    def forward(self, backbone_inputs, inputs, targets, epoch=None):
         inputs = F.normalize(inputs, dim=1)
+        backbone_inputs = F.normalize(backbone_inputs, dim=1)
 
         # alpha = self.alpha * epoch
-        inputs = CM.apply(inputs, targets, self.features, self.momentum)
-        inputs /= self.temp
-        loss = F.cross_entropy(inputs, targets)
+        outputs = CM.apply(inputs, targets, self.features, self.momentum)
+        outputs /= self.temp
+
+        loss_distill = 0.007 / 0.3 * self.contrastLoss(backbone_inputs, inputs)
+        loss = F.cross_entropy(outputs, targets) + loss_distill
+
+        return loss
+
+    def contrastLoss(self, features_1, features_2):
+        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+        for i in range(int(features_2.size(0) / 4)):
+            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+        loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
 
 
