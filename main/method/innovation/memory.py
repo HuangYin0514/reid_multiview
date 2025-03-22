@@ -41,27 +41,34 @@ class MemoryBankNet(nn.Module):
         self.temp = temp
 
         # 初始化样本记忆
-        self.features = nn.Parameter(torch.randn(num_classes, num_features))
+        self.memory_features = nn.Parameter(torch.randn(num_classes, num_features))
 
     def forward(self, backbone_inputs, inputs, targets, epoch=None):
         inputs = F.normalize(inputs, dim=1)
         backbone_inputs = F.normalize(backbone_inputs, dim=1)
 
         # alpha = self.alpha * epoch
-        outputs = CM.apply(inputs, targets, self.features, self.momentum)
+        outputs = CM.apply(inputs, targets, self.memory_features, self.momentum)
         outputs /= self.temp
 
-        loss_distill = 0.007 / 0.3 * self.contrastLoss(backbone_inputs, inputs)
+        loss_distill = 0.007 / 0.3 * self.contrastLoss(backbone_inputs, inputs, self.memory_features, targets)
         loss = F.cross_entropy(outputs, targets) + loss_distill
 
         return loss
 
-    def contrastLoss(self, features_1, features_2):
+    def contrastLoss(self, features_1, features_2, memory_features, targets):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
         for i in range(int(features_2.size(0) / 4)):
-            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+            new_features_2[i * 4 : i * 4 + 4] = memory_features[targets[i]]
         loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
+
+    # def contrastLoss(self, features_1, features_2):
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(features_2.size(0) / 4)):
+    #         new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+    #     loss = torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
 
 
 if __name__ == "__main__":
