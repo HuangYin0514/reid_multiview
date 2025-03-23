@@ -26,16 +26,14 @@ def train(base, loaders, config):
             # P: Positioning
             localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
-            # F: Fusion
-            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-
             # I: IDLoss
+            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(intergarte_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, pids)
 
             #################################################################
             # C: ContrastLoss
-            memory_loss = base.model.module.memoryBank(integrating_bn_features, pids, epoch)
+            memory_loss = base.model.module.memoryBank(backbone_bn_features, pids, epoch)
 
             #################################################################
             # Total loss
