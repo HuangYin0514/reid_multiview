@@ -23,34 +23,23 @@ def train(base, loaders, config):
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
-            # Decoupling
-            decoupling_features = base.model.module.intergarte_gap(features_map).squeeze()
-            shared_features, specific_features = base.model.module.featureDecouplingNet(decoupling_features)
-            decoupling_SharedSpecial_loss = innovation.decoupling.MultiviewSharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = innovation.decoupling.MultiviewSharedSharedLoss().forward(shared_features)
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            # P: Positioning
+            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # F: Fusion
-            ## 共享特征
-            quantified_shared_features = 0.5 * shared_features
-            multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(quantified_shared_features, pids)
-            ## 指定特征
-            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)
-
-            # F: Fusion
-            integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
+            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
 
             # I: IDLoss
-            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
-            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(intergarte_features)
+            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, pids)
 
             #################################################################
             # C: ContrastLoss
-            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features)
+            memory_loss = base.model.module.memoryBank(integrating_bn_features, pids, epoch)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + decoupling_loss + 0.007 * contrast_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.03 * memory_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -60,8 +49,7 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
-                    "decoupling_loss": decoupling_loss.data,
-                    "contrast_loss": contrast_loss.data,
+                    "memory_loss": memory_loss.data,
                 }
             )
 
