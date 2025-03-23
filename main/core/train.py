@@ -33,11 +33,11 @@ def train(base, loaders, config):
 
             #################################################################
             # C: ContrastLoss
-            memory_loss = base.model.module.memoryBank(backbone_bn_features, pids, epoch)
+            memory_loss = base.model.module.memoryBank(backbone_bn_features, integrating_bn_features, pids, epoch)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.03 * memory_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.3 * memory_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()

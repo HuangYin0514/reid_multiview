@@ -31,26 +31,56 @@ class Memory(autograd.Function):
         return grad_inputs, None, None, None  # 对于 targets, features, momentum 无需梯度
 
 
+class Memory_NoUpdate(autograd.Function):
+    @staticmethod
+    def forward(ctx, inputs, features):
+        ctx.features = features
+        outputs = inputs.mm(ctx.features.t())
+        return outputs
+
+    @staticmethod
+    def backward(ctx, grad_outputs):
+        features = ctx.features
+
+        grad_inputs = None
+        if ctx.needs_input_grad[0]:
+            grad_inputs = grad_outputs.mm(features)
+
+        return grad_inputs, None  # 对于 features 无需梯度
+
+
 class MemoryBank(nn.Module):
-    def __init__(self, num_features, num_classes, temp=0.05, momentum=0.01):
+    def __init__(self, num_features, num_classes, temperature=0.05, momentum=0.01):
         super(MemoryBank, self).__init__()
         self.num_features = num_features
         self.num_classes = num_classes
 
         self.momentum = momentum
-        self.temp = temp
+        self.temperature = temperature
 
         # 初始化样本记忆
         self.features_bank = nn.Parameter(torch.randn(num_classes, num_features))
 
-    def forward(self, inputs, targets, epoch=None):
+    def forward(self, backbone_inputs, inputs, targets, epoch=None):
         norm_inputs = F.normalize(inputs, dim=1)
+        norm_backbone_inputs = F.normalize(backbone_inputs, dim=1)
 
         # alpha = self.alpha * epoch
+
         outputs = Memory.apply(norm_inputs, targets, self.features_bank, self.momentum)
-        outputs /= self.temp
-        loss = F.cross_entropy(outputs, targets)
+        outputs /= self.temperature
+        infoNCE_loss = F.cross_entropy(outputs, targets)
+
+        contrast_outputs = Memory_NoUpdate.apply(norm_backbone_inputs, self.features_bank)
+        contrast_outputs /= self.temperature
+        contrast_loss = F.cross_entropy(outputs, targets)
+
+        loss = contrast_loss
         return loss
+
+    def contrastLoss(self, features_1, features_2):
+        outputs = features_1.mm(features_2.t())  # (64, 702)
+        return outputs
 
 
 if __name__ == "__main__":
@@ -61,7 +91,7 @@ if __name__ == "__main__":
     batch_size = 64  # 批量大小
 
     # 初始化网络
-    model_inv = MemoryBank(num_features, num_classes)
+    model = MemoryBank(num_features, num_classes)
 
     # 创建随机输入数据 (batch_size, num_features)
     inputs = torch.randn(batch_size, num_features, requires_grad=True)
@@ -73,7 +103,7 @@ if __name__ == "__main__":
     epoch = 10
 
     # 前向传播
-    loss = model_inv(inputs, targets, epoch=epoch)
+    loss = model(inputs, inputs, targets, epoch=epoch)
 
     # 反向传播
     loss.backward()
