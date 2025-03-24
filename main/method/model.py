@@ -24,7 +24,7 @@ class Model(nn.Module):
 
         ####################################
         # Memory bank
-        self.memoryBankNet = innovation.memory.MemoryBankNet(2048, config.pid_num)
+        self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)

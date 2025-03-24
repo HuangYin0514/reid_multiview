@@ -24,7 +24,7 @@ def train(base, loaders, config):
 
             #################################################################
             # I: InfoNCE
-            infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, pids)
+            infoNCE_loss = base.model.module.memoryBank(backbone_bn_features, pids)
 
             #################################################################
             # Total loss
@@ -33,6 +33,8 @@ def train(base, loaders, config):
             base.model_optimizer.zero_grad()
             total_loss.backward()
             base.model_optimizer.step()
+
+            base.model.module.memoryBank.updateMemory(backbone_bn_features, pids)
 
             meter.update(
                 {
