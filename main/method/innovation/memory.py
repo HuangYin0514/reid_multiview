@@ -4,33 +4,6 @@ import torch.nn.functional as F
 from torch import autograd, nn
 
 
-class Memory(autograd.Function):
-    @staticmethod
-    def forward(ctx, inputs, targets, features, momentum):
-        ctx.features = features
-        ctx.momentum = momentum
-        ctx.save_for_backward(inputs, targets)
-        outputs = inputs.mm(ctx.features.t())
-        return outputs
-
-    @staticmethod
-    def backward(ctx, grad_outputs):
-        inputs, targets = ctx.saved_tensors
-        features = ctx.features
-        momentum = ctx.momentum
-
-        grad_inputs = None
-        if ctx.needs_input_grad[0]:
-            grad_inputs = grad_outputs.mm(features)
-
-        # 更新样本记忆
-        for x, y in zip(inputs, targets):
-            features[y] = momentum * features[y] + (1.0 - momentum) * x
-            features[y] /= features[y].norm()
-
-        return grad_inputs, None, None, None  # 对于 targets, features, momentum 无需梯度
-
-
 class Memory_NoUpdate(autograd.Function):
     @staticmethod
     def forward(ctx, inputs, features):
@@ -61,19 +34,23 @@ class MemoryBank(nn.Module):
         # 初始化样本记忆
         self.features_bank = nn.Parameter(torch.randn(num_classes, num_features))
 
+    def updateMemory(self, inputs, targets, momentum):
+        with torch.no_grad():  # 禁用梯度跟踪
+            features = self.features_bank
+            for x, y in zip(inputs, targets):
+                features[y] = momentum * features[y] + (1.0 - momentum) * x
+                features[y] /= features[y].norm()
+            self.features_bank = features
+
     def forward(self, backbone_inputs, inputs, targets, epoch=None):
         norm_inputs = F.normalize(inputs, dim=1)
         norm_backbone_inputs = F.normalize(backbone_inputs, dim=1)
 
-        # alpha = self.alpha * epoch
-
-        outputs = Memory.apply(norm_inputs, targets, self.features_bank, self.momentum)
-        outputs /= self.temperature
-        infoNCE_loss = F.cross_entropy(outputs, targets)
-
-        contrast_outputs = Memory_NoUpdate.apply(norm_backbone_inputs, self.features_bank)
+        contrast_outputs = Memory_NoUpdate.apply(norm_inputs, self.features_bank)
         contrast_outputs /= self.temperature
-        contrast_loss = F.cross_entropy(outputs, targets)
+        contrast_loss = F.cross_entropy(contrast_outputs, targets)
+
+        self.updateMemory(norm_inputs, targets, self.momentum)
 
         loss = contrast_loss
         return loss
