@@ -1,5 +1,5 @@
 import torch
-from method import innovation, loss_function
+from method import loss_function, module
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -23,21 +23,12 @@ def train(base, loaders, config):
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
-            # P: Positioning
-            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-
-            # I: IDLoss
-            intergarte_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(intergarte_features)
-            integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, pids)
-
-            #################################################################
-            # M: Memory
-            memory_loss = base.model.module.memoryBank(backbone_bn_features, integrating_bn_features, pids, epoch)
+            # I: InfoNCE
+            infoNCE_loss = base.model.module.memoryBankNet(backbone_bn_features, pids)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.3 * memory_loss
+            total_loss = ide_loss + 0.3 * infoNCE_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -46,7 +37,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
-                    "integrating_pid_loss": integrating_ide_loss.data,
+                    "infoNCE_loss": infoNCE_loss.data,
                 }
             )
 
