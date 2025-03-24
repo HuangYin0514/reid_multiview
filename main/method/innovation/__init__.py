@@ -1,1 +1,1 @@
-from . import decoupling, multi_view
+from . import decoupling, memory, multi_view
