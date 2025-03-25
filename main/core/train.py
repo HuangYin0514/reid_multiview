@@ -32,7 +32,7 @@ def train(base, loaders, config):
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
             shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingNet(localized_features)
             decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
-            decoupling_loss += nn.MSELoss(reduce=False)(reconstructed_features, localized_features).mean(0).sum()
+            decoupling_loss += 0.1 * nn.MSELoss(reduce=False)(reconstructed_features, localized_features).mean(0).sum()
 
             # F: Fusion
             weighted_shared_features = 0.5 * shared_features
