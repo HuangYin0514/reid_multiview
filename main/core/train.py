@@ -39,22 +39,24 @@ def train(base, loaders, config):
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################
-            # C: ContrastLoss
-            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features)
+            # M: Memory
+            memory_loss = base.model.module.memoryBank(backbone_bn_features, pids)
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + 0.007 * contrast_loss
+            total_loss = ide_loss + integrating_ide_loss + 0.3 * memory_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
             base.model_optimizer.step()
 
+            base.model.module.memoryBank.updateMemory(backbone_bn_features, pids)
+
             meter.update(
                 {
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
-                    "contrast_loss": contrast_loss.data,
+                    "memory_loss": memory_loss.data,
                 }
             )
 
