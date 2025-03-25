@@ -134,10 +134,24 @@ class FeatureDecouplingNet(nn.Module):
         )
         self.mlp2.apply(weights_init.weights_init_kaiming)
 
+        # Reconstruction branch
+        ic = 2048
+        oc = 2048
+        self.mlp3 = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.mlp2.apply(weights_init.weights_init_kaiming)
+
     def forward(self, features):
+        # Shared and special branch
         shared_features = self.mlp1(features)
         special_features = self.mlp2(features)
-        return shared_features, special_features
+
+        # Reconstruction branch
+        reconstructed_features = torch.cat([shared_features, special_features], dim=1)
+        reconstructed_features = self.mlp3(reconstructed_features)
+        return shared_features, special_features, reconstructed_features
 
 
 class FeatureIntegrationNet(nn.Module):

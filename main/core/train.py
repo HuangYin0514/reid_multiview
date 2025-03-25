@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from method import innovation, loss_function
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -29,8 +30,9 @@ def train(base, loaders, config):
             # D: Decoupling
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-            shared_features, specific_features = base.model.module.featureDecouplingNet(localized_features)
+            shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingNet(localized_features)
             decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
+            decoupling_loss += nn.MSELoss()(reconstructed_features, localized_features)
 
             # F: Fusion
             weighted_shared_features = 0.5 * shared_features
