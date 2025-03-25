@@ -50,7 +50,7 @@ def train(base, loaders, config):
             total_loss.backward()
             base.model_optimizer.step()
 
-            base.model.module.memoryBank.updateMemory(backbone_bn_features, pids)
+            base.model.module.memoryBank.updateMemory(quantified_localized_features, pids)
 
             meter.update(
                 {
