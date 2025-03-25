@@ -23,8 +23,9 @@ class Model(nn.Module):
         self.intergarte_classifier = module.Classifier(2048, config.pid_num)
 
         ####################################
-        # Memory bank
-        self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num, device=config.device)
+        # Decoupling & Integration
+        self.featureDecouplingNet = innovation.decoupling.FeatureDecouplingNet(config)
+        self.featureIntegrationNet = innovation.decoupling.FeatureIntegrationNet(config)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
