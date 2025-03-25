@@ -162,7 +162,7 @@ class FeatureIntegrationNet(nn.Module):
         chunk_size = int(size / 4)  # 16
 
         integrate_features = torch.zeros([chunk_size, c * 4]).to(features.device)
-        integrate_pids = torch.zeros([chunk_size]).to(pids.device)
+        integrate_pids = torch.zeros([chunk_size], dtype=torch.long).to(pids.device)
 
         for i in range(chunk_size):
             integrate_features[i] = torch.cat([features[4 * i].unsqueeze(0), features[4 * i + 1].unsqueeze(0), features[4 * i + 2].unsqueeze(0), features[4 * i + 3].unsqueeze(0)], dim=1)

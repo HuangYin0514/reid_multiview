@@ -46,7 +46,7 @@ def train(base, loaders, config):
 
             #################################################################
             # M: Memory
-            memory_loss = base.model.module.memoryBank(integrating_bn_features, pids)
+            memory_loss = base.model.module.memoryBank(backbone_bn_features, pids)
 
             #################################################################
             # Total loss
@@ -56,7 +56,7 @@ def train(base, loaders, config):
             total_loss.backward()
             base.model_optimizer.step()
 
-            base.model.module.memoryBank.updateMemory(integrating_bn_features, pids)
+            base.model.module.memoryBank.updateMemory(integrating_bn_features, integrating_pids)
 
             meter.update(
                 {

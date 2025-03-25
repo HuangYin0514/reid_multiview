@@ -33,7 +33,7 @@ class FeatureIntegration:
         dim = features.size(1)
 
         integrating_features = torch.zeros([chunk_size, dim]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
+        integrating_pids = torch.zeros([chunk_size], dtype=torch.long).to(pids.device)
 
         for i in range(chunk_size):
             integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
