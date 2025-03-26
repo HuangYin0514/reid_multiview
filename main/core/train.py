@@ -39,6 +39,7 @@ def train(base, loaders, config):
             integrating_features, integrating_pids = base.model.module.featureIntegration(shared_features, specific_features, pids)
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
+            print("integrating_ide_loss.data: ", integrating_ide_loss.data)
 
             #################################################################
             # C: ContrastLoss
