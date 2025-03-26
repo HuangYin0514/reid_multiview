@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 from method import innovation, loss_function
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -30,16 +29,16 @@ def train(base, loaders, config):
             # D: Decoupling
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-
-            shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingNet(localized_features)
-
-            decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
-            decoupling_reconstructed_loss = torch.nn.MSELoss(reduction="none")(reconstructed_features, localized_features).mean(0).sum()
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + 0.0001 * decoupling_reconstructed_loss
+            shared_features, specific_features = base.model.module.featureDecouplingNet(localized_features)
+            decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
 
             # F: Fusion
-            integrating_features, integrating_pids = base.model.module.featureIntegration(shared_features, specific_features, pids)
+            weighted_shared_features = 0.5 * shared_features
+            multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
+            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
+
+            # F: Fusion
+            integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
 
             # I: IDLoss
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
