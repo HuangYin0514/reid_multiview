@@ -29,7 +29,9 @@ def train(base, loaders, config):
             # D: Decoupling
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-            shared_features, specific_features = base.model.module.featureDecouplingNet(localized_features)
+
+            shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingNet(localized_features)
+
             decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
             decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss

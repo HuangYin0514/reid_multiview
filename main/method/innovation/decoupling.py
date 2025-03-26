@@ -101,43 +101,42 @@ class DecouplingLoss(nn.Module):
 
 
 class FeatureDecouplingNet(nn.Module):
-    """
-    特征解耦模块，用于将共享特征和特定特征进行解耦。
-
-    该模块接收共享特征和特定特征，并通过某种方式对它们进行处理，以实现特征解耦。
-
-    参数:
-    nn.Module (torch.nn.Module): 继承自 PyTorch 的 nn.Module 类。
-
-    方法:
-    forward(shared_features, specific_features):
-        前向传播方法，接收共享特征和特定特征，并返回解耦后的特征。
-    """
-
     def __init__(self, config):
         super(FeatureDecouplingNet, self).__init__()
         self.config = config
 
+        #################################################################
         # shared branch
         ic = 2048
         oc = 1024
-        self.mlp1 = nn.Sequential(
+        self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init.weights_init_kaiming)
+        self.decoupling_mlp1.apply(weights_init.weights_init_kaiming)
 
         # special branch
-        self.mlp2 = nn.Sequential(
+        self.decoupling_mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp2.apply(weights_init.weights_init_kaiming)
+        self.decoupling_mlp2.apply(weights_init.weights_init_kaiming)
+
+    def encoder(self, features):
+        shared_features = self.decoupling_mlp1(features)
+        special_features = self.decoupling_mlp2(features)
+        return shared_features, special_features
+
+    def decoder(self, shared_features, special_features):
+        reconstructed_features = torch.cat([shared_features, special_features], dim=1)
+        reconstructed_features = self.reconstructed_mlp(reconstructed_features)
+        return reconstructed_features
 
     def forward(self, features):
-        shared_features = self.mlp1(features)
-        special_features = self.mlp2(features)
-        return shared_features, special_features
+        # Shared and special branch
+        shared_features, special_features = self.encoder(features)
+        reconstructed_features = None
+        return shared_features, special_features, reconstructed_features
 
 
 class FeatureIntegration(nn.Module):
