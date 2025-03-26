@@ -63,10 +63,16 @@ class ContrastLoss:
         # loss = 0.5 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
 
         # method 3
+        # new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+        # for i in range(int(features_2.size(0))):
+        #     new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+        # loss = 1 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
+
+        # method 4
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
         for i in range(int(features_2.size(0))):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.5 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
+        loss = torch.nn.MSELoss(reduction="none")(features_1, new_features_2).mean(dim=1).sum()
         return loss
 
 
