@@ -34,7 +34,8 @@ def train(base, loaders, config):
 
             decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            decoupling_reconstructed_loss = torch.nn.MSELoss(reduction="none")(reconstructed_features, localized_features).mean(0).sum()
+            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + decoupling_reconstructed_loss
 
             # F: Fusion
             integrating_features, integrating_pids = base.model.module.featureIntegrationModule(shared_features, specific_features, pids)
@@ -60,6 +61,7 @@ def train(base, loaders, config):
                     "integrating_pid_loss": integrating_ide_loss.data,
                     "decoupling_loss": decoupling_loss.data,
                     "contrast_loss": contrast_loss.data,
+                    "decoupling_reconstructed_loss": decoupling_reconstructed_loss.data,
                 }
             )
 
