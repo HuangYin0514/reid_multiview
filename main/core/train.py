@@ -48,7 +48,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + decoupling_loss + 1 * contrast_loss
+            total_loss = ide_loss + integrating_ide_loss + decoupling_loss + 0.007 * contrast_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
