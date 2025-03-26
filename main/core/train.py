@@ -33,6 +33,7 @@ def train(base, loaders, config):
             decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
             decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
+            print("decoupling_loss.data: ", decoupling_loss.data)
 
             # F: Fusion
             weighted_shared_features = 0.5 * shared_features
