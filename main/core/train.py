@@ -18,27 +18,27 @@ def train(base, loaders, config):
 
             #################################################################
             # I: IDLoss
-            backbone_features = base.model.backbone_gap(features_map).squeeze()
-            backbone_bn_features, backbone_cls_score = base.model.backbone_classifier(backbone_features)
+            backbone_features = base.model.module.backbone_gap(features_map).squeeze()
+            backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
             # P: Positioning
-            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.backbone_classifier)
+            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
 
             # D: Decoupling
-            localized_features = base.model.intergarte_gap(localized_features_map).squeeze()
-            _, localized_cls_score = base.model.backbone_classifier(localized_features)
+            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
+            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
-            shared_features, specific_features, reconstructed_features = base.model.featureDecouplingNet(localized_features)
+            shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingModule(localized_features)
 
             decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
             decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             # F: Fusion
-            integrating_features, integrating_pids = base.model.featureIntegration(shared_features, specific_features, pids)
-            integrating_bn_features, integrating_cls_score = base.model.intergarte_classifier(integrating_features)
+            integrating_features, integrating_pids = base.model.module.featureIntegrationModule(shared_features, specific_features, pids)
+            integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
             #################################################################

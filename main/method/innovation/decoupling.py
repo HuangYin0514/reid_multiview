@@ -100,9 +100,9 @@ class DecouplingLoss(nn.Module):
 #################################################################
 
 
-class FeatureDecouplingNet(nn.Module):
+class FeatureDecouplingModule(nn.Module):
     def __init__(self, config):
-        super(FeatureDecouplingNet, self).__init__()
+        super(FeatureDecouplingModule, self).__init__()
         self.config = config
 
         #################################################################
@@ -152,9 +152,9 @@ class FeatureDecouplingNet(nn.Module):
         return shared_features, special_features, reconstructed_features
 
 
-class FeatureIntegration(nn.Module):
+class FeatureIntegrationModule(nn.Module):
     def __init__(self, config):
-        super(FeatureIntegration, self).__init__()
+        super(FeatureIntegrationModule, self).__init__()
         self.config = config
 
         # shared branch
