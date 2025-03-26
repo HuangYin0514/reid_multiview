@@ -36,12 +36,7 @@ def train(base, loaders, config):
             print("decoupling_loss.data: ", decoupling_loss.data)
 
             # F: Fusion
-            weighted_shared_features = 0.5 * shared_features
-            multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
-            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
-
-            # F: Fusion
-            integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
+            integrating_features, integrating_pids = base.model.module.featureIntegration(shared_features, specific_features, pids)
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
