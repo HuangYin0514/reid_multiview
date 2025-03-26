@@ -30,12 +30,11 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
 
-            shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingModule(localized_features)
+            shared_features, specific_features = base.model.module.featureDecouplingModule(localized_features)
 
             decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
             decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
-            decoupling_reconstructed_loss = 0.5 * torch.nn.MSELoss(reduction="mean")(reconstructed_features, localized_features)
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss + 1 * decoupling_reconstructed_loss
+            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
 
             # F: Fusion
             integrating_features, integrating_pids = base.model.module.featureIntegrationModule(shared_features, specific_features, pids)
@@ -61,7 +60,6 @@ def train(base, loaders, config):
                     "integrating_pid_loss": integrating_ide_loss.data,
                     "decoupling_loss": decoupling_loss.data,
                     "contrast_loss": contrast_loss.data,
-                    "decoupling_reconstructed_loss": decoupling_reconstructed_loss.data,
                 }
             )
 
