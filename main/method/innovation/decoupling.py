@@ -122,17 +122,17 @@ class FeatureDecouplingNet(nn.Module):
         )
         self.decoupling_mlp2.apply(weights_init.weights_init_kaiming)
 
-        #################################################################
-        # Reconstruction branch
-        ic = 2048
-        oc = 2048
-        self.reconstructed_mlp = nn.Sequential(
-            nn.Linear(ic, oc, bias=False),
-            nn.BatchNorm1d(oc),
-            nn.ReLU(inplace=True),
-            nn.Linear(oc, oc, bias=False),
-        )
-        self.reconstructed_mlp.apply(weights_init.weights_init_kaiming)
+        # #################################################################
+        # # Reconstruction branch
+        # ic = 2048
+        # oc = 2048
+        # self.reconstructed_mlp = nn.Sequential(
+        #     nn.Linear(ic, oc, bias=False),
+        #     nn.BatchNorm1d(oc),
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(oc, oc, bias=False),
+        # )
+        # self.reconstructed_mlp.apply(weights_init.weights_init_kaiming)
 
     def encoder(self, features):
         shared_features = self.decoupling_mlp1(features)
