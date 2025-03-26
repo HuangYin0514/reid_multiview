@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..module import weights_init
+from . import multi_view
 
 
 class SharedSpecialLoss(nn.Module):
@@ -83,37 +84,12 @@ class SharedSharedLoss(nn.Module):
         return shared_consistency_loss
 
 
-class DecouplingLoss(nn.Module):
-    def __init__(self, config):
-        super(DecouplingLoss, self).__init__()
-        self.config = config
-
-    def forward(self, shared_features, specific_features):
-        SharedSpecial_loss = SharedSpecialLoss().forward(shared_features, specific_features)
-        SharedShared_loss = SharedSharedLoss().forward(shared_features)
-        loss = SharedSpecial_loss + 0.01 * SharedShared_loss
-        return loss
-
-
 #################################################################
 # network
 #################################################################
 
 
 class FeatureDecouplingNet(nn.Module):
-    """
-    特征解耦模块，用于将共享特征和特定特征进行解耦。
-
-    该模块接收共享特征和特定特征，并通过某种方式对它们进行处理，以实现特征解耦。
-
-    参数:
-    nn.Module (torch.nn.Module): 继承自 PyTorch 的 nn.Module 类。
-
-    方法:
-    forward(shared_features, specific_features):
-        前向传播方法，接收共享特征和特定特征，并返回解耦后的特征。
-    """
-
     def __init__(self, config):
         super(FeatureDecouplingNet, self).__init__()
         self.config = config
@@ -162,34 +138,56 @@ class FeatureDecouplingNet(nn.Module):
         return shared_features, special_features, reconstructed_features
 
 
-class FeatureIntegrationNet(nn.Module):
+class FeatureIntegration(nn.Module):
     def __init__(self, config):
-        super(FeatureIntegrationNet, self).__init__()
+        super(FeatureIntegration, self).__init__()
         self.config = config
 
         # shared branch
         ic = 1024 * 4
         oc = 1024
-        self.mlp1 = nn.Sequential(
+        self.specific_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
             nn.Linear(oc, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init.weights_init_kaiming)
+        self.specific_mlp.apply(weights_init.weights_init_kaiming)
 
-    def __call__(self, features, pids):
+    def shared_features_integration(self, features, pids):
+        size = features.size(0)
+        chunk_size = int(size / 4)  # 16
+        dim = features.size(1)
+        integrating_features = torch.zeros([chunk_size, dim]).to(features.device)
+        integrating_pids = torch.zeros([chunk_size], dtype=torch.int).to(pids.device)
+        for i in range(chunk_size):
+            integrating_features[i] = features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3]
+            integrating_pids[i] = pids[4 * i]
+        return integrating_features, integrating_pids
+
+    def specific_features_integration(self, features, pids):
         size = features.size(0)
         c = features.size(1)
         chunk_size = int(size / 4)  # 16
-
         integrate_features = torch.zeros([chunk_size, c * 4]).to(features.device)
-        integrate_pids = torch.zeros([chunk_size]).to(pids.device)
-
+        integrating_pids = torch.zeros([chunk_size], dtype=torch.int).to(pids.device)
         for i in range(chunk_size):
             integrate_features[i] = torch.cat([features[4 * i].unsqueeze(0), features[4 * i + 1].unsqueeze(0), features[4 * i + 2].unsqueeze(0), features[4 * i + 3].unsqueeze(0)], dim=1)
-            integrate_pids[i] = pids[4 * i]
+            integrating_pids[i] = pids[4 * i]
+        integrate_features = self.specific_mlp(integrate_features)
+        return integrate_features, integrating_pids
 
-        integrate_features = self.mlp1(integrate_features)
+    def forward(self, shared_features, specific_features, pids):
+        size = shared_features.size(0)
 
-        return integrate_features, integrate_pids
+        # 共享特征
+        weighted_shared_features = 0.5 * shared_features
+        multiview_shared_features, integrating_pids = self.shared_features_integration(weighted_shared_features, pids)
+
+        # 特定特征
+        weighted_specific_features = 1 * specific_features
+        multiview_specific_features, integrating_pids = self.specific_features_integration(weighted_specific_features, pids)
+
+        integrating_features = torch.cat([multiview_shared_features, multiview_specific_features], dim=1)
+
+        return integrating_features, integrating_pids

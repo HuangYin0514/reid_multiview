@@ -3,25 +3,6 @@ from torch.nn import functional as F
 
 
 class FeatureIntegration:
-    """
-    FeatureIntegration 类用于将连续的特征进行集成处理。
-
-    主要功能：
-      - 将输入特征按照一定的分组策略（每4个样本一组）进行求和融合，
-        得到集成后的特征表示。
-      - 同时根据 pids 进行相应的采样，确保融合后的特征与身份标签相匹配。
-
-    参数:
-        config: 模型配置参数，用于设置特征集成中的相关参数。
-
-    调用:
-        输入:
-            - features: tensor，输入特征，形状为 [batch_size, feature_dim]
-            - pids: tensor，对应的身份 ID，长度为 batch_size
-        输出:
-            - integrating_features: tensor，集成后的特征，形状为 [batch_size/4, feature_dim]
-            - integrating_pids: tensor，采样后的 pids，形状为 [batch_size/4]
-    """
 
     def __init__(self, config):
         super(FeatureIntegration, self).__init__()
@@ -33,10 +14,10 @@ class FeatureIntegration:
         dim = features.size(1)
 
         integrating_features = torch.zeros([chunk_size, dim]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
+        integrating_pids = torch.zeros([chunk_size], dtype=torch.int).to(pids.device)
 
         for i in range(chunk_size):
-            integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
+            integrating_features[i] = features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3]
             integrating_pids[i] = pids[4 * i]
 
         return integrating_features, integrating_pids
