@@ -38,6 +38,7 @@ def train(base, loaders, config):
 
             # F: Fusion
             integrating_features, integrating_pids = base.model.module.featureIntegrationModule(shared_features, specific_features, pids)
+
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
 
