@@ -31,15 +31,13 @@ def train(base, loaders, config):
             localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
             _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
             shared_features, specific_features, reconstructed_features = base.model.module.featureDecouplingNet(localized_features)
-            decoupling_loss = innovation.decoupling.DecouplingLoss(config).forward(shared_features, specific_features)
-            decoupling_loss += 0.1 * nn.MSELoss(reduce=False)(reconstructed_features, localized_features).mean(0).sum()
+            decoupling_loss = torch.nn.MSELoss(reduction="none")(reconstructed_features, localized_features).mean(0).sum()
 
             # F: Fusion
             weighted_shared_features = 0.5 * shared_features
             multiview_shared_features, integrating_pids = innovation.multi_view.FeatureIntegration(config).__call__(weighted_shared_features, pids)  ## 共享特征
-            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(specific_features, pids)  ## 指定特征
-
-            # F: Fusion
+            weighted_specific_features = 1 * specific_features
+            integrating_specific_features, integrating_pids = base.model.module.featureIntegrationNet(weighted_specific_features, pids)  ## 指定特征
             integrating_features = torch.cat([multiview_shared_features, integrating_specific_features], dim=1)
 
             # I: IDLoss

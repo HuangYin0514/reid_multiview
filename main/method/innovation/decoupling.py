@@ -118,39 +118,47 @@ class FeatureDecouplingNet(nn.Module):
         super(FeatureDecouplingNet, self).__init__()
         self.config = config
 
+        #################################################################
         # shared branch
         ic = 2048
         oc = 1024
-        self.mlp1 = nn.Sequential(
+        self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp1.apply(weights_init.weights_init_kaiming)
+        self.decoupling_mlp1.apply(weights_init.weights_init_kaiming)
 
         # special branch
-        self.mlp2 = nn.Sequential(
+        self.decoupling_mlp2 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp2.apply(weights_init.weights_init_kaiming)
+        self.decoupling_mlp2.apply(weights_init.weights_init_kaiming)
 
+        #################################################################
         # Reconstruction branch
         ic = 2048
         oc = 2048
-        self.mlp3 = nn.Sequential(
+        self.reconstructed_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
         )
-        self.mlp2.apply(weights_init.weights_init_kaiming)
+        self.reconstructed_mlp.apply(weights_init.weights_init_kaiming)
+
+    def encoder(self, features):
+        shared_features = self.decoupling_mlp1(features)
+        special_features = self.decoupling_mlp2(features)
+        return shared_features, special_features
+
+    def decoder(self, shared_features, special_features):
+        reconstructed_features = torch.cat([shared_features, special_features], dim=1)
+        reconstructed_features = self.reconstructed_mlp(reconstructed_features)
+        return reconstructed_features
 
     def forward(self, features):
         # Shared and special branch
-        shared_features = self.mlp1(features)
-        special_features = self.mlp2(features)
-
-        # Reconstruction branch
-        reconstructed_features = torch.cat([shared_features, special_features], dim=1)
-        reconstructed_features = self.mlp3(reconstructed_features)
+        shared_features, special_features = self.encoder(features)
+        reconstructed_features = self.decoder(shared_features, special_features)
         return shared_features, special_features, reconstructed_features
 
 
