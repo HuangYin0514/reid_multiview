@@ -31,8 +31,8 @@ class Base:
         self.device = torch.device(self.config.device)
 
     def _init_model(self):
-        self.model = Model(self.config)
-        self.model = nn.DataParallel(self.model).to(self.device)
+        self.model = Model(self.config).to(self.device)
+        # self.model = nn.DataParallel(self.model).to(self.device)
 
     def _init_optimizer(self):
         model_params_group = [{"params": self.model.parameters(), "lr": self.learning_rate, "weight_decay": self.weight_decay}]
