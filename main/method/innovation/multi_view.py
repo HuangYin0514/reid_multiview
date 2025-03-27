@@ -56,6 +56,7 @@ class ContrastLoss:
 
     def __call__(self, features_1, features_2, pids):
         # loss = 0.007 * torch.norm(features_1, p=2)
+        bs = features_1.size(0)
 
         norm_features_1 = F.normalize(features_1, dim=1)
         norm_features_2 = F.normalize(features_2, dim=1)
@@ -63,7 +64,11 @@ class ContrastLoss:
         temperature = 0.05
         sim = norm_features_1.mm(norm_features_2.t())
         sim /= temperature
-        loss = F.cross_entropy(sim, pids)
+
+        labels = torch.arange(bs / 4).to(features_1.device, torch.long)
+        labels = torch.repeat_interleave(labels, repeats=4)  # 每个元素重复 4 次
+
+        loss = F.cross_entropy(sim, labels)
         return loss
 
 
