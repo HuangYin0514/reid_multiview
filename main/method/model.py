@@ -24,7 +24,6 @@ class Model(nn.Module):
 
         ####################################
         # Decoupling & Integration
-        self.featureDecouplingModule = innovation.decoupling.FeatureDecouplingModule(config)
         self.featureIntegrationModule = innovation.decoupling.FeatureIntegrationModule(config)
 
     def heatmap(self, x):

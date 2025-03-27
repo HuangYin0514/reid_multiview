@@ -23,21 +23,10 @@ def train(base, loaders, config):
             ide_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
             #################################################################
-            # P: Positioning
-            localized_features_map = innovation.multi_view.FeatureMapLocation(config).__call__(features_map, pids, base.model.module.backbone_classifier)
-
-            # D: Decoupling
-            localized_features = base.model.module.intergarte_gap(localized_features_map).squeeze()
-            _, localized_cls_score = base.model.module.backbone_classifier(localized_features)
-
-            shared_features, specific_features = base.model.module.featureDecouplingModule(localized_features)
-
-            decoupling_SharedSpecial_loss = innovation.decoupling.SharedSpecialLoss().forward(shared_features, specific_features)
-            decoupling_SharedShared_loss = innovation.decoupling.SharedSharedLoss().forward(shared_features)
-            decoupling_loss = decoupling_SharedSpecial_loss + 0.01 * decoupling_SharedShared_loss
-
             # F: Fusion
-            integrating_features, integrating_pids = base.model.module.featureIntegrationModule(shared_features, specific_features, pids)
+            localized_features = base.model.module.intergarte_gap(features_map).squeeze()
+
+            integrating_features, integrating_pids = base.model.module.featureIntegrationModule(localized_features, pids)
 
             integrating_bn_features, integrating_cls_score = base.model.module.intergarte_classifier(integrating_features)
             integrating_ide_loss = loss_function.CrossEntropyLabelSmooth().forward(integrating_cls_score, integrating_pids)
@@ -48,7 +37,7 @@ def train(base, loaders, config):
 
             #################################################################
             # Total loss
-            total_loss = ide_loss + integrating_ide_loss + decoupling_loss + 0.007 * contrast_loss
+            total_loss = ide_loss + integrating_ide_loss + contrast_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -58,7 +47,6 @@ def train(base, loaders, config):
                 {
                     "pid_loss": ide_loss.data,
                     "integrating_pid_loss": integrating_ide_loss.data,
-                    "decoupling_loss": decoupling_loss.data,
                     "contrast_loss": contrast_loss.data,
                 }
             )
