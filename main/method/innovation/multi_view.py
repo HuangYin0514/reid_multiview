@@ -43,45 +43,12 @@ class FeatureIntegration:
 
 
 class ContrastLoss:
-    """
-    ContrastLoss 类用于计算特征之间的对比损失。
-
-    参数:
-        config: 模型配置参数，用于设置损失计算中的相关参数。
-    """
 
     def __init__(self, config):
         super(ContrastLoss, self).__init__()
         self.config = config
 
     def __call__(self, features_1, features_2):
-        bs = features_1.size(0)
-        # # method 1
-        # loss = torch.norm(features_1, p=2)
-
-        # # method 2
-        # new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
-        # loss = 0.5 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
-
-        # method 3
-        # new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        # for i in range(int(features_2.size(0))):
-        #     new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        # loss = 1 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
-
-        # method 4
-        # new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        # for i in range(int(features_2.size(0))):
-        #     new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        # loss = torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)  # 1/B * ||f1 - f2||^2_F
-
-        # method 5
-        # new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        # for i in range(int(features_2.size(0) / 4)):
-        #     new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        # loss = 0.1 * 1 / bs * torch.norm(features_1 - new_features_2, p=2)
-
-        # method 6
         loss = 0.007 * torch.norm(features_1, p=2)
         return loss
 
