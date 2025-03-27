@@ -54,8 +54,16 @@ class ContrastLoss:
         super(ContrastLoss, self).__init__()
         self.config = config
 
-    def __call__(self, features_1, features_2):
-        loss = 0.007 * torch.norm(features_1, p=2)
+    def __call__(self, features_1, features_2, pids):
+        # loss = 0.007 * torch.norm(features_1, p=2)
+
+        norm_features_1 = F.normalize(features_1, dim=1)
+        norm_features_2 = F.normalize(features_2, dim=1)
+
+        temperature = 0.05
+        sim = norm_features_1.mm(norm_features_2.t())
+        sim /= temperature
+        loss = F.cross_entropy(sim, pids)
         return loss
 
 

@@ -33,7 +33,7 @@ def train(base, loaders, config):
 
             #################################################################
             # C: ContrastLoss
-            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features)
+            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, integrating_bn_features, pids)
 
             #################################################################
             # Total loss
