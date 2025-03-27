@@ -43,19 +43,46 @@ class FeatureIntegration:
 
 
 class ContrastLoss:
+    """
+    ContrastLoss 类用于计算特征之间的对比损失。
+
+    参数:
+        config: 模型配置参数，用于设置损失计算中的相关参数。
+    """
 
     def __init__(self, config):
         super(ContrastLoss, self).__init__()
         self.config = config
 
-    def __call__(self, features_1, features_2):
-        # loss = 0.007 * torch.norm(features_1, p=2)
+    # def __call__(self, features_1, features_2):
+    #     new_features_2 = torch.repeat_interleave(features_2, repeats=4, dim=0).clone().detach()
+    #     loss = torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
 
-        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(features_2.size(0) / 4)):
-            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.007 * torch.norm(features_1 - new_features_2, p=2)
+    # def __call__(self, features_1, features_2):
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(features_2.size(0) / 4)):
+    #         new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+    #     loss = torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
+
+    # def __call__(self, features_1, features_2):
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(features_2.size(0) / 4)):
+    #         new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+    #     loss = 0.5 * torch.nn.MSELoss(reduction="mean")(features_1, new_features_2)
+    #     return loss
+
+    def __call__(self, features_1, features_2):
+        loss = torch.norm(features_1, p=2)
         return loss
+
+    # def __call__(self, features_1, features_2):
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(features_2.size(0))):
+    #         new_features_2[i * 4 : i * 4 + 1] = features_2[i]
+    #     loss = torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
 
 
 class FeatureMapLocation:
