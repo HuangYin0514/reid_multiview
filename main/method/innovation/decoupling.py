@@ -142,17 +142,42 @@ class FeatureFusionModule(nn.Module):
     def __init__(self, config):
         super(FeatureFusionModule, self).__init__()
         self.config = config
+        self.num_views = 4
 
-    def forward(self, features, pids):
-        size = features.size(0)
-        chunk_size = int(size / 4)  # 16
-        c = features.size(1)
+        ic = 512 * 5
+        oc = 2048
+        self.fusion_mlp = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+        )
+        self.fusion_mlp.apply(weights_init.weights_init_kaiming)
 
-        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size], dtype=torch.int).to(pids.device)
+        self.ic = ic
+        self.oc = oc
 
-        for i in range(chunk_size):
-            integrating_features[i] = features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3]
-            integrating_pids[i] = pids[4 * i]
+    def forward(self, shared_features, special_features, pids):
+        bs = shared_features.size(0)
+        chunk_bs = int(bs / self.num_views)  # 16
 
-        return integrating_features, integrating_pids
+    def forward(self, shared_features, special_features, pids):
+        bs = shared_features.size(0)
+        chunk_bs = int(bs / self.num_views)  # 16
+
+        fusion_features_list = []
+        fusion_pids_list = []
+
+        for i in range(chunk_bs):
+            # shape: [1, shared_dim]
+            shared_features_item = 0.25 * (shared_features[4 * i] + shared_features[4 * i + 1] + shared_features[4 * i + 2] + shared_features[4 * i + 3]).unsqueeze(0)
+            # shape: [1, 4*special_dim]
+            special_features_item = torch.cat([special_features[4 * i].unsqueeze(0), special_features[4 * i + 1].unsqueeze(0), special_features[4 * i + 2].unsqueeze(0), special_features[4 * i + 3].unsqueeze(0)], dim=1)
+            # shape: [1, shared_dim + 4*special_dim]
+
+            fusion_features_list.append(torch.cat([shared_features_item, special_features_item], dim=1))
+            fusion_pids_list.append(pids[4 * i].unsqueeze(0))
+
+        fusion_features = torch.cat(fusion_features_list, dim=0)  # (chunk_bs, shared_dim + 4*special_dim)
+        fusion_pids = torch.cat(fusion_pids_list, dim=0)  # (chunk_bs,)
+
+        fusion_features = self.fusion_mlp(fusion_features)
+        return fusion_features, fusion_pids
