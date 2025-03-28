@@ -149,15 +149,13 @@ class FeatureFusionModule(nn.Module):
         self.fusion_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+            nn.Linear(ic, oc, bias=False),
         )
         self.fusion_mlp.apply(weights_init.weights_init_kaiming)
 
         self.ic = ic
         self.oc = oc
-
-    def forward(self, shared_features, special_features, pids):
-        bs = shared_features.size(0)
-        chunk_bs = int(bs / self.num_views)  # 16
 
     def forward(self, shared_features, special_features, pids):
         bs = shared_features.size(0)
