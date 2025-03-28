@@ -31,7 +31,7 @@ def train(base, loaders, config):
             fusion_features, fusion_pids = base.model.module.featureFusionModule(shared_features, special_features, pids)
 
             fusion_bn_features, fusion_cls_score = base.model.module.second_branch_classifier(fusion_features)
-            fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, fusion_pids)
+            fusion_pid_loss = 0.5 * loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, fusion_pids)
 
             #################################################################
             # C: ContrastLoss
