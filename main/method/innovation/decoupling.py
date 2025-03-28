@@ -150,7 +150,7 @@ class FeatureFusionModule(nn.Module):
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
             nn.ReLU(inplace=True),
-            nn.Linear(ic, oc, bias=False),
+            nn.Linear(oc, oc, bias=False),
         )
         self.fusion_mlp.apply(weights_init.weights_init_kaiming)
 
