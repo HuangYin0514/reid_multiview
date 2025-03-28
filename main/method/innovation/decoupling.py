@@ -138,9 +138,9 @@ class FeatureDecouplingModule(nn.Module):
         return shared_features, special_features, reconstructed_features
 
 
-class FeatureIntegrationModule(nn.Module):
+class FeatureFusionModule(nn.Module):
     def __init__(self, config):
-        super(FeatureIntegrationModule, self).__init__()
+        super(FeatureFusionModule, self).__init__()
         self.config = config
 
     def forward(self, features, pids):
