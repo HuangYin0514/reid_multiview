@@ -14,13 +14,25 @@ class ContrastLoss:
         super(ContrastLoss, self).__init__()
         self.config = config
 
-    def __call__(self, features_1, features_2, pids):
+    # def __call__(self, features_1, features_2, pids):
 
-        # Method 1 ---------------------------
-        bs = features_1.size(0)
+    #     # Method 1 ---------------------------
+    #     bs = features_1.size(0)
 
-        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(features_2.size(0))):
-            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.5 * (1 / bs) * torch.norm((features_1 - new_features_2), p=2)
+    #     new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+    #     for i in range(int(features_2.size(0))):
+    #         new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+    #     loss = 0.5 * (1 / bs) * torch.norm((features_1 - new_features_2), p=2)
+    #     return loss
+
+    def __call__(self, pred, label, pids):
+        # pred: 2D matrix (batch_size, num_classes)
+        # label: 1D vector indicating class number
+        T = 3
+
+        predict = F.log_softmax(pred / T, dim=1)
+        target_data = F.softmax(label / T, dim=1)
+        target_data = target_data + 10 ** (-7)
+        target = target_data.clone().detach()
+        loss = T * T * ((target * (target.log() - predict)).sum(1).sum() / target.size()[0])
         return loss

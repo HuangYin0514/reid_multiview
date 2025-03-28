@@ -34,7 +34,8 @@ def train(base, loaders, config):
 
             #################################################################
             # C: ContrastLoss
-            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_bn_features, fusion_bn_features, pids)
+            fusion_cls_score = torch.repeat_interleave(fusion_cls_score, repeats=4, dim=0)
+            contrast_loss = innovation.multi_view.ContrastLoss(config).__call__(backbone_cls_score, fusion_cls_score, pids)
 
             #################################################################
             # Total loss
