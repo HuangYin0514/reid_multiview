@@ -96,7 +96,7 @@ class FeatureDecouplingModule(nn.Module):
         #################################################################
         # shared branch
         ic = 2048
-        oc = 256
+        oc = 512
         self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -112,7 +112,7 @@ class FeatureDecouplingModule(nn.Module):
 
         #################################################################
         # Reconstruction branch
-        ic = 256 * 2
+        ic = 512 * 2
         oc = 2048
         self.reconstructed_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -144,13 +144,11 @@ class FeatureFusionModule(nn.Module):
         self.config = config
         self.num_views = 4
 
-        ic = 256 * 5
+        ic = 512 * 5
         oc = 2048
         self.fusion_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
-            nn.ReLU(inplace=True),
-            nn.Linear(oc, oc, bias=False),
         )
         self.fusion_mlp.apply(weights_init.weights_init_kaiming)
 
