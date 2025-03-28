@@ -83,18 +83,6 @@ class SharedSharedLoss(nn.Module):
         return shared_consistency_loss
 
 
-class DecouplingLoss(nn.Module):
-    def __init__(self, config):
-        super(DecouplingLoss, self).__init__()
-        self.config = config
-
-    def forward(self, shared_features, specific_features):
-        SharedSpecial_loss = SharedSpecialLoss().forward(shared_features, specific_features)
-        SharedShared_loss = SharedSharedLoss().forward(shared_features)
-        loss = SharedSpecial_loss + 0.01 * SharedShared_loss
-        return loss
-
-
 #################################################################
 # network
 #################################################################
@@ -108,7 +96,7 @@ class FeatureDecouplingModule(nn.Module):
         #################################################################
         # shared branch
         ic = 2048
-        oc = 1024
+        oc = 256
         self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -122,32 +110,69 @@ class FeatureDecouplingModule(nn.Module):
         )
         self.decoupling_mlp2.apply(weights_init.weights_init_kaiming)
 
+        #################################################################
+        # Reconstruction branch
+        ic = 256 * 2
+        oc = 2048
+        self.reconstructed_mlp = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+            nn.Linear(oc, oc, bias=False),
+        )
+        self.reconstructed_mlp.apply(weights_init.weights_init_kaiming)
+
     def encoder(self, features):
         shared_features = self.decoupling_mlp1(features)
         special_features = self.decoupling_mlp2(features)
         return shared_features, special_features
 
+    def decoder(self, shared_features, special_features):
+        reconstructed_features = torch.cat([shared_features, special_features], dim=1)
+        reconstructed_features = self.reconstructed_mlp(reconstructed_features)
+        return reconstructed_features
+
     def forward(self, features):
-        # Shared and special branch
         shared_features, special_features = self.encoder(features)
-        return shared_features, special_features
+        reconstructed_features = self.decoder(shared_features, special_features)
+        return shared_features, special_features, reconstructed_features
 
 
-class FeatureIntegrationModule(nn.Module):
+class FeatureFusionModule(nn.Module):
     def __init__(self, config):
-        super(FeatureIntegrationModule, self).__init__()
+        super(FeatureFusionModule, self).__init__()
         self.config = config
+        self.num_views = 4
 
-    def forward(self, features, pids):
-        size = features.size(0)
-        chunk_size = int(size / 4)  # 16
-        c = features.size(1)
+        ic = 256 * 5
+        oc = 2048
+        self.fusion_mlp = nn.Sequential(
+            nn.Linear(ic, oc, bias=False),
+            nn.BatchNorm1d(oc),
+            nn.ReLU(inplace=True),
+            nn.Linear(oc, oc, bias=False),
+        )
+        self.fusion_mlp.apply(weights_init.weights_init_kaiming)
 
-        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size], dtype=torch.int).to(pids.device)
+        self.ic = ic
+        self.oc = oc
 
-        for i in range(chunk_size):
-            integrating_features[i] = 1 * (features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3])
-            integrating_pids[i] = pids[4 * i]
+    def forward(self, shared_features, special_features, pids):
+        bs = shared_features.size(0)
+        chunk_bs = int(bs / self.num_views)  # 16
 
-        return integrating_features, integrating_pids
+        fusion_features = torch.zeros([chunk_bs, self.ic]).to(shared_features.device)
+        fusion_pids = torch.zeros([chunk_bs], dtype=torch.int).to(pids.device)
+
+        for i in range(chunk_bs):
+            # shape: [1, shared_dim]
+            shared_features_item = torch.mean(shared_features[self.num_views * i : self.num_views * (i + 1)], dim=0, keepdim=True)
+            # shape: [1, 4*special_dim]
+            special_features_item = special_features[self.num_views * i : self.num_views * (i + 1)].reshape(1, -1)
+            # shape: [1, shared_dim + 4*special_dim]
+            fusion_features[i] = torch.cat([shared_features_item, special_features_item], dim=1)
+
+            fusion_pids[i] = pids[4 * i]
+
+        fusion_features = self.fusion_mlp(fusion_features)
+        return fusion_features, fusion_pids
