@@ -96,7 +96,7 @@ class FeatureDecouplingModule(nn.Module):
         #################################################################
         # shared branch
         ic = 2048
-        oc = 512
+        oc = 256
         self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -112,7 +112,7 @@ class FeatureDecouplingModule(nn.Module):
 
         #################################################################
         # Reconstruction branch
-        ic = 512 * 2
+        ic = 256 * 2
         oc = 2048
         self.reconstructed_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -144,7 +144,7 @@ class FeatureFusionModule(nn.Module):
         self.config = config
         self.num_views = 4
 
-        ic = 512 * 5
+        ic = 256 * 5
         oc = 2048
         self.fusion_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -172,7 +172,6 @@ class FeatureFusionModule(nn.Module):
             # shape: [1, 4*special_dim]
             special_features_item = torch.cat([special_features[4 * i].unsqueeze(0), special_features[4 * i + 1].unsqueeze(0), special_features[4 * i + 2].unsqueeze(0), special_features[4 * i + 3].unsqueeze(0)], dim=1)
             # shape: [1, shared_dim + 4*special_dim]
-
             fusion_features_list.append(torch.cat([shared_features_item, special_features_item], dim=1))
             fusion_pids_list.append(pids[4 * i].unsqueeze(0))
 
