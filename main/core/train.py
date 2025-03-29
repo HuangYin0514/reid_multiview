@@ -25,9 +25,10 @@ def train(base, loaders, config):
             #################################################################
             # D: Decoupling
             second_branch_features = base.model.module.second_branch_gap(features_map).squeeze()
+            shared_features, special_features, reconstructed_features = base.model.module.featureDecouplingModule(second_branch_features)
 
             # F: Fusion
-            fusion_features, fusion_pids = base.model.module.featureFusionModule(second_branch_features, pids)
+            fusion_features, fusion_pids = base.model.module.featureFusionModule(shared_features, special_features, pids)
 
             fusion_bn_features, fusion_cls_score = base.model.module.second_branch_classifier(fusion_features)
             fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, fusion_pids)
