@@ -168,7 +168,7 @@ class FeatureFusionModule(nn.Module):
         for i in range(chunk_bs):
             fusion_features[i] = fusion_features_temp[4 * i] + fusion_features_temp[4 * i + 1] + fusion_features_temp[4 * i + 2] + fusion_features_temp[4 * i + 3]
             fusion_pids[i] = pids[4 * i]
-        # fusion_features = self.fusion_mlp(fusion_features)
+        fusion_features = self.fusion_mlp(fusion_features)
         return fusion_features, fusion_pids
 
 
