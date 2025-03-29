@@ -29,6 +29,8 @@ def train(base, loaders, config):
 
             # F: Fusion
             # fusion_features, fusion_pids = base.model.module.featureFusionModule(shared_features, special_features, pids)
+
+            second_branch_features = torch.cat((shared_features, special_features), dim=1)
             fusion_features, fusion_pids = base.model.module.featureViewsFusionModule(second_branch_features, pids)
 
             fusion_bn_features, fusion_cls_score = base.model.module.second_branch_classifier(fusion_features)
