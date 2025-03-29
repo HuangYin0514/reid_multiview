@@ -159,22 +159,57 @@ class FeatureFusionModule(nn.Module):
     def forward(self, shared_features, special_features, pids):
         bs = shared_features.size(0)
         chunk_bs = int(bs / self.num_views)  # 16
+        dim = shared_features.size(1)
 
-        fusion_features_list = []
-        fusion_pids_list = []
+        fusion_features_temp = torch.cat([shared_features, special_features], dim=1)
+
+        fusion_features = torch.zeros([chunk_bs, dim * 2]).to(shared_features.device)
+        fusion_pids = torch.zeros([chunk_bs], dtype=torch.int).to(pids.device)
         for i in range(chunk_bs):
-            shared_features_item = (shared_features[2 * i] + shared_features[2 * i + 1]).unsqueeze(0)
-            special_features_item = (special_features[2 * i] + special_features[2 * i + 1]).unsqueeze(0)
-            fusion_features_list.append(torch.cat([shared_features_item, special_features_item], dim=1))
-            fusion_pids_list.append(pids[2 * i].unsqueeze(0))
-        fusion_features = torch.cat(fusion_features_list, dim=0)  # (chunk_bs, shared_dim + 4*special_dim)
-        fusion_pids = torch.cat(fusion_pids_list, dim=0)  # (chunk_bs,)
+            fusion_features[i] = fusion_features_temp[4 * i] + fusion_features_temp[4 * i + 1] + fusion_features_temp[4 * i + 2] + fusion_features_temp[4 * i + 3]
+            fusion_pids[i] = pids[4 * i]
 
-        fusion_features = torch.cat([shared_features, special_features], dim=1)
         fusion_features = self.fusion_mlp(fusion_features)
         return fusion_features, fusion_pids
 
 
+######################################################################
+# class FeatureFusionModule(nn.Module):
+#     def __init__(self, config):
+#         super(FeatureFusionModule, self).__init__()
+#         self.config = config
+#         self.num_views = 4
+
+#         ic = 512 * 2
+#         oc = 2048
+#         self.fusion_mlp = nn.Sequential(
+#             nn.Linear(ic, oc, bias=False),
+#             nn.BatchNorm1d(oc),
+#         )
+#         self.fusion_mlp.apply(weights_init.weights_init_kaiming)
+
+#         self.ic = ic
+#         self.oc = oc
+
+#     def forward(self, shared_features, special_features, pids):
+#         bs = shared_features.size(0)
+#         chunk_bs = int(bs / self.num_views)  # 16
+
+#         fusion_features_list = []
+#         fusion_pids_list = []
+#         for i in range(chunk_bs):
+#             shared_features_item = (shared_features[2 * i] + shared_features[2 * i + 1]).unsqueeze(0)
+#             special_features_item = (special_features[2 * i] + special_features[2 * i + 1]).unsqueeze(0)
+#             fusion_features_list.append(torch.cat([shared_features_item, special_features_item], dim=1))
+#             fusion_pids_list.append(pids[2 * i].unsqueeze(0))
+#         fusion_features = torch.cat(fusion_features_list, dim=0)  # (chunk_bs, shared_dim + 4*special_dim)
+#         fusion_pids = torch.cat(fusion_pids_list, dim=0)  # (chunk_bs,)
+
+#         fusion_features = torch.cat([shared_features, special_features], dim=1)
+#         fusion_features = self.fusion_mlp(fusion_features)
+#         return fusion_features, fusion_pids
+
+######################################################################
 # class FeatureFusionModule(nn.Module):
 #     def __init__(self, config):
 #         super(FeatureFusionModule, self).__init__()
