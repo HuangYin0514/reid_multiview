@@ -19,14 +19,12 @@ class Model(nn.Module):
         self.backbone_gap = module.GeneralizedMeanPoolingP()
         self.backbone_classifier = module.Classifier(2048, config.pid_num)
 
-        self.second_branch_gap = module.GeneralizedMeanPoolingP()
-        self.second_branch_classifier = module.Classifier(2048, config.pid_num)
+        self.intergarte_gap = module.GeneralizedMeanPoolingP()
+        self.intergarte_classifier = module.Classifier(2048, config.pid_num)
 
         ####################################
-        # Decoupling & Integration
-        self.featureDecouplingModule = innovation.decoupling.FeatureDecouplingModule(config)
-        self.featureFusionModule = innovation.decoupling.FeatureFusionModule(config)
-        self.featureViewsFusionModule = innovation.decoupling.FeatureViewsFusionModule(config)
+        # Memory bank
+        self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num)
 
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
