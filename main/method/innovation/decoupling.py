@@ -163,12 +163,11 @@ class FeatureFusionModule(nn.Module):
 
         fusion_features_temp = torch.cat([shared_features, special_features], dim=1)
 
-        fusion_features = torch.zeros([chunk_bs, dim * 2]).to(shared_features.device)
+        fusion_features = torch.zeros([chunk_bs, dim]).to(shared_features.device)
         fusion_pids = torch.zeros([chunk_bs], dtype=torch.int).to(pids.device)
         for i in range(chunk_bs):
             fusion_features[i] = fusion_features_temp[4 * i] + fusion_features_temp[4 * i + 1] + fusion_features_temp[4 * i + 2] + fusion_features_temp[4 * i + 3]
             fusion_pids[i] = pids[4 * i]
-
         # fusion_features = self.fusion_mlp(fusion_features)
         return fusion_features, fusion_pids
 
