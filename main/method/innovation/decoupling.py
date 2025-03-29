@@ -96,7 +96,7 @@ class FeatureDecouplingModule(nn.Module):
         #################################################################
         # shared branch
         ic = 2048
-        oc = 256
+        oc = 512
         self.decoupling_mlp1 = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
             nn.BatchNorm1d(oc),
@@ -112,7 +112,7 @@ class FeatureDecouplingModule(nn.Module):
 
         #################################################################
         # Reconstruction branch
-        ic = 256 * 2
+        ic = 512 * 2
         oc = 2048
         self.reconstructed_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -145,7 +145,7 @@ class FeatureFusionModule(nn.Module):
         self.config = config
         self.num_views = 4
 
-        ic = 256 * 2
+        ic = 512 * 2
         oc = 2048
         self.fusion_mlp = nn.Sequential(
             nn.Linear(ic, oc, bias=False),
@@ -162,13 +162,11 @@ class FeatureFusionModule(nn.Module):
 
         fusion_features_list = []
         fusion_pids_list = []
-
         for i in range(chunk_bs):
-            shared_features_item = 0.25 * (shared_features[4 * i] + shared_features[4 * i + 1] + shared_features[4 * i + 2] + shared_features[4 * i + 3]).unsqueeze(0)
-            special_features_item = 0.25 * (special_features[4 * i] + special_features[4 * i + 1] + special_features[4 * i + 2] + special_features[4 * i + 3]).unsqueeze(0)
+            shared_features_item = (shared_features[4 * i] + shared_features[4 * i + 1] + shared_features[4 * i + 2] + shared_features[4 * i + 3]).unsqueeze(0)
+            special_features_item = (special_features[4 * i] + special_features[4 * i + 1] + special_features[4 * i + 2] + special_features[4 * i + 3]).unsqueeze(0)
             fusion_features_list.append(torch.cat([shared_features_item, special_features_item], dim=1))
             fusion_pids_list.append(pids[4 * i].unsqueeze(0))
-
         fusion_features = torch.cat(fusion_features_list, dim=0)  # (chunk_bs, shared_dim + 4*special_dim)
         fusion_pids = torch.cat(fusion_pids_list, dim=0)  # (chunk_bs,)
 
@@ -177,7 +175,7 @@ class FeatureFusionModule(nn.Module):
         return fusion_features, fusion_pids
 
 
-######################################################################
+# #####################################################################
 # class FeatureFusionModule(nn.Module):
 #     def __init__(self, config):
 #         super(FeatureFusionModule, self).__init__()
