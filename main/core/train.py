@@ -33,8 +33,13 @@ def train(base, loaders, config):
             second_branch_features = torch.cat((shared_features, special_features), dim=1)
             fusion_features, fusion_pids = base.model.module.featureViewsFusionModule(second_branch_features, pids)
 
+            second_branch_fusion_bn_features, second_branch_fusion_fusion_cls_score = base.model.module.second_branch_classifier(second_branch_features)
+            second_branch_fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(second_branch_fusion_fusion_cls_score, pids)
+
             fusion_bn_features, fusion_cls_score = base.model.module.second_branch_classifier(fusion_features)
             fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, fusion_pids)
+
+            fusion_pid_loss = fusion_pid_loss + second_branch_fusion_pid_loss
 
             #################################################################
             # C: ContrastLoss
