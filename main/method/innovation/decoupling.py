@@ -174,6 +174,28 @@ class FeatureFusionModule(nn.Module):
 
 
 ######################################################################
+class FeatureViewsFusionModule(nn.Module):
+    def __init__(self, config):
+        super(FeatureViewsFusionModule, self).__init__()
+        self.config = config
+        self.num_views = 4
+
+    def forward(self, features, pids):
+        bs = features.size(0)
+        chunk_bs = int(bs / self.num_views)  # 16
+        dim = features.size(1)
+
+        fusion_features = torch.zeros([chunk_bs, dim]).to(features.device)
+        fusion_pids = torch.zeros([chunk_bs], dtype=torch.int).to(pids.device)
+        for i in range(chunk_bs):
+            fusion_features[i] = features[4 * i] + features[4 * i + 1] + features[4 * i + 2] + features[4 * i + 3]
+            fusion_pids[i] = pids[4 * i]
+
+        # fusion_features = self.fusion_mlp(fusion_features)
+        return fusion_features, fusion_pids
+
+
+######################################################################
 # class FeatureFusionModule(nn.Module):
 #     def __init__(self, config):
 #         super(FeatureFusionModule, self).__init__()
