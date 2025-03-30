@@ -22,31 +22,26 @@ def train(base, loaders, config):
             backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
             pid_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
 
-            # M: Memory
-            memory_loss = 0.3 * base.model.module.memoryBank(backbone_bn_features, pids)
-
             #################################################################
             # F: Fusion
             fusion_features = base.model.module.fusion_gap(features_map).squeeze()
-            fusion_features, fusion_pids = innovation.multi_view.FeatureFusion(config).__call__(fusion_features, pids)
+            fusion_weights = torch.ones_like(pids, dtype=torch.long).to(pids.device).reshape(-1, 1)
+            fusion_features, fusion_pids = innovation.multi_view.FeatureFusion(config).__call__(fusion_features, pids, fusion_weights)
 
             fusion_bn_features, fusion_cls_score = base.model.module.fusion_classifier(fusion_features)
             fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, fusion_pids)
 
             #################################################################
             # Total loss
-            total_loss = pid_loss + memory_loss + fusion_pid_loss
+            total_loss = pid_loss + fusion_pid_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
             base.model_optimizer.step()
 
-            base.model.module.memoryBank.updateMemory(backbone_bn_features, pids)
-
             meter.update(
                 {
                     "pid_loss": pid_loss.data,
-                    "memory_loss": memory_loss.data,
                     "fusion_loss": fusion_pid_loss.data,
                 }
             )

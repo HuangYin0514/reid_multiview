@@ -20,10 +20,6 @@ class Model(nn.Module):
         self.backbone_classifier = module.Classifier(2048, config.pid_num)
 
         ####################################
-        # Memory bank
-        self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num)
-
-        ####################################
         # Classifer [bn -> classifier]
         self.fusion_gap = module.GeneralizedMeanPoolingP()
         self.fusion_classifier = module.Classifier(2048, config.pid_num)
