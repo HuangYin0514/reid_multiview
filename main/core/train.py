@@ -42,7 +42,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "pid_loss": pid_loss.data,
-                    "fusion_loss": fusion_pid_loss.data,
+                    "fusion_pid_loss": fusion_pid_loss.data,
                 }
             )
 
