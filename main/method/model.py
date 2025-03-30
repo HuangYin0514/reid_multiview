@@ -19,9 +19,6 @@ class Model(nn.Module):
         self.backbone_gap = module.GeneralizedMeanPoolingP()
         self.backbone_classifier = module.Classifier(2048, config.pid_num)
 
-        self.intergarte_gap = module.GeneralizedMeanPoolingP()
-        self.intergarte_classifier = module.Classifier(2048, config.pid_num)
-
         ####################################
         # Memory bank
         self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num)

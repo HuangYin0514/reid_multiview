@@ -19,7 +19,7 @@ class CM(autograd.Function):
         if ctx.needs_input_grad[0]:
             grad_inputs = grad_outputs.mm(features)
 
-        return grad_inputs, None, None, None
+        return grad_inputs, None
 
 
 class MemoryBank(nn.Module):
@@ -43,13 +43,13 @@ class MemoryBank(nn.Module):
                 features[y] /= features[y].norm()
             self.features_memory = features
 
-    def forward(self, inputs, targets, epoch=None):
+    def forward(self, inputs, labels, epoch=None):
         norm_inputs = F.normalize(inputs, dim=1)
 
         # alpha = self.alpha * epoch
         outputs = CM.apply(norm_inputs, self.features_memory)
         outputs /= self.temperature
-        loss = F.cross_entropy(outputs, targets)
+        loss = F.cross_entropy(outputs, labels)
         return loss
 
 
