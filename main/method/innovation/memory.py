@@ -5,27 +5,19 @@ from torch import autograd, nn
 
 
 class CM(autograd.Function):
-
     @staticmethod
-    def forward(ctx, inputs, targets, features, momentum):
+    def forward(ctx, inputs, features):
         ctx.features = features
-        ctx.momentum = momentum
-        ctx.save_for_backward(inputs, targets)
         outputs = inputs.mm(ctx.features.t())
-
         return outputs
 
     @staticmethod
     def backward(ctx, grad_outputs):
-        inputs, targets = ctx.saved_tensors
+        features = ctx.features
+
         grad_inputs = None
         if ctx.needs_input_grad[0]:
-            grad_inputs = grad_outputs.mm(ctx.features)
-
-        # momentum update
-        for x, y in zip(inputs, targets):
-            ctx.features[y] = ctx.momentum * ctx.features[y] + (1.0 - ctx.momentum) * x
-            ctx.features[y] /= ctx.features[y].norm()
+            grad_inputs = grad_outputs.mm(features)
 
         return grad_inputs, None, None, None
 
@@ -42,13 +34,22 @@ class MemoryBank(nn.Module):
         # 初始化样本记忆
         self.features_memory = nn.Parameter(torch.randn(num_classes, num_features))
 
-    def forward(self, inputs, labels, epoch=None):
+    def updateMemory(self, inputs, targets):
+        with torch.no_grad():
+            features = self.features_memory
+            momentum = self.momentum
+            for x, y in zip(inputs, targets):
+                features[y] = momentum * features[y] + (1.0 - momentum) * x
+                features[y] /= features[y].norm()
+            self.features_memory = features
+
+    def forward(self, inputs, targets, epoch=None):
         norm_inputs = F.normalize(inputs, dim=1)
 
         # alpha = self.alpha * epoch
-        outputs = CM.apply(norm_inputs, labels, self.features_memory, self.momentum)
+        outputs = CM.apply(norm_inputs, self.features_memory)
         outputs /= self.temperature
-        loss = F.cross_entropy(outputs, labels)
+        loss = F.cross_entropy(outputs, targets)
         return loss
 
 
@@ -76,6 +77,8 @@ if __name__ == "__main__":
 
     # 反向传播
     loss.backward()
+
+    model.updateMemory(features, targets)
 
     # 打印损失
     print("Loss:", loss.item())
