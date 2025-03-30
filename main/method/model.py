@@ -23,6 +23,11 @@ class Model(nn.Module):
         # Memory bank
         self.memoryBank = innovation.memory.MemoryBank(2048, config.pid_num)
 
+        ####################################
+        # Classifer [bn -> classifier]
+        self.fusion_gap = module.GeneralizedMeanPoolingP()
+        self.fusion_classifier = module.Classifier(2048, config.pid_num)
+
     def heatmap(self, x):
         _, _, _, _, features_map = self.backbone(x)
         return features_map

@@ -1,1 +1,1 @@
-from . import memory
+from . import memory, multi_view
