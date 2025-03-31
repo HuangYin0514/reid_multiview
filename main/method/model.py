@@ -10,29 +10,49 @@ class Model(nn.Module):
     def __init__(self, config):
         super(Model, self).__init__()
 
-        ####################################
-        # Backbone
+        # ------------- Backbone -----------------------
         self.backbone = Backbone()
 
-        ####################################
-        # Classifer [bn -> classifier]
-        self.backbone_gap = module.GeneralizedMeanPoolingP()
-        self.backbone_classifier = module.Classifier(2048, config.pid_num)
+        # ------------- Hard content branch -----------------------
+        # Global
+        HARD_FEATURES_DIM = 2048
+        HARD_EMBEDDING_DIM = 512
+        self.hard_global_embedding = module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM)
 
-        self.branch2_gap = module.GeneralizedMeanPoolingP()
-        self.branch2_classifier = module.Classifier(2048, config.pid_num)
+        self.hard_global_head = nn.Sequential(
+            *[
+                module.GeneralizedMeanPoolingP(),
+                module.Classifier(HARD_EMBEDDING_DIM, config.pid_num),
+            ]
+        )
+
+        # Parts
+        PART_NUM = 2
+        hard_part_embedding = nn.ModuleList()
+        for i in range(PART_NUM):
+            hard_part_embedding.append(module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM))
+        self.hard_part_embedding = hard_part_embedding
+
+        hard_part_head = nn.ModuleList()
+        for i in range(PART_NUM):
+            hard_part_head_item = nn.Sequential(
+                *[
+                    module.GeneralizedMeanPoolingP(),
+                    module.Classifier(HARD_EMBEDDING_DIM, config.pid_num),
+                ]
+            )
+            hard_part_head.append(hard_part_head_item)
+        self.hard_part_head = hard_part_head
 
     def heatmap(self, x):
-        _, _, _, _, features_map = self.backbone(x)
-        return features_map
+        return None
 
     def forward(self, x):
         if self.training:
-            x1, x2, x3, x4, features_map, branch2_features_map = self.backbone(x)
-            return features_map, branch2_features_map
+            hard_features, soft_features_l3, soft_features_l4 = self.backbone(x)
+            return hard_features, soft_features_l3, soft_features_l4
         else:
-            ###############
-            x1, x2, x3, x4, features_map, branch2_features_map = self.backbone(x)
-            backbone_features = self.backbone_gap(features_map).squeeze()
-            backbone_bn_features, backbone_cls_score = self.backbone_classifier(backbone_features)
-            return backbone_bn_features
+            hard_features, soft_features_l3, soft_features_l4 = self.backbone(x)
+            hard_global_embedding = self.hard_global_embedding(hard_features)
+            hard_global_bn_features, hard_global_cls_score = self.hard_global_head(hard_global_embedding)
+            return hard_global_bn_features

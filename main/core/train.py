@@ -14,21 +14,18 @@ def train(base, loaders, config):
         if config.module == "Lucky":
             #################################################################
             # R: Resnet
-            features_map, branch2_features_map = base.model(imgs)
+            hard_features, soft_features_l3, soft_features_l4 = base.model(imgs)
 
             #################################################################
-            # I: IDLoss
-            backbone_features = base.model.module.backbone_gap(features_map).squeeze()
-            backbone_bn_features, backbone_cls_score = base.model.module.backbone_classifier(backbone_features)
-            pid_loss = loss_function.CrossEntropyLabelSmooth().forward(backbone_cls_score, pids)
+            # H: Hard content branch
+            hard_global_embedding = base.model.module.hard_global_embedding(hard_features)
+            hard_global_bn_features, hard_global_cls_score = base.model.module.hard_global_head(hard_global_embedding)
 
-            branch2_features = base.model.module.branch2_gap(branch2_features_map).squeeze()
-            _, branch2_cls_score = base.model.module.branch2_classifier(branch2_features)
-            branch2_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(branch2_cls_score, pids)
+            hard_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
 
             #################################################################
             # Total loss
-            total_loss = pid_loss + branch2_pid_loss
+            total_loss = hard_pid_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -36,8 +33,7 @@ def train(base, loaders, config):
 
             meter.update(
                 {
-                    "pid_loss": pid_loss.data,
-                    "branch2_pid_loss": branch2_pid_loss.data,
+                    "hard_pid_loss": hard_pid_loss.data,
                 }
             )
 
