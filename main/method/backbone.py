@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 
@@ -23,17 +25,24 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-    def forward(self, x):
-        x = self.resnet_conv1(x)
-        x = self.resnet_bn1(x)
-        x = self.resnet_maxpool(x)
+        self.branch2 = nn.Sequential(
+            copy.deepcopy(resnet.layer3),
+            copy.deepcopy(resnet.layer4),
+        )
 
-        x1 = x
-        x = self.resnet_layer1(x)
-        x2 = x
-        x = self.resnet_layer2(x)
-        x3 = x
-        x = self.resnet_layer3(x)
-        x4 = x
-        x = self.resnet_layer4(x)
-        return x1, x2, x3, x4, x
+    def forward(self, x):
+        out = self.resnet_conv1(x)
+        out = self.resnet_bn1(out)
+        out = self.resnet_maxpool(out)
+
+        out1 = out
+        out = self.resnet_layer1(out)
+        out2 = out
+        out = self.resnet_layer2(out)
+        out3 = out
+        out = self.resnet_layer3(out)
+        out4 = out
+        out = self.resnet_layer4(out)
+
+        branch2_out = self.branch2(out3)
+        return out1, out2, out3, out4, out, branch2_out
