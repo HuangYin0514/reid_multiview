@@ -18,14 +18,27 @@ def train(base, loaders, config):
 
             #################################################################
             # H: Hard content branch
+            ## Global
             hard_global_embedding = base.model.module.hard_global_embedding(hard_features)
             hard_global_bn_features, hard_global_cls_score = base.model.module.hard_global_head(hard_global_embedding)
 
-            hard_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
+            hard_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
+
+            ## Parts
+            PART_NUM = 2
+            hard_chunk_feat = torch.chunk(hard_features, PART_NUM, dim=2)
+            hard_part_features = []
+            for i in range(PART_NUM):
+                hard_part_features.append(base.model.module.hard_part_embedding[i](hard_chunk_feat[i]))
+
+            hard_part_pid_loss = 0.0
+            for i in range(PART_NUM):
+                _, hard_part_cls_score = base.model.module.hard_part_head[i](hard_part_features[i])
+                hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
 
             #################################################################
             # Total loss
-            total_loss = hard_pid_loss
+            total_loss = hard_global_pid_loss + hard_part_pid_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -33,7 +46,8 @@ def train(base, loaders, config):
 
             meter.update(
                 {
-                    "hard_pid_loss": hard_pid_loss.data,
+                    "hard_global_pid_loss": hard_global_pid_loss.data,
+                    "hard_part_pid_loss": hard_part_pid_loss.data,
                 }
             )
 
