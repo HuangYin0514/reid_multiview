@@ -52,7 +52,24 @@ class Model(nn.Module):
             hard_features, soft_features_l3, soft_features_l4 = self.backbone(x)
             return hard_features, soft_features_l3, soft_features_l4
         else:
+            eval_features = []
             hard_features, soft_features_l3, soft_features_l4 = self.backbone(x)
+
+            # ------------- Hard content branch -----------------------
             hard_global_embedding = self.hard_global_embedding(hard_features)
             hard_global_bn_features, hard_global_cls_score = self.hard_global_head(hard_global_embedding)
-            return hard_global_bn_features
+            eval_features.append(hard_global_bn_features)
+
+            PART_NUM = 2
+            hard_chunk_feat = torch.chunk(hard_features, PART_NUM, dim=2)
+            hard_part_features = []
+            for i in range(PART_NUM):
+                hard_part_features.append(self.hard_part_embedding[i](hard_chunk_feat[i]))
+
+            for i in range(PART_NUM):
+                hard_part_bn_features, hard_part_cls_score = self.hard_part_head[i](hard_part_features[i])
+                eval_features.append(hard_part_bn_features)
+
+            eval_features = torch.cat(eval_features)
+
+            return eval_features
