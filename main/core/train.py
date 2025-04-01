@@ -21,7 +21,6 @@ def train(base, loaders, config):
             ## Global
             hard_global_embedding = base.model.module.hard_global_embedding(hard_features)
             hard_global_bn_features, hard_global_cls_score = base.model.module.hard_global_head(hard_global_embedding)
-
             hard_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
 
             ## Parts
@@ -33,7 +32,7 @@ def train(base, loaders, config):
 
             hard_part_pid_loss = 0.0
             for i in range(PART_NUM):
-                _, hard_part_cls_score = base.model.module.hard_part_head[i](hard_part_features[i])
+                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_head[i](hard_part_features[i])
                 hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
 
             #################################################################

@@ -56,10 +56,12 @@ class Model(nn.Module):
             hard_features, soft_features_l3, soft_features_l4 = self.backbone(x)
 
             # ------------- Hard content branch -----------------------
+            ## Global
             hard_global_embedding = self.hard_global_embedding(hard_features)
             hard_global_bn_features, hard_global_cls_score = self.hard_global_head(hard_global_embedding)
             eval_features.append(hard_global_bn_features)
 
+            ## Parts
             PART_NUM = 2
             hard_chunk_feat = torch.chunk(hard_features, PART_NUM, dim=2)
             hard_part_features = []
@@ -70,6 +72,6 @@ class Model(nn.Module):
                 hard_part_bn_features, hard_part_cls_score = self.hard_part_head[i](hard_part_features[i])
                 eval_features.append(hard_part_bn_features)
 
-            eval_features = torch.cat(eval_features)
+            eval_features = torch.cat(eval_features, dim=1)
 
             return eval_features
