@@ -18,31 +18,21 @@ class Model(nn.Module):
         HARD_FEATURES_DIM = 2048
         HARD_EMBEDDING_DIM = 512
         self.hard_global_embedding = module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM)
-
-        self.hard_global_head = nn.Sequential(
-            *[
-                module.GeneralizedMeanPoolingP(),
-                module.Classifier(HARD_EMBEDDING_DIM, config.pid_num),
-            ]
-        )
+        self.hard_global_pooling = module.GeneralizedMeanPoolingP()
+        self.hard_global_classifier = module.Classifier(HARD_EMBEDDING_DIM, config.pid_num)
 
         # Parts
         PART_NUM = 2
         hard_part_embedding = nn.ModuleList()
+        hard_part_pooling = nn.ModuleList()
+        hard_part_classifier = nn.ModuleList()
         for i in range(PART_NUM):
             hard_part_embedding.append(module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM))
+            hard_part_pooling.append(module.GeneralizedMeanPoolingP())
+            hard_part_classifier.append(module.Classifier(HARD_EMBEDDING_DIM, config.pid_num))
         self.hard_part_embedding = hard_part_embedding
-
-        hard_part_head = nn.ModuleList()
-        for i in range(PART_NUM):
-            hard_part_head_item = nn.Sequential(
-                *[
-                    module.GeneralizedMeanPoolingP(),
-                    module.Classifier(HARD_EMBEDDING_DIM, config.pid_num),
-                ]
-            )
-            hard_part_head.append(hard_part_head_item)
-        self.hard_part_head = hard_part_head
+        self.hard_part_pooling = hard_part_pooling
+        self.hard_part_classifier = hard_part_classifier
 
     def heatmap(self, x):
         return None
@@ -57,19 +47,19 @@ class Model(nn.Module):
 
             # ------------- Hard content branch -----------------------
             ## Global
-            hard_global_embedding = self.hard_global_embedding(hard_features)
-            hard_global_bn_features, hard_global_cls_score = self.hard_global_head(hard_global_embedding)
+            hard_global_embedding_features = self.hard_global_embedding(hard_features)
+            hard_global_pooling_features = self.hard_global_pooling(hard_global_embedding_features).squeeze()
+            hard_global_bn_features, hard_global_cls_score = self.hard_global_classifier(hard_global_pooling_features)
             eval_features.append(hard_global_bn_features)
 
             ## Parts
             PART_NUM = 2
-            hard_chunk_feat = torch.chunk(hard_features, PART_NUM, dim=2)
-            hard_part_features = []
+            hard_part_chunk_features = torch.chunk(hard_features, PART_NUM, dim=2)
             for i in range(PART_NUM):
-                hard_part_features.append(self.hard_part_embedding[i](hard_chunk_feat[i]))
-
-            for i in range(PART_NUM):
-                hard_part_bn_features, hard_part_cls_score = self.hard_part_head[i](hard_part_features[i])
+                hard_part_chunk_feature_item = hard_part_chunk_features[i]
+                hard_part_embedding_features = self.hard_part_embedding[i](hard_part_chunk_feature_item)
+                hard_part_pooling_features = self.hard_part_pooling[i](hard_part_embedding_features).squeeze()
+                hard_part_bn_features, hard_part_cls_score = self.hard_part_classifier[i](hard_part_pooling_features)
                 eval_features.append(hard_part_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
