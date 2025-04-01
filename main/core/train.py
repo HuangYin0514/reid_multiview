@@ -22,6 +22,7 @@ def train(base, loaders, config):
             hard_global_embedding = base.model.module.hard_global_embedding(hard_features)
             hard_global_bn_features, hard_global_cls_score = base.model.module.hard_global_head(hard_global_embedding)
             hard_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
+            hard_global_triplet_loss = loss_function.TripletLoss()(hard_global_embedding, pids)[0]
 
             ## Parts
             PART_NUM = 2
@@ -31,13 +32,15 @@ def train(base, loaders, config):
                 hard_part_features.append(base.model.module.hard_part_embedding[i](hard_chunk_feat[i]))
 
             hard_part_pid_loss = 0.0
+            hard_part_triplet_loss = 0.0
             for i in range(PART_NUM):
                 hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_head[i](hard_part_features[i])
                 hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
+                hard_part_triplet_loss += loss_function.TripletLoss()(hard_part_features[i], pids)[0]
 
             #################################################################
             # Total loss
-            total_loss = hard_global_pid_loss + hard_part_pid_loss
+            total_loss = hard_global_pid_loss + hard_part_pid_loss + hard_global_triplet_loss + hard_part_triplet_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -47,6 +50,8 @@ def train(base, loaders, config):
                 {
                     "hard_global_pid_loss": hard_global_pid_loss.data,
                     "hard_part_pid_loss": hard_part_pid_loss.data,
+                    "hard_global_triplet_loss": hard_global_triplet_loss.data,
+                    "hard_part_triplet_loss": hard_part_triplet_loss.data,
                 }
             )
 
