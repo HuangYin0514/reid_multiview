@@ -35,24 +35,26 @@ class Model(nn.Module):
         self.hard_part_classifier = hard_part_classifier
 
         # ------------- soft content branch -----------------------
-        # Downstream
+
         SOFT_FEATURES_DIM = 2048
         SOFT_EMBEDDING_DIM = 512
-        self.soft_downstream_l4_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_FEATURES_DIM // 2)
-        self.soft_downstream_global_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM)
-        self.soft_downstream_global_pooling = module.GeneralizedMeanPoolingP()
-        self.soft_downstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
-
-        self.soft_downstream_attention = None
-        self.soft_downstream_attention_classifier = None
-
         # Upstream
         self.soft_upstream_global_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM, SOFT_EMBEDDING_DIM)
         self.soft_upstream_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_upstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
 
-        self.soft_upstream_attention = None
-        self.soft_upstream_attention_classifier = None
+        NUM_ATTENTION = 2
+        self.soft_upstream_attention = innovation.dualscale_attention.Dualscale_Attention(SOFT_FEATURES_DIM, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
+        self.soft_upstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.pid_num)
+
+        # Downstream
+        self.soft_downstream_l4_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_FEATURES_DIM // 2)
+        self.soft_downstream_global_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM)
+        self.soft_downstream_global_pooling = module.GeneralizedMeanPoolingP()
+        self.soft_downstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
+
+        self.soft_downstream_attention = innovation.dualscale_attention.Dualscale_Attention(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
+        self.soft_downstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.pid_num)
 
     def heatmap(self, x):
         return None

@@ -1,1 +1,1 @@
-from . import *
+from .dualscale_attention import Dualscale_Attention
