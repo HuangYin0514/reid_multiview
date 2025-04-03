@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from .. import module
+from . import pam_up_samper
 
 
 class BasicConv2d(nn.Module):
@@ -76,3 +77,20 @@ class Dualscale_Attention(nn.Module):
         selected_attentions = self.select_attention(attentions)
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
         return attentions, bap_AiF_features, bap_features
+
+
+class Guide_Dualscale_Attention(Dualscale_Attention):
+    def __init__(self, input_dim, out_dim, num_attention=2):
+        super(Guide_Dualscale_Attention, self).__init__(input_dim, out_dim, num_attention)
+        self.attention_upsample = pam_up_samper.PamUpSamper(num_attention + 1, num_attention + 1, bias=False, scale=1.0)
+        self.attention = BasicConv2d(input_dim + num_attention + 1, num_attention + 1)
+
+    def forward(self, features_l3, features_l4, attentions):
+
+        upsample_attentions = self.attention_upsample(attentions)
+        features_and_attentions = torch.cat((features_l3, upsample_attentions), dim=1)
+        new_attentions = self.attention(features_and_attentions)
+        selected_attentions = self.select_attention(new_attentions)
+
+        bap_AiF_features, bap_features = self.bap(selected_attentions, features_l4)
+        return new_attentions, bap_AiF_features, bap_features

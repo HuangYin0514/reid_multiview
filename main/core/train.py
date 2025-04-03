@@ -66,9 +66,7 @@ def train(base, loaders, config):
             soft_downstream_global_loss = soft_downstream_global_pid_loss + soft_downstream_global_triplet_loss
 
             # Downstream attention
-            soft_downstream_guide_attentions = base.model.module.soft_downstream_attention_upsample(soft_upstream_attention_attentions)
-            soft_downstream_new_l4_embedding_features = torch.cat((soft_downstream_l4_embedding_features, soft_downstream_guide_attentions), dim=1)
-            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = base.model.module.soft_downstream_attention(soft_downstream_new_l4_embedding_features)
+            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = base.model.module.guide_dualscale_attention(soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions)
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = base.model.module.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             soft_downstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_downstream_attention_cls_score, pids)
             soft_downstream_attention_loss = soft_downstream_attention_pid_loss
