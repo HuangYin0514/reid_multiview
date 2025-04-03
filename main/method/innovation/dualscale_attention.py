@@ -73,6 +73,6 @@ class Dualscale_Attention(nn.Module):
 
     def forward(self, features):
         attentions = self.attention(features)
-        attentions = self.select_attention(attentions)
-        bap_AiF_features, bap_features = self.bap(attentions, features)
+        selected_attentions = self.select_attention(attentions)
+        bap_AiF_features, bap_features = self.bap(selected_attentions, features)
         return attentions, bap_AiF_features, bap_features

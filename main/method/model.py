@@ -53,7 +53,8 @@ class Model(nn.Module):
         self.soft_downstream_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_downstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
 
-        self.soft_downstream_attention = innovation.dualscale_attention.Dualscale_Attention(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
+        self.soft_downstream_attention_upsample = innovation.PamUpSamper(NUM_ATTENTION + 1, NUM_ATTENTION + 1, bias=False, scale=1.0)
+        self.soft_downstream_attention = innovation.dualscale_attention.Dualscale_Attention(SOFT_FEATURES_DIM // 2 + NUM_ATTENTION + 1, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
         self.soft_downstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.pid_num)
 
     def heatmap(self, x):
@@ -86,14 +87,27 @@ class Model(nn.Module):
 
             # ------------- Soft content branch -----------------------
             # Upstream
+            soft_upstream_global_features = self.soft_upstream_global_embedding(soft_features_l4)
+            soft_upstream_global_pooling_features = self.soft_upstream_global_pooling(soft_upstream_global_features).squeeze()
+            soft_upstream_global_bn_features, soft_upstream_global_cls_score = self.soft_upstream_global_classifier(soft_upstream_global_pooling_features)
+            eval_features.append(soft_upstream_global_bn_features)
+
+            # Upstream attention
+            soft_upstream_attention_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = self.soft_upstream_attention(soft_features_l4)
+            soft_upstream_attention_bn_features, soft_upstream_attention_cls_score = self.soft_upstream_attention_classifier(soft_upstream_attention_bap_features)
+            eval_features.append(soft_upstream_attention_bn_features)
+
+            # Downstream
             soft_downstream_l4_embedding_features = self.soft_downstream_l4_embedding(soft_features_l3)
             soft_downstream_global_embedding_features = self.soft_downstream_global_embedding(soft_downstream_l4_embedding_features)
             soft_downstream_global_pooling_features = self.soft_downstream_global_pooling(soft_downstream_global_embedding_features).squeeze()
             soft_downstream_global_bn_features, soft_downstream_global_cls_score = self.soft_downstream_global_classifier(soft_downstream_global_pooling_features)
             eval_features.append(soft_downstream_global_bn_features)
 
-            # Downstream
-            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.soft_downstream_attention(soft_downstream_l4_embedding_features)
+            # Downstream attention
+            soft_downstream_guide_attentions = self.soft_downstream_attention_upsample(soft_upstream_attention_attentions)
+            soft_downstream_new_l4_embedding_features = torch.cat((soft_downstream_l4_embedding_features, soft_downstream_guide_attentions), dim=1)
+            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.soft_downstream_attention(soft_downstream_new_l4_embedding_features)
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             eval_features.append(soft_downstream_attention_bn_features)
 
