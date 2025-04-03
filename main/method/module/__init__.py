@@ -1,3 +1,4 @@
+from .batch_norm import get_norm
 from .classifier import Classifier
 from .embedding import Embedding
 from .gem_pool import GeneralizedMeanPoolingP
