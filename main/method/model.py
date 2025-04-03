@@ -75,27 +75,27 @@ class Model(nn.Module):
             eval_features.append(hard_global_bn_features)
 
             # ## Parts
-            # PART_NUM = 2
-            # hard_part_chunk_features = torch.chunk(hard_features, PART_NUM, dim=2)
-            # for i in range(PART_NUM):
-            #     hard_part_chunk_feature_item = hard_part_chunk_features[i]
-            #     hard_part_embedding_features = self.hard_part_embedding[i](hard_part_chunk_feature_item)
-            #     hard_part_pooling_features = self.hard_part_pooling[i](hard_part_embedding_features).squeeze()
-            #     hard_part_bn_features, hard_part_cls_score = self.hard_part_classifier[i](hard_part_pooling_features)
-            #     eval_features.append(hard_part_bn_features)
+            PART_NUM = 2
+            hard_part_chunk_features = torch.chunk(hard_features, PART_NUM, dim=2)
+            for i in range(PART_NUM):
+                hard_part_chunk_feature_item = hard_part_chunk_features[i]
+                hard_part_embedding_features = self.hard_part_embedding[i](hard_part_chunk_feature_item)
+                hard_part_pooling_features = self.hard_part_pooling[i](hard_part_embedding_features).squeeze()
+                hard_part_bn_features, hard_part_cls_score = self.hard_part_classifier[i](hard_part_pooling_features)
+                eval_features.append(hard_part_bn_features)
 
-            # # ------------- Soft content branch -----------------------
-            # # Upstream
-            # soft_downstream_l4_embedding_features = self.soft_downstream_l4_embedding(soft_features_l3)
-            # soft_downstream_global_embedding_features = self.soft_downstream_global_embedding(soft_downstream_l4_embedding_features)
-            # soft_downstream_global_pooling_features = self.soft_downstream_global_pooling(soft_downstream_global_embedding_features).squeeze()
-            # soft_downstream_global_bn_features, soft_downstream_global_cls_score = self.soft_downstream_global_classifier(soft_downstream_global_pooling_features)
-            # eval_features.append(soft_downstream_global_bn_features)
+            # ------------- Soft content branch -----------------------
+            # Upstream
+            soft_downstream_l4_embedding_features = self.soft_downstream_l4_embedding(soft_features_l3)
+            soft_downstream_global_embedding_features = self.soft_downstream_global_embedding(soft_downstream_l4_embedding_features)
+            soft_downstream_global_pooling_features = self.soft_downstream_global_pooling(soft_downstream_global_embedding_features).squeeze()
+            soft_downstream_global_bn_features, soft_downstream_global_cls_score = self.soft_downstream_global_classifier(soft_downstream_global_pooling_features)
+            eval_features.append(soft_downstream_global_bn_features)
 
-            # # Downstream
-            # soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.soft_downstream_attention(soft_downstream_l4_embedding_features)
-            # soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
-            # eval_features.append(soft_downstream_attention_bn_features)
+            # Downstream
+            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.soft_downstream_attention(soft_downstream_l4_embedding_features)
+            soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
+            eval_features.append(soft_downstream_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
