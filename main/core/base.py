@@ -12,7 +12,6 @@ class Base:
         self.config = config
 
         self.pid_num = config.DATASET.PID_NUM
-        self.module = config.MODEL.MODULE
         self.device = torch.device(config.TASK.DEVICE)
 
         self.max_save_model_num = config.SAVE.MAX_SAVE_MODEL_NUM

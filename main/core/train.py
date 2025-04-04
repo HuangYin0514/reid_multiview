@@ -11,7 +11,7 @@ def train(base, loaders, config):
     for epoch, data in enumerate(tqdm(loader)):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
-        if config.module == "Lucky":
+        if config.MODEL.MODULE == "Lucky":
             #################################################################
             # R: Resnet
             hard_features, soft_features_l3, soft_features_l4 = base.model(imgs)
