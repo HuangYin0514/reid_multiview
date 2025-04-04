@@ -1,5 +1,5 @@
 import torch
-from method import loss_function, module
+from method import innovation, loss_function, module
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
 
@@ -53,7 +53,9 @@ def train(base, loaders, config):
             soft_upstream_attention_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = base.model.module.soft_upstream_attention(soft_features_l4)
             soft_upstream_attention_bn_features, soft_upstream_attention_cls_score = base.model.module.soft_upstream_attention_classifier(soft_upstream_attention_bap_features)
             soft_upstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_upstream_attention_cls_score, pids)
-            soft_upstream_attention_loss = soft_upstream_attention_pid_loss
+            soft_upstream_attention_diversity_loss = innovation.diversity_loss(soft_upstream_attention_bap_AiF_features)
+            soft_upstream_attention_regularization_loss = 0.001 * 1 / soft_upstream_attention_attentions.shape[0] * torch.sum(soft_upstream_attention_attentions)
+            soft_upstream_attention_loss = soft_upstream_attention_pid_loss + soft_upstream_attention_diversity_loss + soft_upstream_attention_regularization_loss
 
             # Downstream
             soft_downstream_l4_embedding_features = base.model.module.soft_downstream_l4_embedding(soft_features_l3)
@@ -68,7 +70,9 @@ def train(base, loaders, config):
             soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = base.model.module.guide_dualscale_attention(soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions)
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = base.model.module.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             soft_downstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_downstream_attention_cls_score, pids)
-            soft_downstream_attention_loss = soft_downstream_attention_pid_loss
+            soft_downstream_attention_diversity_loss = innovation.diversity_loss(soft_downstream_attention_bap_AiF_features)
+            soft_downstream_attention_regularization_loss = 0.001 * 1 / soft_downstream_attention_attentions.shape[0] * torch.sum(soft_downstream_attention_attentions)
+            soft_downstream_attention_loss = soft_downstream_attention_pid_loss + soft_downstream_attention_diversity_loss + soft_downstream_attention_regularization_loss
 
             # # ------------- Fusion content branch -----------------------
             # fusion_features = base.model.module.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
@@ -78,10 +82,13 @@ def train(base, loaders, config):
             # fusion_triplet_loss = loss_function.TripletLoss()(fusion_pooling_features, pids)[0]
             # fusion_loss = fusion_pid_loss + fusion_triplet_loss
 
+            # ------------- Fusion content branch -----------------------
+            hard_soft_distillation_loss = base.model.module.distillation_loss(hard_global_bn_features, soft_upstream_global_bn_features)
+
             #################################################################
             # Total loss
             # total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss + fusion_loss
-            total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss
+            total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss + hard_soft_distillation_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
@@ -95,6 +102,7 @@ def train(base, loaders, config):
                     "soft_downstream_global_loss": soft_downstream_global_loss.data,
                     "soft_upstream_attention_loss": soft_upstream_attention_loss.data,
                     "soft_downstream_attention_loss": soft_downstream_attention_loss.data,
+                    "hard_soft_distillation_loss": hard_soft_distillation_loss.data,
                 }
             )
 
