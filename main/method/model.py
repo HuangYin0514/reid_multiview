@@ -19,7 +19,7 @@ class Model(nn.Module):
         HARD_EMBEDDING_DIM = 512
         self.hard_global_embedding = module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM)
         self.hard_global_pooling = module.GeneralizedMeanPoolingP()
-        self.hard_global_classifier = module.Classifier(HARD_EMBEDDING_DIM, config.pid_num)
+        self.hard_global_classifier = module.Classifier(HARD_EMBEDDING_DIM, config.DATASET.PID_NUM)
 
         # Parts
         PART_NUM = 2
@@ -29,7 +29,7 @@ class Model(nn.Module):
         for i in range(PART_NUM):
             hard_part_embedding.append(module.embedding.Embedding(HARD_FEATURES_DIM, HARD_EMBEDDING_DIM))
             hard_part_pooling.append(module.GeneralizedMeanPoolingP())
-            hard_part_classifier.append(module.Classifier(HARD_EMBEDDING_DIM, config.pid_num))
+            hard_part_classifier.append(module.Classifier(HARD_EMBEDDING_DIM, config.DATASET.PID_NUM))
         self.hard_part_embedding = hard_part_embedding
         self.hard_part_pooling = hard_part_pooling
         self.hard_part_classifier = hard_part_classifier
@@ -40,26 +40,26 @@ class Model(nn.Module):
         # Upstream
         self.soft_upstream_global_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM, SOFT_EMBEDDING_DIM)
         self.soft_upstream_global_pooling = module.GeneralizedMeanPoolingP()
-        self.soft_upstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
+        self.soft_upstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.DATASET.PID_NUM)
 
         NUM_ATTENTION = 2
         self.soft_upstream_attention = innovation.dualscale_attention.Dualscale_Attention(SOFT_FEATURES_DIM, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
-        self.soft_upstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.pid_num)
+        self.soft_upstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.DATASET.PID_NUM)
 
         # Downstream
         self.soft_downstream_l4_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_FEATURES_DIM // 2)
         self.soft_downstream_global_embedding = module.embedding.Embedding(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM)
         self.soft_downstream_global_pooling = module.GeneralizedMeanPoolingP()
-        self.soft_downstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.pid_num)
+        self.soft_downstream_global_classifier = module.Classifier(SOFT_EMBEDDING_DIM, config.DATASET.PID_NUM)
 
         self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(SOFT_FEATURES_DIM // 2, SOFT_EMBEDDING_DIM, NUM_ATTENTION)
-        self.soft_downstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.pid_num)
+        self.soft_downstream_attention_classifier = module.Classifier(SOFT_EMBEDDING_DIM * NUM_ATTENTION, config.DATASET.PID_NUM)
 
         # ------------- fuson content branch -----------------------
         FUSION_EMBEDDING_DIM = 512
         self.fusion = innovation.fusion.Fusion(FUSION_EMBEDDING_DIM)
         self.fusion_pooling = module.GeneralizedMeanPoolingP()
-        self.fusion_classifier = module.Classifier(FUSION_EMBEDDING_DIM * 4, config.pid_num)
+        self.fusion_classifier = module.Classifier(FUSION_EMBEDDING_DIM * 4, config.DATASET.PID_NUM)
 
     def heatmap(self, x):
         return None
@@ -115,11 +115,11 @@ class Model(nn.Module):
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             eval_features.append(soft_downstream_attention_bn_features)
 
-            # ------------- Fusion content branch -----------------------
-            fusion_features = self.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
-            fusion_pooling_features = self.fusion_pooling(fusion_features).squeeze()
-            fusion_bn_features, fusion_cls_score = self.fusion_classifier(fusion_pooling_features)
-            eval_features.append(fusion_bn_features)
+            # # ------------- Fusion content branch -----------------------
+            # fusion_features = self.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
+            # fusion_pooling_features = self.fusion_pooling(fusion_features).squeeze()
+            # fusion_bn_features, fusion_cls_score = self.fusion_classifier(fusion_pooling_features)
+            # eval_features.append(fusion_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 

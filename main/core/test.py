@@ -42,6 +42,6 @@ def test(config, base, loader):
     gallery_features = gallery_features_meter.get_val_numpy()
 
     # 评估模型，计算mAP和CMC
-    mAP, CMC = evaluation.ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
+    mAP, CMC = evaluation.ReIDEvaluator(dist="cosine", mode=config.TEST.TEST_MODE).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
 
     return mAP, CMC[0:20]

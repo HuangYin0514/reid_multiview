@@ -71,17 +71,18 @@ def train(base, loaders, config):
             soft_downstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_downstream_attention_cls_score, pids)
             soft_downstream_attention_loss = soft_downstream_attention_pid_loss
 
-            # ------------- Fusion content branch -----------------------
-            fusion_features = base.model.module.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
-            fusion_pooling_features = base.model.module.fusion_pooling(fusion_features).squeeze()
-            fusion_bn_features, fusion_cls_score = base.model.module.fusion_classifier(fusion_pooling_features)
-            fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, pids)
-            fusion_triplet_loss = loss_function.TripletLoss()(fusion_pooling_features, pids)[0]
-            fusion_loss = fusion_pid_loss + fusion_triplet_loss
+            # # ------------- Fusion content branch -----------------------
+            # fusion_features = base.model.module.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
+            # fusion_pooling_features = base.model.module.fusion_pooling(fusion_features).squeeze()
+            # fusion_bn_features, fusion_cls_score = base.model.module.fusion_classifier(fusion_pooling_features)
+            # fusion_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(fusion_cls_score, pids)
+            # fusion_triplet_loss = loss_function.TripletLoss()(fusion_pooling_features, pids)[0]
+            # fusion_loss = fusion_pid_loss + fusion_triplet_loss
 
             #################################################################
             # Total loss
-            total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss + fusion_loss
+            # total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss + fusion_loss
+            total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss
 
             base.model_optimizer.zero_grad()
             total_loss.backward()

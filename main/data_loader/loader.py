@@ -25,30 +25,23 @@ from torch.utils.data import DataLoader
 class Loader:
 
     def __init__(self, config):
-        transform_train = [transforms.Resize(config.image_size, interpolation=3), transforms.RandomHorizontalFlip(p=0.5), transforms.Pad(10), transforms.RandomCrop(config.image_size)]
-        if config.use_colorjitor:
+        transform_train = [transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3), transforms.RandomHorizontalFlip(p=0.5), transforms.Pad(10), transforms.RandomCrop(config.DATALOADER.IMAGE_SIZE)]
+        if config.DATALOADER.USE_COLORJITOR:
             transform_train.append(transforms.ColorJitter(brightness=0.25, contrast=0.15, saturation=0.25, hue=0))
         transform_train.extend([transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-        if config.use_rea:
+        if config.DATALOADER.USE_REA:
             transform_train.append(RandomErasing(probability=0.5, mean=[0.485, 0.456, 0.406]))
         self.transform_train = transforms.Compose(transform_train)
 
-        self.transform_test = transforms.Compose([transforms.Resize(config.image_size, interpolation=3), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+        self.transform_test = transforms.Compose([transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-        self.datasets = ["occluded_duke, occluded_reid, partial_duke, partial_reid, partial_ilids, market, duke, msmt"]
-        self.train_dataset = config.train_dataset
-        self.test_dataset = config.test_dataset
+        self.train_dataset = config.DATASET.TRAIN_DATASET
+        self.test_dataset = config.DATASET.TEST_DATASET
+        self.train_dataset_path = config.DATASET.TRAIN_DATASET_PATH
+        self.test_dataset_path = config.DATASET.TEST_DATASET_PATH
 
-        self.occluded_duke_path = config.occluded_duke_path
-        self.occluded_reid_path = config.occluded_reid_path
-        self.partial_duke_path = config.partial_duke_path
-        self.partial_reid_path = config.partial_reid_path
-        self.partial_ilids_path = config.partial_ilids_path
-        self.market_path = config.market_path
-        self.duke_path = config.duke_path
-        self.msmt_path = config.msmt_path
-        self.batchsize = config.batchsize
-        self.num_instances = config.num_instances
+        self.batchsize = config.DATALOADER.BATCHSIZE
+        self.num_instances = config.DATALOADER.NUM_INSTANCES
 
         self._load()
 
@@ -83,43 +76,43 @@ class Loader:
 
     def _get_samples(self, dataset):
         if dataset == "occluded_duke":
-            samples = Samples4OccludedDuke(self.occluded_duke_path)
+            samples = Samples4OccludedDuke(self.train_dataset_path)
         elif dataset == "occluded_reid":
-            samples = Samples4OccludedReID(self.occluded_reid_path)
+            samples = Samples4OccludedReID(self.train_dataset_path)
         elif dataset == "partial_duke":
-            samples = Samples4PartialDuke(self.partial_duke_path)
+            samples = Samples4PartialDuke(self.train_dataset_path)
         elif dataset == "market":
-            samples = Samples4Market(self.market_path)
+            samples = Samples4Market(self.train_dataset_path)
         elif dataset == "duke":
-            samples = Samples4Duke(self.duke_path)
+            samples = Samples4Duke(self.train_dataset_path)
         elif dataset == "msmt":
-            samples = Samples4MSMT17(self.msmt_path)
+            samples = Samples4MSMT17(self.train_dataset_path)
         return samples
 
     def _get_test_samples(self, dataset):
         if dataset == "occluded_duke":
-            query_samples = TestSamples4OccludedDuke(self.occluded_duke_path).query_samples
-            gallery_samples = TestSamples4OccludedDuke(self.occluded_duke_path).gallery_samples
+            query_samples = TestSamples4OccludedDuke(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4OccludedDuke(self.test_dataset_path).gallery_samples
         elif dataset == "occluded_reid":
-            query_samples = TestSamples4OccludedReid(self.occluded_reid_path).query_samples
-            gallery_samples = TestSamples4OccludedReid(self.occluded_reid_path).gallery_samples
+            query_samples = TestSamples4OccludedReid(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4OccludedReid(self.test_dataset_path).gallery_samples
         elif dataset == "partial_duke":
-            query_samples = TestSamples4PartialDuke(self.partial_duke_path).query_samples
-            gallery_samples = TestSamples4PartialDuke(self.partial_duke_path).gallery_samples
+            query_samples = TestSamples4PartialDuke(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4PartialDuke(self.test_dataset_path).gallery_samples
         elif dataset == "partial_reid":
-            query_samples = TestSamples4PartialReID(self.partial_reid_path).query_samples
-            gallery_samples = TestSamples4PartialReID(self.partial_reid_path).gallery_samples
+            query_samples = TestSamples4PartialReID(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4PartialReID(self.test_dataset_path).gallery_samples
         elif dataset == "partial_ilids":
-            query_samples = TestSamples4PartialiLIDS(self.partial_ilids_path).query_samples
-            gallery_samples = TestSamples4PartialiLIDS(self.partial_ilids_path).gallery_samples
+            query_samples = TestSamples4PartialiLIDS(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4PartialiLIDS(self.test_dataset_path).gallery_samples
         elif dataset == "market":
-            query_samples = TestSamples4Market(self.market_path).query_samples
-            gallery_samples = TestSamples4Market(self.market_path).gallery_samples
+            query_samples = TestSamples4Market(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4Market(self.test_dataset_path).gallery_samples
         elif dataset == "duke":
-            query_samples = TestSamples4Duke(self.duke_path).query_samples
-            gallery_samples = TestSamples4Duke(self.duke_path).gallery_samples
+            query_samples = TestSamples4Duke(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4Duke(self.test_dataset_path).gallery_samples
         elif dataset == "msmt":
-            query_samples = TestSamples4MSMT17(self.msmt_path).query_samples
-            gallery_samples = TestSamples4MSMT17(self.msmt_path).gallery_samples
+            query_samples = TestSamples4MSMT17(self.test_dataset_path).query_samples
+            gallery_samples = TestSamples4MSMT17(self.test_dataset_path).gallery_samples
 
         return query_samples, gallery_samples

@@ -11,27 +11,24 @@ class Base:
     def __init__(self, config):
         self.config = config
 
-        self.pid_num = config.pid_num
-        self.module = config.module
+        self.pid_num = config.DATASET.PID_NUM
+        self.module = config.MODEL.MODULE
+        self.device = torch.device(config.TASK.DEVICE)
 
-        self.max_save_model_num = config.max_save_model_num
-        self.output_path = config.output_path
+        self.max_save_model_num = config.SAVE.MAX_SAVE_MODEL_NUM
+        self.output_path = config.SAVE.OUTPUT_PATH
         self.save_model_path = os.path.join(self.output_path, "models/")
         self.save_logs_path = os.path.join(self.output_path, "logs/")
         make_dirs(self.output_path)
         make_dirs(self.save_model_path)
         make_dirs(self.save_logs_path)
 
-        self.learning_rate = config.learning_rate
-        self.weight_decay = config.weight_decay
-        self.milestones = config.milestones
+        self.learning_rate = config.SOLVER.LEARNING_RATE
+        self.weight_decay = config.SOLVER.WEIGHT_DECAY
+        self.milestones = config.SOLVER.MILESTONES
 
-        self._init_device()
         self._init_model()
         self._init_optimizer()
-
-    def _init_device(self):
-        self.device = torch.device(self.config.device)
 
     def _init_model(self):
         self.model = Model(self.config)

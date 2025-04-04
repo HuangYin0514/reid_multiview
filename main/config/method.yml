@@ -1,0 +1,41 @@
+TASK:
+  NAME: "R_H2GP_S2GAGA_F"
+  NOTES: "v604"
+  TAGS: ["dev", "occluded_duke"] 
+  MODE: "train"  
+  DEVICE: "cuda"  
+  SEED: 1
+
+MODEL:
+  MODULE: "Lucky"  
+
+DATASET:
+  TRAIN_DATASET: "occluded_duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+  PID_NUM: 702
+  TEST_DATASET: "occluded_duke"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+
+
+DATALOADER:
+  IMAGE_SIZE: [256, 128]
+  USE_COLORJITOR: false
+  USE_REA: true
+  BATCHSIZE: 64
+  NUM_INSTANCES: 8
+
+SOLVER:
+  LEARNING_RATE: 0.0003
+  WEIGHT_DECAY: 0.0005
+  MILESTONES: [40, 70]
+  TOTAL_TRAIN_EPOCH: 120
+  EVAL_EPOCH: 5
+
+TEST:
+  RESUME_TEST_MODEL: 119  # -1 means not resume
+  TEST_MODE: "inter-camera"  # inter-camera, intra-camera, all
+
+SAVE:
+  OUTPUT_PATH: "results/occluded_duke"
+  MAX_SAVE_MODEL_NUM: 1
+  RESUME_TRAIN_EPOCH: -1

@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 import torch
+from config import ConfigNode, load_config
 from core import Base, test, train, visualization
 from data_loader.loader import Loader
 from tools import Logger, make_dirs, os_walk, time_now
@@ -15,48 +16,12 @@ import wandb
 warnings.filterwarnings("ignore")
 
 
-def get_config():
+def get_args():
     parser = argparse.ArgumentParser()
-    # Task
-    parser.add_argument("--task_name", type=str, default="kaggle version")
-    parser.add_argument("--notes", type=str, default="")
-    parser.add_argument("--device", type=str, default="cuda", help="cuda, cpu")
-    parser.add_argument("--tags", type=str, nargs="+", help="master, dev, 对比实验")
-    # Dataset
-    parser.add_argument("--occluded_duke_path", type=str, default="/home/hy/project/data/Occluded_Duke")
-    parser.add_argument("--occluded_reid_path", type=str, default="/opt/data/private/data/Occluded_REID")
-    parser.add_argument("--partial_duke_path", type=str, default="/opt/data/private/data/P_Duke_OURS/new")
-    parser.add_argument("--partial_reid_path", type=str, default="/opt/data/private/data/Partial-REID_Dataset")
-    parser.add_argument("--partial_ilids_path", type=str, default="/opt/data/private/data/Partial_iLIDS")
-    parser.add_argument("--market_path", type=str, default="/opt/data/private/data//Market-1501-v15.09.15")
-    parser.add_argument("--duke_path", type=str, default="/opt/data/private/data/DukeMTMC-reID")
-    parser.add_argument("--msmt_path", type=str, default="/opt/data/private/data/MSMT17")
-    parser.add_argument("--train_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
-    parser.add_argument("--test_dataset", type=str, default="occluded_duke", help="occluded_duke, occluded_reid, " "market, duke")
-    parser.add_argument("--pid_num", type=int, default=702)
-    # Data loader
-    parser.add_argument("--image_size", type=int, nargs="+", default=[256, 128])
-    parser.add_argument("--use_rea", type=ast.literal_eval, default=True, help="use random erasing augmentation")
-    parser.add_argument("--use_colorjitor", type=ast.literal_eval, default=False, help="use random erasing augmentation")
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--batchsize", type=int, default=64)
-    parser.add_argument("--num_instances", type=int, default=8)
-    # Train
-    parser.add_argument("--mode", type=str, default="train", help="train, test, visualization")
-    parser.add_argument("--module", type=str, default="CIP", help="B, CIP_w_Q_L, CIP_w_L, CIP_w_Q, CIP")
-    parser.add_argument("--learning_rate", type=float, default=0.0003)
-    parser.add_argument("--weight_decay", type=float, default=0.0005)
-    parser.add_argument("--milestones", nargs="+", type=int, default=[40, 70], help="milestones for the learning rate decay")
-    parser.add_argument("--total_train_epoch", type=int, default=120)
-    parser.add_argument("--eval_epoch", type=int, default=5)
-    parser.add_argument("--resume_test_model", type=int, default=119, help="-1 for no resuming")
-    parser.add_argument("--test_mode", type=str, default="inter-camera", help="inter-camera, intra-camera, all")
-    # Save
-    parser.add_argument("--output_path", type=str, default="occluded_duke/base/", help="path to save related informations")
-    parser.add_argument("--max_save_model_num", type=int, default=1, help="0 for max num is infinit")
-    parser.add_argument("--resume_train_epoch", type=int, default=-1, help="-1 for no resuming")
-    config = parser.parse_args()
-    return config
+    parser.add_argument("--config_file", type=str, default="main/cfg/test.yml", help="path to config file")
+    parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    return args
 
 
 def seed_torch(seed):
@@ -89,25 +54,23 @@ def main(config):
     best_epoch = 0
 
     # 初始化日志记录器
-    logger_path = os.path.join(config.output_path, "logs/", "logger.log")
+    logger_path = os.path.join(config.SAVE.OUTPUT_PATH, "logs/", "logger.log")
     logger = Logger(logger_path)
     logger("\n" * 3)
     logger(config)
 
-    if config.mode == "train":
+    if config.TASK.MODE == "train":
         ########################################################
         # 训练
         ########################################################
-        for current_epoch in range(0, config.total_train_epoch):
+        for current_epoch in range(0, config.SOLVER.TOTAL_TRAIN_EPOCH):
             model.model_lr_scheduler.step(current_epoch)
-
-            if current_epoch < config.total_train_epoch:
-                results_meter = train(model, loaders, config)
-                logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, results_meter.get_str()))
-                wandb.log({"Lr": model.model_optimizer.param_groups[0]["lr"], **results_meter.get_dict()})
+            results_meter = train(model, loaders, config)
+            logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, results_meter.get_str()))
+            wandb.log({"Lr": model.model_optimizer.param_groups[0]["lr"], **results_meter.get_dict()})
 
             # 每隔一定的epoch进行评估
-            if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
+            if current_epoch + 1 >= 1 and (current_epoch + 1) % config.SOLVER.EVAL_EPOCH == 0:
                 mAP, CMC = test(config, model, loaders)
                 is_best_rank = CMC[0] >= best_rank1
                 if is_best_rank:
@@ -116,7 +79,7 @@ def main(config):
                     best_mAP = mAP
                     wandb.log({"best_epoch": best_epoch, "best_rank1": best_rank1, "best_mAP": best_mAP})
                 model.save_model(current_epoch, is_best_rank)
-                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.DATASET.TEST_DATASET, mAP, CMC))
                 wandb.log({"test_epoch": current_epoch, "mAP": mAP, "Rank1": CMC[0], "Rank5": CMC[4], "Rank10": CMC[9], "Rank20": CMC[19]})
 
         # 训练结束后打印最佳指标
@@ -143,16 +106,17 @@ def main(config):
 
 
 if __name__ == "__main__":
-    config = get_config()
-    seed_torch(config.seed)
+    args = get_args()
+    config = load_config(args.config_file, args.opts)
+    seed_torch(config.TASK.SEED)
 
     # 初始化wandb
     wandb.init(
         entity="yinhuang-team-projects",
         project="multi-view",
-        name=config.task_name,
-        notes=config.notes,
-        tags=config.tags,
+        name=config.TASK.NAME,
+        notes=config.TASK.NOTES,
+        tags=config.TASK.TAGS,
         config=config,
     )
     main(config)
