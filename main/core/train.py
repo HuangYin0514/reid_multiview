@@ -6,9 +6,8 @@ from tqdm import tqdm
 
 def train(base, loaders, config):
     base.set_train()
-    loader = loaders.train_loader
     meter = MultiItemAverageMeter()
-    for epoch, data in enumerate(tqdm(loader)):
+    for epoch, data in enumerate(tqdm(loaders.train_loader)):
         imgs, pids, cids = data
         imgs, pids, cids = imgs.to(base.device), pids.to(base.device).long(), cids.to(base.device).long()
         if config.MODEL.MODULE == "Lucky":
