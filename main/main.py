@@ -15,97 +15,7 @@ import wandb
 warnings.filterwarnings("ignore")
 
 
-def seed_torch(seed):
-    seed = int(seed)
-    random.seed(seed)
-    os.environ["PYTHONASHSEED"] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
-
-def main(config):
-    print("#" * 10)
-    print("Main running...")
-
-    # 加载数据
-    print("Loading data...")
-    loaders = Loader(config)
-
-    # 加载模型
-    print("Loading model...")
-    model = Base(config)
-
-    # 初始化最佳指标
-    best_mAP = 0
-    best_rank1 = 0
-    best_epoch = 0
-
-    # 创建必要的目录
-    make_dirs(model.output_path)
-    make_dirs(model.save_model_path)
-    make_dirs(model.save_logs_path)
-
-    # 初始化日志记录器
-    logger_path = os.path.join(config.output_path, "logs/", "logger.log")
-    logger = Logger(logger_path)
-    logger("\n" * 3)
-    logger(config)
-
-    if config.mode == "train":
-        ########################################################
-        # 训练
-        ########################################################
-        for current_epoch in range(0, config.total_train_epoch):
-            model.model_lr_scheduler.step(current_epoch)
-
-            if current_epoch < config.total_train_epoch:
-                results_meter = train(model, loaders, config)
-
-                logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, results_meter.get_str()))
-                wandb.log({"Lr": model.model_optimizer.param_groups[0]["lr"], **results_meter.get_dict()})
-
-            # 每隔一定的epoch进行评估
-            if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
-                mAP, CMC = test(config, model, loaders)
-                is_best_rank = CMC[0] >= best_rank1
-                if is_best_rank:
-                    best_epoch = current_epoch
-                    best_rank1 = CMC[0]
-                    best_mAP = mAP
-                    wandb.log({"best_epoch": best_epoch, "best_rank1": best_rank1, "best_mAP": best_mAP})
-                model.save_model(current_epoch, is_best_rank)
-                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
-                wandb.log({"test_epoch": current_epoch, "mAP": mAP, "Rank1": CMC[0], "Rank5": CMC[4], "Rank10": CMC[9], "Rank20": CMC[19]})
-
-        # 训练结束后打印最佳指标
-        if best_rank1:
-            logger("=" * 50)
-            logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
-            logger("=" * 50)
-
-    elif config.mode == "test":
-        ########################################################
-        # 测试
-        ########################################################
-        model.resume_model(config.resume_test_model)
-        mAP, CMC = test(config, model, loaders)
-        logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
-
-    elif config.mode == "visualization":
-        ########################################################
-        # 可视化
-        ########################################################
-        loaders._visualization_load()
-        model.resume_model(config.resume_test_model)
-        visualization(config, model, loaders)
-
-
-if __name__ == "__main__":
-
+def get_config():
     parser = argparse.ArgumentParser()
     # Task
     parser.add_argument("--task_name", type=str, default="kaggle version")
@@ -146,6 +56,94 @@ if __name__ == "__main__":
     parser.add_argument("--max_save_model_num", type=int, default=1, help="0 for max num is infinit")
     parser.add_argument("--resume_train_epoch", type=int, default=-1, help="-1 for no resuming")
     config = parser.parse_args()
+    return config
+
+
+def seed_torch(seed):
+    seed = int(seed)
+    random.seed(seed)
+    os.environ["PYTHONASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def main(config):
+    print("#" * 10)
+    print("Main running...")
+
+    # 加载数据
+    print("Loading data...")
+    loaders = Loader(config)
+
+    # 加载模型
+    print("Loading model...")
+    model = Base(config)
+
+    # 初始化最佳指标
+    best_mAP = 0
+    best_rank1 = 0
+    best_epoch = 0
+
+    # 初始化日志记录器
+    logger_path = os.path.join(config.output_path, "logs/", "logger.log")
+    logger = Logger(logger_path)
+    logger("\n" * 3)
+    logger(config)
+
+    if config.mode == "train":
+        ########################################################
+        # 训练
+        ########################################################
+        for current_epoch in range(0, config.total_train_epoch):
+            model.model_lr_scheduler.step(current_epoch)
+
+            if current_epoch < config.total_train_epoch:
+                results_meter = train(model, loaders, config)
+                logger("Time: {}; Epoch: {}; {}".format(time_now(), current_epoch, results_meter.get_str()))
+                wandb.log({"Lr": model.model_optimizer.param_groups[0]["lr"], **results_meter.get_dict()})
+
+            # 每隔一定的epoch进行评估
+            if current_epoch + 1 >= 1 and (current_epoch + 1) % config.eval_epoch == 0:
+                mAP, CMC = test(config, model, loaders)
+                is_best_rank = CMC[0] >= best_rank1
+                if is_best_rank:
+                    best_epoch = current_epoch
+                    best_rank1 = CMC[0]
+                    best_mAP = mAP
+                    wandb.log({"best_epoch": best_epoch, "best_rank1": best_rank1, "best_mAP": best_mAP})
+                model.save_model(current_epoch, is_best_rank)
+                logger("Time: {}; Test on Dataset: {}, \nmAP: {} \nRank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+                wandb.log({"test_epoch": current_epoch, "mAP": mAP, "Rank1": CMC[0], "Rank5": CMC[4], "Rank10": CMC[9], "Rank20": CMC[19]})
+
+        # 训练结束后打印最佳指标
+        if best_rank1:
+            logger("=" * 50)
+            logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
+            logger("=" * 50)
+
+    elif config.mode == "test":
+        ########################################################
+        # 测试
+        ########################################################
+        model.resume_model(config.resume_test_model)
+        mAP, CMC = test(config, model, loaders)
+        logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
+
+    elif config.mode == "visualization":
+        ########################################################
+        # 可视化
+        ########################################################
+        loaders._visualization_load()
+        model.resume_model(config.resume_test_model)
+        visualization(config, model, loaders)
+
+
+if __name__ == "__main__":
+    config = get_config()
     seed_torch(config.seed)
 
     # 初始化wandb

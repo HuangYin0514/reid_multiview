@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from method import Model, scheduler
-from tools import os_walk
+from tools import Logger, make_dirs, os_walk, time_now
 
 
 class Base:
@@ -18,6 +18,9 @@ class Base:
         self.output_path = config.output_path
         self.save_model_path = os.path.join(self.output_path, "models/")
         self.save_logs_path = os.path.join(self.output_path, "logs/")
+        make_dirs(self.output_path)
+        make_dirs(self.save_model_path)
+        make_dirs(self.save_logs_path)
 
         self.learning_rate = config.learning_rate
         self.weight_decay = config.weight_decay
