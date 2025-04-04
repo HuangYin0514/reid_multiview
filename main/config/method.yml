@@ -8,7 +8,11 @@ TASK:
 
 MODEL:
   MODULE: "Lucky"  
-
+  BACKBONE_FEATURES_DIM: 2048
+  EMBEDDING_FEATURES_DIM: 512
+  PART_NUM: 2
+  NUM_ATTENTION: 2
+  
 DATASET:
   TRAIN_DATASET: "occluded_duke"
   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
@@ -32,10 +36,9 @@ SOLVER:
   EVAL_EPOCH: 5
 
 TEST:
-  RESUME_TEST_MODEL: 119  # -1 means not resume
+  RESUME_TEST_MODEL: 119  
   TEST_MODE: "inter-camera"  # inter-camera, intra-camera, all
 
 SAVE:
   OUTPUT_PATH: "results/occluded_duke"
   MAX_SAVE_MODEL_NUM: 1
-  RESUME_TRAIN_EPOCH: -1

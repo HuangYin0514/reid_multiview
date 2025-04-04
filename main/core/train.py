@@ -25,7 +25,7 @@ def train(base, loaders, config):
             hard_global_loss = hard_global_pid_loss + hard_global_triplet_loss
 
             ## Parts
-            PART_NUM = 2
+            PART_NUM = config.MODEL.PART_NUM
             hard_part_chunk_features = torch.chunk(hard_features, PART_NUM, dim=2)
             hard_part_embedding_features_list = []
             hard_part_pid_loss = 0.0

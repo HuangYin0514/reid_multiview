@@ -7,8 +7,10 @@ from .module import resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super(Backbone, self).__init__()
+        self.config = config
+
         # ----------------- Resnet -----------------
         resnet = resnet50(pretrained=True)
         # resnet = resnet50_ibn_a(pretrained=True)
