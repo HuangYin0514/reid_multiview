@@ -87,7 +87,7 @@ def train(base, loaders, config):
             # fusion_loss = fusion_pid_loss + fusion_triplet_loss
 
             # ------------- Fusion content branch -----------------------
-            # hard_soft_distillation_loss = base.model.module.distillation_loss(hard_global_bn_features, soft_upstream_global_bn_features)
+            hard_soft_distillation_loss = base.model.module.distillation_loss(hard_global_bn_features, soft_upstream_global_bn_features)
 
             #################################################################
             # Total loss
@@ -101,7 +101,15 @@ def train(base, loaders, config):
             #     + soft_downstream_attention_loss
             #     + hard_soft_distillation_loss
             # )
-            total_loss = hard_global_loss + hard_part_loss + soft_upstream_global_loss + soft_downstream_global_loss + soft_upstream_attention_loss + soft_downstream_attention_loss
+            total_loss = (
+                hard_global_loss
+                + hard_part_loss
+                + soft_upstream_global_loss
+                + soft_downstream_global_loss
+                + soft_upstream_attention_loss
+                + soft_downstream_attention_loss
+                + hard_soft_distillation_loss
+            )
 
             base.model_optimizer.zero_grad()
             total_loss.backward()

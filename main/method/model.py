@@ -60,7 +60,7 @@ class Model(nn.Module):
         # self.fusion_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * 4, config.DATASET.PID_NUM)
 
         # ------------- Distillation Loss -----------------------
-        # self.distillation_loss = innovation.Distillation_Loss(EMBEDDING_FEATURES_DIM)
+        self.distillation_loss = innovation.Distillation_Loss(EMBEDDING_FEATURES_DIM)
 
     def heatmap(self, x):
         return None

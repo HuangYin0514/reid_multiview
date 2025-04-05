@@ -29,5 +29,5 @@ class Distillation_Loss(nn.Module):
         z2 = featrue_2
         p1 = self.predictor1(z1)
         p2 = self.predictor2(z2)
-        loss = -0.5 * (F.cosine_similarity(p1, z2.detach(), dim=1).mean() + F.cosine_similarity(p2, z1.detach(), dim=1).mean())
+        loss = 0.5 * ((-1) * F.cosine_similarity(p1, z2.detach(), dim=1).mean() + (-1) * F.cosine_similarity(p2, z1.detach(), dim=1).mean())
         return loss
