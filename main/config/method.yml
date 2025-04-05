@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GAGA"
-  NOTES: "v607"
+  NOTES: "v608"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
