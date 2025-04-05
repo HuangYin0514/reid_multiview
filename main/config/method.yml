@@ -1,5 +1,5 @@
 TASK:
-  NAME: "R_H2GP_S2GAGA_D"
+  NAME: "R_H2GP"
   NOTES: "v609"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
@@ -11,7 +11,6 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   EMBEDDING_FEATURES_DIM: 512
   PART_NUM: 2
-  NUM_ATTENTION: 2
   
 DATASET:
   TRAIN_DATASET: "occluded_duke"
