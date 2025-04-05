@@ -1,6 +1,6 @@
 TASK:
-  NAME: "R_H2GP"
-  NOTES: "v610"
+  NAME: "R_H2GP_M2DF"
+  NOTES: "v611"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -11,7 +11,8 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   EMBEDDING_FEATURES_DIM: 512
   PART_NUM: 2
-  
+  VIEW_NUM: 4
+
 DATASET:
   TRAIN_DATASET: "occluded_duke"
   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"

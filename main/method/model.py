@@ -36,6 +36,14 @@ class Model(nn.Module):
         self.hard_part_pooling = hard_part_pooling
         self.hard_part_classifier = hard_part_classifier
 
+        # ------------- Multiview content branch -----------------------
+        self.multiview_global_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
+        self.multiview_global_pooling = module.GeneralizedMeanPoolingP()
+        self.multiview_global_decoupling = innovation.decoupling.Feature_Decoupling_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
+        self.multiview_global_shared_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
+        self.multiview_global_specific_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
+        self.multiview_global_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * 2, config.DATASET.PID_NUM)
+
     def heatmap(self, x):
         return None
 
