@@ -76,7 +76,7 @@ class Dualscale_Attention(nn.Module):
         attentions = self.attention(features)
         selected_attentions = self.select_attention(attentions)
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
-        return attentions, bap_AiF_features, bap_features
+        return selected_attentions, bap_AiF_features, bap_features
 
 
 class Guide_Dualscale_Attention(Dualscale_Attention):
@@ -93,4 +93,4 @@ class Guide_Dualscale_Attention(Dualscale_Attention):
         selected_attentions = self.select_attention(new_attentions)
 
         bap_AiF_features, bap_features = self.bap(selected_attentions, features_l4)
-        return new_attentions, bap_AiF_features, bap_features
+        return selected_attentions, bap_AiF_features, bap_features
