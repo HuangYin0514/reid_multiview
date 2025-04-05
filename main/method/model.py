@@ -54,13 +54,13 @@ class Model(nn.Module):
         self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, EMBEDDING_FEATURES_DIM, NUM_ATTENTION)
         self.soft_downstream_attention_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * NUM_ATTENTION, config.DATASET.PID_NUM)
 
-        # ------------- fuson content branch -----------------------
-        self.fusion = innovation.fusion.Fusion(EMBEDDING_FEATURES_DIM)
-        self.fusion_pooling = module.GeneralizedMeanPoolingP()
-        self.fusion_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * 4, config.DATASET.PID_NUM)
+        # # ------------- fuson content branch -----------------------
+        # self.fusion = innovation.fusion.Fusion(EMBEDDING_FEATURES_DIM)
+        # self.fusion_pooling = module.GeneralizedMeanPoolingP()
+        # self.fusion_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * 4, config.DATASET.PID_NUM)
 
         # ------------- Distillation Loss -----------------------
-        self.distillation_loss = innovation.Distillation_Loss(EMBEDDING_FEATURES_DIM)
+        # self.distillation_loss = innovation.Distillation_Loss(EMBEDDING_FEATURES_DIM)
 
     def heatmap(self, x):
         return None
@@ -112,7 +112,9 @@ class Model(nn.Module):
             eval_features.append(soft_downstream_global_bn_features)
 
             # Downstream attention
-            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.guide_dualscale_attention(soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions)
+            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.guide_dualscale_attention(
+                soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions
+            )
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             eval_features.append(soft_downstream_attention_bn_features)
 
