@@ -100,7 +100,9 @@ class Model(nn.Module):
             eval_features.append(soft_upstream_global_bn_features)
 
             # Upstream attention
-            soft_upstream_attention_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = self.soft_upstream_attention(soft_features_l4)
+            soft_upstream_attention_attentions, soft_upstream_attention_selected_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = (
+                self.soft_upstream_attention(soft_features_l4)
+            )
             soft_upstream_attention_bn_features, soft_upstream_attention_cls_score = self.soft_upstream_attention_classifier(soft_upstream_attention_bap_features)
             eval_features.append(soft_upstream_attention_bn_features)
 
@@ -112,17 +114,11 @@ class Model(nn.Module):
             eval_features.append(soft_downstream_global_bn_features)
 
             # Downstream attention
-            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.guide_dualscale_attention(
+            soft_downstream_attention_selected_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = self.guide_dualscale_attention(
                 soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions
             )
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = self.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             eval_features.append(soft_downstream_attention_bn_features)
-
-            # # ------------- Fusion content branch -----------------------
-            # fusion_features = self.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)
-            # fusion_pooling_features = self.fusion_pooling(fusion_features).squeeze()
-            # fusion_bn_features, fusion_cls_score = self.fusion_classifier(fusion_pooling_features)
-            # eval_features.append(fusion_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 

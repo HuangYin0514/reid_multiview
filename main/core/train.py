@@ -50,11 +50,13 @@ def train(base, loaders, config):
             soft_upstream_global_loss = soft_upstream_global_pid_loss + soft_upstream_global_triplet_loss
 
             # Upstream attention
-            soft_upstream_attention_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = base.model.module.soft_upstream_attention(soft_features_l4)
+            soft_upstream_attention_attentions, soft_upstream_attention_selected_attentions, soft_upstream_attention_bap_AiF_features, soft_upstream_attention_bap_features = (
+                base.model.module.soft_upstream_attention(soft_features_l4)
+            )
             soft_upstream_attention_bn_features, soft_upstream_attention_cls_score = base.model.module.soft_upstream_attention_classifier(soft_upstream_attention_bap_features)
             soft_upstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_upstream_attention_cls_score, pids)
             soft_upstream_attention_diversity_loss = innovation.diversity_loss(soft_upstream_attention_bap_AiF_features)
-            soft_upstream_attention_regularization_loss = 0.001 * 1 / soft_upstream_attention_attentions.shape[0] * torch.sum(soft_upstream_attention_attentions)
+            soft_upstream_attention_regularization_loss = 0.001 * 1 / soft_upstream_attention_selected_attentions.shape[0] * torch.sum(soft_upstream_attention_selected_attentions)
             soft_upstream_attention_loss = soft_upstream_attention_pid_loss + soft_upstream_attention_diversity_loss + soft_upstream_attention_regularization_loss
 
             # Downstream
@@ -67,13 +69,13 @@ def train(base, loaders, config):
             soft_downstream_global_loss = soft_downstream_global_pid_loss + soft_downstream_global_triplet_loss
 
             # Downstream attention
-            soft_downstream_attention_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = base.model.module.guide_dualscale_attention(
+            soft_downstream_attention_selected_attentions, soft_downstream_attention_bap_AiF_features, soft_downstream_attention_bap_features = base.model.module.guide_dualscale_attention(
                 soft_features_l3, soft_downstream_l4_embedding_features, soft_upstream_attention_attentions
             )
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = base.model.module.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             soft_downstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_downstream_attention_cls_score, pids)
             soft_downstream_attention_diversity_loss = innovation.diversity_loss(soft_downstream_attention_bap_AiF_features)
-            soft_downstream_attention_regularization_loss = 0.001 * 1 / soft_downstream_attention_attentions.shape[0] * torch.sum(soft_downstream_attention_attentions)
+            soft_downstream_attention_regularization_loss = 0.001 * 1 / soft_downstream_attention_selected_attentions.shape[0] * torch.sum(soft_downstream_attention_selected_attentions)
             soft_downstream_attention_loss = soft_downstream_attention_pid_loss + soft_downstream_attention_diversity_loss + soft_downstream_attention_regularization_loss
 
             # # ------------- Fusion content branch -----------------------
