@@ -56,8 +56,8 @@ def train(base, loaders, config):
             soft_upstream_attention_bn_features, soft_upstream_attention_cls_score = base.model.module.soft_upstream_attention_classifier(soft_upstream_attention_bap_features)
             soft_upstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_upstream_attention_cls_score, pids)
             soft_upstream_attention_diversity_loss = innovation.diversity_loss(soft_upstream_attention_bap_AiF_features)
-            soft_upstream_attention_regularization_loss = 0.001 * 1 / soft_upstream_attention_selected_attentions.shape[0] * torch.sum(soft_upstream_attention_selected_attentions)
-            soft_upstream_attention_loss = soft_upstream_attention_pid_loss + soft_upstream_attention_diversity_loss + soft_upstream_attention_regularization_loss
+            # soft_upstream_attention_regularization_loss = 0.001 * 1 / soft_upstream_attention_selected_attentions.shape[0] * torch.sum(soft_upstream_attention_selected_attentions)
+            soft_upstream_attention_loss = soft_upstream_attention_pid_loss + soft_upstream_attention_diversity_loss
 
             # Downstream
             soft_downstream_l4_embedding_features = base.model.module.soft_downstream_l4_embedding(soft_features_l3)
@@ -75,8 +75,8 @@ def train(base, loaders, config):
             soft_downstream_attention_bn_features, soft_downstream_attention_cls_score = base.model.module.soft_downstream_attention_classifier(soft_downstream_attention_bap_features)
             soft_downstream_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_downstream_attention_cls_score, pids)
             soft_downstream_attention_diversity_loss = innovation.diversity_loss(soft_downstream_attention_bap_AiF_features)
-            soft_downstream_attention_regularization_loss = 0.001 * 1 / soft_downstream_attention_selected_attentions.shape[0] * torch.sum(soft_downstream_attention_selected_attentions)
-            soft_downstream_attention_loss = soft_downstream_attention_pid_loss + soft_downstream_attention_diversity_loss + soft_downstream_attention_regularization_loss
+            # soft_downstream_attention_regularization_loss = 0.001 * 1 / soft_downstream_attention_selected_attentions.shape[0] * torch.sum(soft_downstream_attention_selected_attentions)
+            soft_downstream_attention_loss = soft_downstream_attention_pid_loss + soft_downstream_attention_diversity_loss
 
             # # ------------- Fusion content branch -----------------------
             # fusion_features = base.model.module.fusion(soft_upstream_global_features, hard_part_embedding_features_list, soft_upstream_global_features, soft_downstream_global_embedding_features)

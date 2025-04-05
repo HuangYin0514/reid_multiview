@@ -79,11 +79,17 @@ class Dualscale_Attention(nn.Module):
         return attentions, selected_attentions, bap_AiF_features, bap_features
 
 
-class Guide_Dualscale_Attention(Dualscale_Attention):
+class Guide_Dualscale_Attention(nn.Module):
     def __init__(self, input_dim, out_dim, num_attention=2):
-        super(Guide_Dualscale_Attention, self).__init__(input_dim, out_dim, num_attention)
+        super(Guide_Dualscale_Attention, self).__init__()
+        self.num_attention = num_attention
         self.attention_upsample = pam_up_samper.PamUpSamper(num_attention + 1, num_attention + 1, bias=False, scale=1.0)
         self.attention = BasicConv2d(input_dim + num_attention + 1, num_attention + 1)
+        self.bap = Bap(input_dim, out_dim, num_attention)
+
+    def select_attention(self, attention):
+        attention = torch.softmax(attention, dim=1)  # The last one is background.
+        return attention[:, : self.num_attention]
 
     def forward(self, features_l3, features_l4, attentions):
 
