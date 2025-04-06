@@ -52,8 +52,7 @@ def train(base, loaders, config):
 
             multiview_global_bn_features, multiview_global_cls_score = base.model.module.multiview_global_classifier(multiview_global_fusion_embedding_features)
             multiview_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_global_cls_score, multiview_global_fusion_pids)
-            multiview_global_triplet_loss = loss_function.TripletLoss()(multiview_global_fusion_embedding_features, multiview_global_fusion_pids)[0]
-            multiview_global_loss = multiview_global_pid_loss + multiview_global_triplet_loss
+            multiview_global_loss = multiview_global_pid_loss
             total_loss += multiview_global_loss
 
             # ------------- ContrastLoss  -----------------------
