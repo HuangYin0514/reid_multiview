@@ -42,7 +42,8 @@ class Model(nn.Module):
         self.multiview_global_decoupling = innovation.decoupling.Feature_Decoupling_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
         self.multiview_global_shared_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
         self.multiview_global_specific_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
-        self.multiview_global_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * 2, config.DATASET.PID_NUM)
+        self.multiview_global_fusion_embedding = module.embedding.Embedding(EMBEDDING_FEATURES_DIM * 2, EMBEDDING_FEATURES_DIM)
+        self.multiview_global_classifier = module.Classifier(EMBEDDING_FEATURES_DIM, config.DATASET.PID_NUM)
 
     def heatmap(self, x):
         return None
