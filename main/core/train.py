@@ -48,7 +48,7 @@ def train(base, loaders, config):
 
             # F: Fusion
             multiview_global_shared_fusion_features, integrating_pids = base.model.module.multiview_global_shared_feature_fusion(multiview_global_shared_features, pids)
-            multiview_global_specific_fusion_features, integrating_pids = base.model.module.multiview_global_shared_feature_fusion(multiview_global_specific_features, pids)
+            multiview_global_specific_fusion_features, integrating_pids = base.model.module.multiview_global_specific_feature_fusion(multiview_global_specific_features, pids)
             multiview_global_fusion_features = torch.cat([multiview_global_shared_fusion_features, multiview_global_specific_fusion_features], dim=1)
             multiview_global_fusion_embeding_features = base.model.module.multiview_global_fusion_embedding(multiview_global_fusion_features.unsqueeze(2).unsqueeze(3)).squeeze()
             multiview_global_bn_features, multiview_global_cls_score = base.model.module.multiview_global_classifier(multiview_global_fusion_embeding_features)
