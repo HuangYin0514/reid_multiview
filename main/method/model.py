@@ -13,7 +13,7 @@ class Model(nn.Module):
         BACKBONE_FEATURES_DIM = config.MODEL.BACKBONE_FEATURES_DIM
         EMBEDDING_FEATURES_DIM = config.MODEL.EMBEDDING_FEATURES_DIM
         PART_NUM = config.MODEL.PART_NUM
-        NUM_ATTENTION = config.MODEL.NUM_ATTENTION
+        VIEW_NUM = config.MODEL.VIEW_NUM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone(config)
@@ -39,10 +39,8 @@ class Model(nn.Module):
         # ------------- Multiview content branch -----------------------
         self.multiview_global_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
         self.multiview_global_pooling = module.GeneralizedMeanPoolingP()
-        self.multiview_global_decoupling = innovation.decoupling.Feature_Decoupling_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
-        self.multiview_global_shared_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
-        self.multiview_global_specific_feature_fusion = innovation.decoupling.Feature_Fusion_Net(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM, config.MODEL.VIEW_NUM)
-        self.multiview_global_fusion_embedding = module.embedding.Embedding(EMBEDDING_FEATURES_DIM * 2, EMBEDDING_FEATURES_DIM)
+        self.multiview_global_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)
+        self.multiview_global_fusion_embedding = module.embedding.Embedding(EMBEDDING_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
         self.multiview_global_classifier = module.Classifier(EMBEDDING_FEATURES_DIM, config.DATASET.PID_NUM)
 
     def heatmap(self, x):
