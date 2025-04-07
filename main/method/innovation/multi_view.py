@@ -78,7 +78,7 @@ class ContrastLoss(nn.Module):
         chunk_bs = int(bs / self.view_num)
 
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(chunk_bs):
+        for i in range(bs):
             new_features_2[i * self.view_num : i * self.view_num + self.view_num] = features_2[i]
         loss = 0.448 / bs * torch.norm((features_1 - new_features_2), p=2)
         return loss
