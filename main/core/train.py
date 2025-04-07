@@ -45,11 +45,11 @@ def train(base, loaders, config):
             total_loss += hard_part_loss
 
             # ------------- Multiview content branch  -----------------------
-            multiview_global_embedding_feature_maps = base.model.module.multiview_global_embedding(hard_features)
-            multiview_global_embedding_features = base.model.module.multiview_global_pooling(multiview_global_embedding_feature_maps).squeeze()
-            multiview_global_fusion_features, multiview_global_fusion_pids = base.model.module.multiview_global_feature_fusion(multiview_global_embedding_features, pids)
+            # multiview_global_embedding_feature_maps = base.model.module.multiview_global_embedding(hard_features)
+            # multiview_global_embedding_features = base.model.module.multiview_global_pooling(multiview_global_embedding_feature_maps).squeeze()
+            # multiview_global_fusion_features, multiview_global_fusion_pids = base.model.module.multiview_global_feature_fusion(multiview_global_embedding_features, pids)
 
-            # multiview_global_fusion_features, multiview_global_fusion_pids = base.model.module.multiview_global_feature_fusion(hard_global_pooling_features, pids)
+            multiview_global_fusion_features, multiview_global_fusion_pids = base.model.module.multiview_global_feature_fusion(hard_global_pooling_features, pids)
 
             multiview_global_bn_features, multiview_global_cls_score = base.model.module.multiview_global_classifier(multiview_global_fusion_features)
             multiview_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_global_cls_score, multiview_global_fusion_pids)
