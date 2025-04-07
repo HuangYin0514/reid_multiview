@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_M2PQF_C"
-  NOTES: "v624"
+  NOTES: "v623"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
