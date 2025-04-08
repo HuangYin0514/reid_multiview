@@ -16,12 +16,30 @@ class MultiviewFeatureFusion(nn.Module):
 
         # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
         fused = features.view(chunk_size, self.view_num, C)
-        fusion_features = fused.sum(dim=1)  # or .mean(dim=1)
+        fusion_features = fused.mean(dim=1)  # or .mean(dim=1)
 
         # 保留每组的第一个pid [size] -> [chunk_size]
         fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
 
         return fusion_features, fusion_pids
+
+    """
+    def forward(self, features, pids):
+        size = features.size(0)
+        chunk_size = int(size / self.view_num)  # 16
+        c = features.size(1)
+
+        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
+        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
+
+        for i in range(chunk_size):
+            integrating_features[i] = 1 * (
+                features[self.view_num * i] + features[self.view_num * i + 1] + features[self.view_num * i + 2] + features[self.view_num * i + 3]
+            )
+            integrating_pids[i] = pids[self.view_num * i]
+
+        return integrating_features, integrating_pids
+    """
 
 
 class FeatureQuantification(nn.Module):
@@ -85,14 +103,9 @@ class ContrastLoss(nn.Module):
         return loss
     """
 
-    def forward(self, features_1, features_2, enable_regularization=True):
+    def forward(self, features_1, features_2):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(features_1.size(0) / 4)):
+        for i in range(int(features_2.size(0) / 4)):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-
-        loss = 0
-        loss += torch.norm((features_1 - new_features_2), p=2)
-        if enable_regularization:
-            loss += torch.norm((features_1), p=2)
-        loss = 0.007 * loss
+        loss = 0.007 * torch.norm((features_1 - new_features_2), p=2)
         return loss
