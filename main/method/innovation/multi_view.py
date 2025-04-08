@@ -9,12 +9,13 @@ class MultiviewFeatureFusion(nn.Module):
         super(MultiviewFeatureFusion, self).__init__()
         self.view_num = view_num
 
+    """
     def forward(self, features, pids):
         size = features.size(0)
         chunk_size = int(size / self.view_num)  # 16
         C = features.size(1)
 
-        # Reshape: [batch_size, C] -> [chunk_size, view_num, C]
+        # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
         fused = features.view(chunk_size, self.view_num, C)
         fusion_features = fused.sum(dim=1)  # or .mean(dim=1)
 
@@ -22,6 +23,23 @@ class MultiviewFeatureFusion(nn.Module):
         fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
 
         return fusion_features, fusion_pids
+    """
+
+    def forward(self, features, pids):
+        size = features.size(0)
+        chunk_size = int(size / self.view_num)  # 16
+        c = features.size(1)
+
+        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
+        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
+
+        for i in range(chunk_size):
+            integrating_features[i] = 1 * (
+                features[self.view_num * i] + features[self.view_num * i + 1] + features[self.view_num * i + 2] + features[self.view_num * i + 3]
+            )
+            integrating_pids[i] = pids[self.view_num * i]
+
+        return integrating_features, integrating_pids
 
 
 class FeatureQuantification(nn.Module):
@@ -73,7 +91,7 @@ class ContrastLoss(nn.Module):
         super(ContrastLoss, self).__init__()
         self.view_num = view_num
 
-    def forward(self, features_1, features_2):
+    """    def forward(self, features_1, features_2):
         bs = features_1.size(0)
         chunk_bs = int(bs / self.view_num)
 
@@ -82,4 +100,12 @@ class ContrastLoss(nn.Module):
             new_features_2[i * self.view_num : i * self.view_num + self.view_num] = features_2[i]
         # loss = 0.448 / bs * torch.norm((features_1 - new_features_2), p=2)
         loss = 0.007 * torch.norm((features_1 - new_features_2.detach()), p=2)
+        return loss
+    """
+
+    def forward(self, features_1, features_2):
+        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
+        for i in range(int(features_2.size(0) / 4)):
+            new_features_2[i * 4 : i * 4 + 4] = features_2[i]
+        loss = torch.norm((features_1 - new_features_2), p=2)
         return loss
