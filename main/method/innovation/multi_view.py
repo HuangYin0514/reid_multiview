@@ -9,7 +9,6 @@ class MultiviewFeatureFusion(nn.Module):
         super(MultiviewFeatureFusion, self).__init__()
         self.view_num = view_num
 
-    """
     def forward(self, features, pids):
         size = features.size(0)
         chunk_size = int(size / self.view_num)  # 16
@@ -23,8 +22,8 @@ class MultiviewFeatureFusion(nn.Module):
         fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
 
         return fusion_features, fusion_pids
-    """
 
+    """
     def forward(self, features, pids):
         size = features.size(0)
         chunk_size = int(size / self.view_num)  # 16
@@ -40,6 +39,7 @@ class MultiviewFeatureFusion(nn.Module):
             integrating_pids[i] = pids[self.view_num * i]
 
         return integrating_features, integrating_pids
+    """
 
 
 class FeatureQuantification(nn.Module):
