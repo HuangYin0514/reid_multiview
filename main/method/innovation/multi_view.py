@@ -94,7 +94,7 @@ class ContrastLoss(nn.Module):
         self.projector = nn.Sequential(
             nn.Linear(embedding_dim, embedding_dim, bias=False),
             nn.ReLU(),
-            nn.Linear(embedding_dim, embedding_dim, bias=False),
+            nn.Linear(embedding_dim, 128, bias=False),
         )
 
     def forward(self, features_1, features_2):
@@ -104,5 +104,5 @@ class ContrastLoss(nn.Module):
 
         z1 = self.projector(features_1)
         z2 = self.projector(new_features_2)
-        loss = 0.05 * torch.norm((z1 - z2), p=2)
+        loss = 0.05 * torch.norm((z1 - z2.detach()), p=2)
         return loss
