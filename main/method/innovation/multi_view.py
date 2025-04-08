@@ -116,5 +116,5 @@ class ContrastLoss(nn.Module):
 
         z1 = self.projector(features_1)
         z2 = self.projector(new_features_2)
-        loss = 0.007 * torch.norm((z1 - z2), p=2)
+        loss = 0.05 * torch.norm((z1 - z2), p=2)
         return loss
