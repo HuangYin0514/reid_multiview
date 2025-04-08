@@ -87,9 +87,15 @@ class FeatureMapLocation(nn.Module):
 
 
 class ContrastLoss(nn.Module):
-    def __init__(self, view_num):
+    def __init__(self, view_num, embedding_dim=2048):
         super(ContrastLoss, self).__init__()
         self.view_num = view_num
+
+        self.projector = nn.Sequential(
+            nn.Linear(embedding_dim, embedding_dim, bias=False),
+            nn.ReLU(),
+            nn.Linear(embedding_dim, embedding_dim, bias=False),
+        )
 
     """    def forward(self, features_1, features_2):
         bs = features_1.size(0)
@@ -107,5 +113,8 @@ class ContrastLoss(nn.Module):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
         for i in range(int(features_2.size(0) / 4)):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.007 * torch.norm((features_1 - new_features_2), p=2)
+
+        z1 = self.projector(features_1)
+        z2 = self.projector(new_features_2)
+        loss = 0.007 * torch.norm((z1 - z2), p=2)
         return loss
