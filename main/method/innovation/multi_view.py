@@ -97,21 +97,9 @@ class ContrastLoss(nn.Module):
             nn.Linear(embedding_dim, embedding_dim, bias=False),
         )
 
-    """    def forward(self, features_1, features_2):
-        bs = features_1.size(0)
-        chunk_bs = int(bs / self.view_num)
-
-        new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(chunk_bs / self.view_num)):
-            new_features_2[i * self.view_num : i * self.view_num + self.view_num] = features_2[i]
-        # loss = 0.448 / bs * torch.norm((features_1 - new_features_2), p=2)
-        loss = 0.007 * torch.norm((features_1 - new_features_2.detach()), p=2)
-        return loss
-    """
-
     def forward(self, features_1, features_2):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
-        for i in range(int(features_2.size(0) / 4)):
+        for i in range(int(features_1.size(0) / 4)):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
 
         z1 = self.projector(features_1)
