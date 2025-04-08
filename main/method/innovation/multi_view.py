@@ -23,24 +23,6 @@ class MultiviewFeatureFusion(nn.Module):
 
         return fusion_features, fusion_pids
 
-    """
-    def forward(self, features, pids):
-        size = features.size(0)
-        chunk_size = int(size / self.view_num)  # 16
-        c = features.size(1)
-
-        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
-
-        for i in range(chunk_size):
-            integrating_features[i] = 1 * (
-                features[self.view_num * i] + features[self.view_num * i + 1] + features[self.view_num * i + 2] + features[self.view_num * i + 3]
-            )
-            integrating_pids[i] = pids[self.view_num * i]
-
-        return integrating_features, integrating_pids
-    """
-
 
 class FeatureQuantification(nn.Module):
 
