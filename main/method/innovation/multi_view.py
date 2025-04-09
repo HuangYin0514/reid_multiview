@@ -98,5 +98,5 @@ class ContrastLoss(nn.Module):
 
         input1_normed = F.normalize(features_1, p=2, dim=1)
         input2_normed = F.normalize(new_features_2, p=2, dim=1)
-        loss = 0.05 * torch.norm((input1_normed - input2_normed), p=2)
+        loss = 0.07 * torch.norm((input1_normed - input2_normed), p=2)
         return loss
