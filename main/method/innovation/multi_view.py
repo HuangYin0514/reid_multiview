@@ -63,25 +63,25 @@ class FeatureMapLocation(nn.Module):
         super(FeatureMapLocation, self).__init__()
 
     def forward(self, features_map, pids, classifier):
-        size = features_map.size(0)
-        c, h, w = features_map.size(1), features_map.size(2), features_map.size(3)
-        localized_features_map = torch.zeros([size, c, h, w]).to(features_map.device)
+        size, c, h, w = features_map.size()
 
-        heatmaps = torch.zeros((size, h, w), device=features_map.device)
-        for i in range(size):
-            classifier_name = []
-            classifier_params = []
-            for name, param in classifier.named_parameters():
-                classifier_name.append(name)
-                classifier_params.append(param)
-            heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
-            if heatmap_i.max() != 0:
-                heatmap_i = (heatmap_i - heatmap_i.min()) / (heatmap_i.max() - heatmap_i.min())
-            heatmap_i = heatmap_i.reshape(h, w)
-            heatmap_i = torch.tensor(heatmap_i)
-            heatmaps[i, :, :] = heatmap_i
+        # 提前提取分类器最后一层的权重
+        with torch.no_grad():
+            classifier_weight = list(classifier.parameters())[-1]  # shape: [num_classes, c]
+            selected_weights = classifier_weight[pids]  # shape: [batch_size, c]
 
-        localized_features_map = features_map * heatmaps.unsqueeze(1).clone().detach()
+            # 计算热力图
+            features_map_flat = features_map.view(size, c, h * w)  # [batch, c, h*w]
+            heatmaps = torch.bmm(selected_weights.unsqueeze(1), features_map_flat)  # [batch, 1, h*w]
+            heatmaps = heatmaps.view(size, h, w)
+
+            # 归一化
+            heatmaps_min = heatmaps.view(size, -1).min(dim=1, keepdim=True)[0].view(size, 1, 1)
+            heatmaps_max = heatmaps.view(size, -1).max(dim=1, keepdim=True)[0].view(size, 1, 1)
+            heatmaps = (heatmaps - heatmaps_min) / (heatmaps_max - heatmaps_min + 1e-6)  # 避免除以0
+
+        # 应用热力图
+        localized_features_map = features_map * heatmaps.unsqueeze(1)
 
         return localized_features_map
 
@@ -107,5 +107,5 @@ class ContrastLoss(nn.Module):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
         for i in range(int(features_1.size(0) / 4)):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.0001 * torch.norm((features_1 - new_features_2), p=2)
+        loss = 0.005 * torch.norm((features_1 - new_features_2), p=2)
         return loss
