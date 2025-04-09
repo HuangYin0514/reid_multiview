@@ -95,5 +95,8 @@ class ContrastLoss(nn.Module):
         new_features_2 = torch.zeros(features_1.size()).to(features_1.device)
         for i in range(int(features_1.size(0) / 4)):
             new_features_2[i * 4 : i * 4 + 4] = features_2[i]
-        loss = 0.0009 * torch.norm((features_1 - new_features_2), p=2)
+
+        input1_normed = F.normalize(features_1, p=2, dim=1)
+        input2_normed = F.normalize(new_features_2, p=2, dim=1)
+        loss = 0.001 * torch.norm((input1_normed - input2_normed), p=2)
         return loss
