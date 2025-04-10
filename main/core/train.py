@@ -16,19 +16,42 @@ def train(base, loaders, config):
             # R: Resnet
             resnet_feature_maps = base.model(imgs)
 
-            # ------------- Global content branch -----------------------
-            global_features = base.model.module.global_pooling(resnet_feature_maps).squeeze()
-            global_bn_features, global_cls_score = base.model.module.global_classifier(global_features)
-            global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(global_cls_score, pids)
-            total_loss += global_pid_loss
+            # ------------- Hard content branch -----------------------
+            # Global
+            hard_global_embedding_features = base.model.module.hard_global_embedding(resnet_feature_maps)
+            hard_global_pooling_features = base.model.module.hard_global_pooling(hard_global_embedding_features).squeeze()
+            hard_global_bn_features, hard_global_cls_score = base.model.module.hard_global_classifier(hard_global_pooling_features)
+            hard_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(hard_global_cls_score, pids)
+            hard_global_triplet_loss = loss_function.TripletLoss()(hard_global_pooling_features, pids)[0]
+            hard_global_loss = hard_global_pid_loss + hard_global_triplet_loss
+            total_loss += hard_global_loss
+
+            # Parts
+            PART_NUM = config.MODEL.PART_NUM
+            hard_part_chunk_features = torch.chunk(resnet_feature_maps, PART_NUM, dim=2)
+            hard_part_embedding_features_list = []
+            hard_part_pid_loss = 0.0
+            hard_part_triplet_loss = 0.0
+            for i in range(PART_NUM):
+                hard_part_chunk_feature_item = hard_part_chunk_features[i]
+                hard_part_embedding_features = base.model.module.hard_part_embedding[i](hard_part_chunk_feature_item)
+                hard_part_embedding_features_list.append(hard_part_embedding_features)
+                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_embedding_features).squeeze()
+                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
+                hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
+                hard_part_triplet_loss += loss_function.TripletLoss()(hard_part_pooling_features, pids)[0]
+            hard_part_loss = hard_part_pid_loss + hard_part_triplet_loss
+            total_loss += hard_part_loss
 
             # ------------- Multiview content branch  -----------------------
             # Positioning
-            multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
+            multiview_localized_features_map = base.model.module.multiview_feature_map_location(
+                hard_global_embedding_features, pids, base.model.module.hard_global_classifier
+            )
 
             # Quantification
             multiview_localized_features = base.model.module.multiview_pooling(multiview_localized_features_map).squeeze()
-            _, multiview_localized_cls_score = base.model.module.global_classifier(multiview_localized_features)
+            _, multiview_localized_cls_score = base.model.module.hard_global_classifier(multiview_localized_features)
             multiview_quantified_localized_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_features, multiview_localized_cls_score, pids
             )
@@ -41,7 +64,7 @@ def train(base, loaders, config):
             total_loss += multiview_pid_loss
 
             # ------------- ContrastLoss  -----------------------
-            contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_fusion_bn_features)
+            contrast_loss = base.model.module.contrast_loss(hard_global_bn_features, multiview_fusion_bn_features)
             total_loss += contrast_loss
 
             base.model_optimizer.zero_grad()
@@ -50,7 +73,8 @@ def train(base, loaders, config):
 
             meter.update(
                 {
-                    "global_pid_loss": global_pid_loss.data,
+                    "hard_global_loss": hard_global_loss.data,
+                    "hard_part_loss": hard_part_loss.data,
                     "multiview_pid_loss": multiview_pid_loss.data,
                     "contrast_loss": contrast_loss.data,
                 }
