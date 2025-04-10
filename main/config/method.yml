@@ -1,5 +1,5 @@
 TASK:
-  NAME: "R_M2PQF_C"
+  NAME: "R_H2GP_M2PQF_C"
   NOTES: "v652"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
