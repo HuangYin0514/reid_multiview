@@ -16,7 +16,7 @@ class MultiviewFeatureFusion(nn.Module):
 
         # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
         fused = features.view(chunk_size, self.view_num, C)
-        fusion_features = fused.mean(dim=1)  # or .sum(dim=1)
+        fusion_features = fused.sum(dim=1)  #  .sum(dim=1) or .mean(dim=1)
 
         # 保留每组的第一个pid [size] -> [chunk_size]
         fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
@@ -98,5 +98,5 @@ class ContrastLoss(nn.Module):
 
         input1_normed = F.normalize(features_1, p=2, dim=1)
         input2_normed = F.normalize(new_features_2, p=2, dim=1)
-        loss = 0.07 * torch.norm((input1_normed - input2_normed), p=2)
+        loss = 0.05 * torch.norm((input1_normed - input2_normed), p=2)
         return loss
