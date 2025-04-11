@@ -14,6 +14,7 @@ class Model(nn.Module):
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
+        EMBEDDING_FEATURES_DIM = config.MODEL.EMBEDDING_FEATURES_DIM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
@@ -33,13 +34,16 @@ class Model(nn.Module):
 
         # ------------- Hard content branch -----------------------
         # Part
+        hard_part_embedding = nn.ModuleList()
         hard_part_pooling = nn.ModuleList()
         hard_part_classifier = nn.ModuleList()
         for i in range(PART_NUM):
+            hard_part_embedding.append(module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM))
             hard_part_pooling.append(module.GeneralizedMeanPoolingP())
-            hard_part_classifier.append(module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM))
+            hard_part_classifier.append(module.Classifier(EMBEDDING_FEATURES_DIM, PID_NUM))
         self.hard_part_pooling = hard_part_pooling
         self.hard_part_classifier = hard_part_classifier
+        self.hard_part_embedding = hard_part_embedding
 
     def heatmap(self, x):
         return None
@@ -57,15 +61,6 @@ class Model(nn.Module):
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
             global_bn_features, global_cls_score = self.global_classifier(global_features)
             eval_features.append(global_bn_features)
-
-            # # Parts
-            # PART_NUM = self.config.MODEL.PART_NUM
-            # hard_part_chunk_features = torch.chunk(resnet_feature_maps, PART_NUM, dim=2)
-            # for i in range(PART_NUM):
-            #     hard_part_chunk_feature_item = hard_part_chunk_features[i]
-            #     hard_part_pooling_features = self.hard_part_pooling[i](hard_part_chunk_feature_item).squeeze()
-            #     hard_part_bn_features, hard_part_cls_score = self.hard_part_classifier[i](hard_part_pooling_features)
-            #     eval_features.append(hard_part_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 

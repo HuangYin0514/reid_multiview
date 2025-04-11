@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_M2PQF_C"
-  NOTES: "v659"
+  NOTES: "v660"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -11,6 +11,7 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
   PART_NUM: 2
+  EMBEDDING_FEATURES_DIM: 512
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"
