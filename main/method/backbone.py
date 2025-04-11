@@ -29,7 +29,7 @@ class Backbone(nn.Module):
         self.resnet = nn.Sequential(
             self.resnet_conv1,
             self.resnet_bn1,
-            self.resnet_relu
+            self.resnet_relu,
             self.resnet_maxpool,
             self.resnet_layer1,
             self.resnet_layer2,
