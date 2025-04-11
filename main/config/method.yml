@@ -1,6 +1,6 @@
 TASK:
-  NAME: "R_H2G_M2PQF_C"
-  NOTES: "v654"
+  NAME: "R_M2PQF_C"
+  NOTES: "v651"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -10,8 +10,6 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  EMBEDDING_FEATURES_DIM: 512
-  PART_NUM: 2
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"
