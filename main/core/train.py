@@ -26,23 +26,6 @@ def train(base, loaders, config):
             hard_global_loss = hard_global_pid_loss + hard_global_triplet_loss
             total_loss += hard_global_loss
 
-            # Parts
-            PART_NUM = config.MODEL.PART_NUM
-            hard_part_chunk_features = torch.chunk(resnet_feature_maps, PART_NUM, dim=2)
-            hard_part_embedding_features_list = []
-            hard_part_pid_loss = 0.0
-            hard_part_triplet_loss = 0.0
-            for i in range(PART_NUM):
-                hard_part_chunk_feature_item = hard_part_chunk_features[i]
-                hard_part_embedding_features = base.model.module.hard_part_embedding[i](hard_part_chunk_feature_item)
-                hard_part_embedding_features_list.append(hard_part_embedding_features)
-                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_embedding_features).squeeze()
-                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
-                hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
-                hard_part_triplet_loss += loss_function.TripletLoss()(hard_part_pooling_features, pids)[0]
-            hard_part_loss = hard_part_pid_loss + hard_part_triplet_loss
-            total_loss += hard_part_loss
-
             # ------------- Multiview content branch  -----------------------
             # Positioning
             multiview_localized_features_map = base.model.module.multiview_feature_map_location(
@@ -74,7 +57,6 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "hard_global_loss": hard_global_loss.data,
-                    "hard_part_loss": hard_part_loss.data,
                     "multiview_pid_loss": multiview_pid_loss.data,
                     "contrast_loss": contrast_loss.data,
                 }
