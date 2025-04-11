@@ -17,10 +17,23 @@ def train(base, loaders, config):
             resnet_feature_maps = base.model(imgs)
 
             # ------------- Global content branch -----------------------
+            # Global
             global_features = base.model.module.global_pooling(resnet_feature_maps).squeeze()
             global_bn_features, global_cls_score = base.model.module.global_classifier(global_features)
             global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(global_cls_score, pids)
             total_loss += global_pid_loss
+
+            # Parts
+            PART_NUM = config.MODEL.PART_NUM
+            hard_part_chunk_features = torch.chunk(resnet_feature_maps, PART_NUM, dim=2)
+            hard_part_pid_loss = 0.0
+            for i in range(PART_NUM):
+                hard_part_chunk_feature_item = hard_part_chunk_features[i]
+                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_chunk_feature_item).squeeze()
+                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
+                hard_part_pid_loss += loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
+            hard_part_loss = hard_part_pid_loss
+            total_loss += hard_part_loss
 
             # ------------- Multiview content branch  -----------------------
             # Positioning
@@ -51,6 +64,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "global_pid_loss": global_pid_loss.data,
+                    "hard_part_loss": hard_part_loss.data,
                     "multiview_pid_loss": multiview_pid_loss.data,
                     "contrast_loss": contrast_loss.data,
                 }
