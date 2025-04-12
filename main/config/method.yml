@@ -1,6 +1,6 @@
 TASK:
-  NAME: "R_H2GP_M2PQF_C"
-  NOTES: "v663-修改对比损失"
+  NAME: "R_M2PQF_C"
+  NOTES: "v664-修改对比损失"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -10,8 +10,6 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 2
-  EMBEDDING_FEATURES_DIM: 512
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"

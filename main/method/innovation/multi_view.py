@@ -105,8 +105,22 @@ class ContrastLoss(nn.Module):
 class DistillKL(nn.Module):
     """KL divergence for distillation"""
 
-    def __init__(self, view_num, T=4):
+    def __init__(self, T=4):
         super(DistillKL, self).__init__()
+        self.T = T
+
+    def forward(self, features_1_logits, features_2_logits):
+        p_s = F.log_softmax(features_1_logits / self.T, dim=1)
+        p_t = F.softmax(features_2_logits / self.T, dim=1)
+        loss = F.kl_div(p_s, p_t, size_average=False) * (self.T**2) / features_1_logits.shape[0]
+        return loss
+
+
+class MVDistillKL(nn.Module):
+    """KL divergence for distillation"""
+
+    def __init__(self, view_num, T=4):
+        super(MVDistillKL, self).__init__()
         self.T = T
         self.view_num = view_num
 
