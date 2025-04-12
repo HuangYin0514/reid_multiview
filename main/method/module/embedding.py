@@ -34,7 +34,7 @@ class FCEmbedding(nn.Module):
         self.embedding = nn.Linear(input_dim, out_dim, bias=bias)
         self.embedding.apply(weights_init_kaiming)
 
-        self.bn = nn.BatchNorm1d(out_dim)
+        self.bn = get_norm("BN", out_dim, bias_freeze=bias_freeze)
         self.bn.apply(weights_init_kaiming)
 
     def forward(self, features):

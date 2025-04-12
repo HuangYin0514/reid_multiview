@@ -29,9 +29,9 @@ def train(base, loaders, config):
             hard_part_pid_loss = 0.0
             for i in range(PART_NUM):
                 hard_part_chunk_feature_item = hard_part_chunk_features[i]
-                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_chunk_feature_item).squeeze()
-                hard_part_embedding_features = base.model.module.hard_part_embedding[i](hard_part_pooling_features)
-                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_embedding_features)
+                hard_part_embedding_features = base.model.module.hard_part_embedding[i](hard_part_chunk_feature_item)
+                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_embedding_features).squeeze()
+                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
                 hard_part_pid_loss += (1 / PART_NUM) * loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
             total_loss += hard_part_pid_loss
 

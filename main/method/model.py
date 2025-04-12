@@ -38,7 +38,7 @@ class Model(nn.Module):
         hard_part_pooling = nn.ModuleList()
         hard_part_classifier = nn.ModuleList()
         for i in range(PART_NUM):
-            hard_part_embedding.append(module.embedding.FCEmbedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM))
+            hard_part_embedding.append(module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM))
             hard_part_pooling.append(module.GeneralizedMeanPoolingP())
             hard_part_classifier.append(module.Classifier(EMBEDDING_FEATURES_DIM, PID_NUM))
         self.hard_part_pooling = hard_part_pooling
