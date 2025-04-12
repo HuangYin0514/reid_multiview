@@ -124,9 +124,9 @@ class MVDistillKL(nn.Module):
         self.T = T
         self.view_num = view_num
 
+        self.distillKL = DistillKL(T)
+
     def forward(self, features_1_logits, features_2_logits):
         new_features_2_logits = torch.repeat_interleave(features_2_logits, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num]
-        p_s = F.log_softmax(features_1_logits / self.T, dim=1)
-        p_t = F.softmax(new_features_2_logits / self.T, dim=1)
-        loss = 0.5 * F.kl_div(p_s, p_t, size_average=False) * (self.T**2) / features_1_logits.shape[0]
+        loss = 0.5 * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
         return loss
