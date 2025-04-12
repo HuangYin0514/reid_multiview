@@ -54,7 +54,8 @@ def train(base, loaders, config):
             total_loss += multiview_pid_loss
 
             # ------------- ContrastLoss  -----------------------
-            contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_fusion_bn_features)
+            # contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_fusion_bn_features)
+            contrast_loss = base.model.module.contrast_kl_loss(global_cls_score, multiview_cls_score)
             total_loss += contrast_loss
 
             base.model_optimizer.zero_grad()

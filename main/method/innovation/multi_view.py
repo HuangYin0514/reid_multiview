@@ -100,3 +100,19 @@ class ContrastLoss(nn.Module):
         input2_normed = F.normalize(new_features_2, p=2, dim=1)
         loss = 0.05 * torch.norm((input1_normed - input2_normed), p=2)
         return loss
+
+
+class DistillKL(nn.Module):
+    """KL divergence for distillation"""
+
+    def __init__(self, view_num, T=4):
+        super(DistillKL, self).__init__()
+        self.T = T
+        self.view_num = view_num
+
+    def forward(self, features_1_logits, features_2_logits):
+        new_features_2_logits = torch.repeat_interleave(features_2_logits, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num]
+        p_s = F.log_softmax(features_1_logits / self.T, dim=1)
+        p_t = F.softmax(new_features_2_logits / self.T, dim=1)
+        loss = F.kl_div(p_s, p_t, size_average=False) * (self.T**2) / features_1_logits.shape[0]
+        return loss
