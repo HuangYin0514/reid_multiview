@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_M2PQF_C"
-  NOTES: "v670-互相蒸馏0.5"
+  NOTES: "v671-互相蒸馏/正则化"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
