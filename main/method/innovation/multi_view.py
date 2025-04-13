@@ -131,7 +131,7 @@ class MVDistillKL(nn.Module):
 
         loss = 0.0
         # normed_features_1 = F.normalize(features_1, p=2, dim=1)
-        reg_loss = 0.0007 * torch.norm(features_1, p=2)
+        reg_loss = 0.07 * torch.norm(features_1, p=2)
         loss += reg_loss
 
         kl_loss = 0.5 * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
