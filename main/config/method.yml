@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_M2PQF_C2Mkl"
-  NOTES: "v680-局部特征"
+  NOTES: "v681-局部特征"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
