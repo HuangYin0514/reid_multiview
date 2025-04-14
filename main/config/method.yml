@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_M2PQF_C"
-  NOTES: "v676-特征正则化"
+  NOTES: "v677-mkl"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
