@@ -28,7 +28,7 @@ class Model(nn.Module):
         self.multiview_feature_quantification = innovation.multi_view.FeatureQuantification(VIEW_NUM)
         self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
-        self.contrast_loss = innovation.multi_view.ContrastLoss(VIEW_NUM)
+        # self.contrast_loss = innovation.multi_view.ContrastLoss(VIEW_NUM)
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
 
     def heatmap(self, x):

@@ -129,20 +129,18 @@ class MVDistillKL(nn.Module):
     def forward(self, features_1_logits, features_2_logits, features_1, features_2):
 
         loss = 0.0
-        ###########################
+        # -------------- regularization  --------------
         # normed_features_1 = F.normalize(features_1, p=2, dim=1)
-        reg_loss = 0.007 * torch.norm(features_1, p=2)
-        loss += reg_loss
-
-        ###########################
+        # reg_loss = 0.007 * torch.norm(features_1, p=2)
+        # loss += reg_loss
+        # -------------- Contrastive loss  --------------
         # new_features_2 = torch.repeat_interleave(features_2, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num, c]
         # input1_normed = F.normalize(features_1, p=2, dim=1)
         # input2_normed = F.normalize(new_features_2, p=2, dim=1)
         # reg_loss = 0.05 * torch.norm((input1_normed - input2_normed), p=2)
         # loss += reg_loss
-
-        ###########################
-        # new_features_2_logits = torch.repeat_interleave(features_2_logits, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num]
-        # kl_loss = 0.5 * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
-        # loss += kl_loss
+        # -------------- KL loss  --------------
+        new_features_2_logits = torch.repeat_interleave(features_2_logits, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num]
+        kl_loss = 0.5 * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
+        loss += kl_loss
         return loss
