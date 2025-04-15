@@ -40,4 +40,4 @@ class FCEmbedding(nn.Module):
     def forward(self, features):
         f = self.embedding(features)
         f = self.bn(f)
-        return F.relu(f, inplace=True)
+        return f
