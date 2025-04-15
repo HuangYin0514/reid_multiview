@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_M2PQF_C2Mkl"
-  NOTES: "v683-局部特征"
+  NOTES: "v684-局部特征4"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -10,7 +10,7 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 2
+  PART_NUM: 4
   EMBEDDING_FEATURES_DIM: 512
 
 DATASET:
