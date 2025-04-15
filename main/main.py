@@ -85,7 +85,7 @@ def main(config):
         # 训练结束后打印最佳指标
         if best_rank1:
             logger("=" * 50)
-            logger("Best model is: epoch: {}, rank1 {}".format(best_epoch, best_rank1))
+            logger("Best model is: epoch: {}, rank1: {}, mAP: {}".format(best_epoch, best_rank1, best_mAP))
             logger("=" * 50)
 
     elif config.mode == "test":
