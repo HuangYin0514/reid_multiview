@@ -13,13 +13,12 @@ class Model(nn.Module):
         BACKBONE_FEATURES_DIM = config.MODEL.BACKBONE_FEATURES_DIM
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
-        PART_NUM = config.MODEL.PART_NUM
-        EMBEDDING_FEATURES_DIM = config.MODEL.EMBEDDING_FEATURES_DIM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
 
-        # ------------- Global content branch -----------------------
+        # ------------- Hard content branch -----------------------
+        # Global
         self.global_pooling = module.GeneralizedMeanPoolingP()
         self.global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
@@ -29,18 +28,8 @@ class Model(nn.Module):
         self.multiview_feature_quantification = innovation.multi_view.FeatureQuantification(VIEW_NUM)
         self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
-
-        # ------------- Contrast  Module -----------------------
+        # self.contrast_loss = innovation.multi_view.ContrastLoss(VIEW_NUM)
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
-
-        # ------------- Part content branch -----------------------
-        self.hard_part_embedding = nn.ModuleList()
-        self.hard_part_pooling = nn.ModuleList()
-        self.hard_part_classifier = nn.ModuleList()
-        for i in range(PART_NUM):
-            self.hard_part_embedding.append(module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM))
-            self.hard_part_pooling.append(module.GeneralizedMeanPoolingP())
-            self.hard_part_classifier.append(module.Classifier(EMBEDDING_FEATURES_DIM, PID_NUM))
 
     def heatmap(self, x):
         return None
