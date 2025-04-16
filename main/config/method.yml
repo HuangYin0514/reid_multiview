@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_M2PQF_C2Mkl"
-  NOTES: "v686-局部特征1FCEembedding1移除relu"
+  NOTES: "v686-复现"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
