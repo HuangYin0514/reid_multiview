@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2A_M2PQF_C2Mkl"
-  NOTES: "v687-注意力"
+  NOTES: "v688-注意力"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -11,8 +11,7 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
   PART_NUM: 2
-  EMBEDDING_FEATURES_DIM: 512
-  ATTENTION_NUM: 2
+
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"
