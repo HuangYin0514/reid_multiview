@@ -26,17 +26,27 @@ class Backbone(nn.Module):
         self.resnet_layer3 = resnet.layer3
         self.resnet_layer4 = resnet.layer4
 
-        self.resnet = nn.Sequential(
+        self.resnet_l0l1l2 = nn.Sequential(
             self.resnet_conv1,
             self.resnet_bn1,
             self.resnet_relu,
             self.resnet_maxpool,
             self.resnet_layer1,
             self.resnet_layer2,
+        )
+
+        self.resnet_l3l4 = nn.Sequential(
             self.resnet_layer3,
             self.resnet_layer4,
         )
 
+        self.copy_resnet_l3l4 = nn.Sequential(
+            copy.deepcopy(resnet.layer3),
+            copy.deepcopy(resnet.layer4),
+        )
+
     def forward(self, x):
-        out = self.resnet(x)
-        return out
+        l2_out = self.resnet_l0l1l2(x)
+        l4_out = self.resnet_l3l4(l2_out)
+        copy_l4_out = self.copy_resnet_l3l4(l2_out)
+        return l4_out, copy_l4_out

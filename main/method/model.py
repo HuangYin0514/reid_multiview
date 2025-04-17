@@ -15,6 +15,7 @@ class Model(nn.Module):
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
         EMBEDDING_FEATURES_DIM = config.MODEL.EMBEDDING_FEATURES_DIM
+        ATTENTION_NUM = config.MODEL.ATTENTION_NUM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
@@ -38,6 +39,15 @@ class Model(nn.Module):
         self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
+        # ------------- soft content branch -----------------------
+        # Upstream
+        self.soft_global_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
+        self.soft_global_pooling = module.GeneralizedMeanPoolingP()
+        self.soft_global_classifier = module.Classifier(EMBEDDING_FEATURES_DIM, config.DATASET.PID_NUM)
+
+        self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM, ATTENTION_NUM)
+        self.soft_attention_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
+
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
 
@@ -46,11 +56,11 @@ class Model(nn.Module):
 
     def forward(self, x):
         if self.training:
-            resnet_feature_maps = self.backbone(x)
-            return resnet_feature_maps
+            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
+            return resnet_feature_maps, copy_resnet_feature_maps
         else:
             eval_features = []
-            resnet_feature_maps = self.backbone(x)
+            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
 
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
             global_bn_features, global_cls_score = self.global_classifier(global_features)
