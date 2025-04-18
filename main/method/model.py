@@ -41,12 +41,8 @@ class Model(nn.Module):
 
         # ------------- soft content branch -----------------------
         # Upstream
-        # self.soft_global_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM)
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
-
-        # self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, EMBEDDING_FEATURES_DIM, ATTENTION_NUM)
-        # self.soft_attention_classifier = module.Classifier(EMBEDDING_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
@@ -65,6 +61,10 @@ class Model(nn.Module):
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
             global_bn_features, global_cls_score = self.global_classifier(global_features)
             eval_features.append(global_bn_features)
+
+            soft_global_pooling_features = self.soft_global_pooling(copy_resnet_feature_maps).squeeze()
+            soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
+            eval_features.append(soft_global_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
