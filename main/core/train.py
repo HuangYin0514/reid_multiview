@@ -54,8 +54,23 @@ def train(base, loaders, config):
                 pids,
             )
 
+            # Soft Positioning
+            multiview_localized_copy_features_map = base.model.module.multiview_feature_map_location(
+                copy_resnet_feature_maps, pids, base.model.module.soft_global_classifier
+            )
+
+            # Soft Quantification
+            multiview_localized_copy_features = base.model.module.multiview_pooling(multiview_localized_copy_features_map).squeeze()
+            _, multiview_localized_copy_cls_score = base.model.module.global_classifier(multiview_localized_copy_features)
+            multiview_quantified_localized_copy_features = base.model.module.multiview_feature_quantification(
+                multiview_localized_copy_features,
+                multiview_localized_copy_cls_score,
+                pids,
+            )
+
             # Fusion
-            multiview_fusion_features, multiview_fusion_pids = base.model.module.multiview_feature_fusion(multiview_quantified_localized_features, pids)
+            fusion_multiview_quantified_localized_features = (multiview_quantified_localized_features + multiview_quantified_localized_copy_features) / 2
+            multiview_fusion_features, multiview_fusion_pids = base.model.module.multiview_feature_fusion(fusion_multiview_quantified_localized_features, pids)
 
             multiview_fusion_bn_features, multiview_cls_score = base.model.module.multiview_classifier(multiview_fusion_features)
             multiview_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_cls_score, multiview_fusion_pids)
