@@ -14,8 +14,7 @@ class Model(nn.Module):
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
-        # EMBEDDING_FEATURES_DIM = config.MODEL.EMBEDDING_FEATURES_DIM
-        # ATTENTION_NUM = config.MODEL.ATTENTION_NUM
+        ATTENTION_NUM = config.MODEL.ATTENTION_NUM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
@@ -43,6 +42,10 @@ class Model(nn.Module):
         # Upstream
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
+
+        # Attention
+        self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
+        self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
