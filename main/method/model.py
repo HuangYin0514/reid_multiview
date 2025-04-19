@@ -61,13 +61,25 @@ class Model(nn.Module):
             eval_features = []
             resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
 
+            # Hard global
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
             global_bn_features, global_cls_score = self.global_classifier(global_features)
             eval_features.append(global_bn_features)
 
+            # Soft global
             soft_global_pooling_features = self.soft_global_pooling(copy_resnet_feature_maps).squeeze()
             soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
             eval_features.append(soft_global_bn_features)
+
+            # Global attention
+            (
+                soft_attention_attentions,
+                soft_attention_selected_attentions,
+                soft_attention_bap_AiF_features,
+                soft_attention_bap_features,
+            ) = self.soft_attention(copy_resnet_feature_maps)
+            soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_bap_features)
+            eval_features.append(soft_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
