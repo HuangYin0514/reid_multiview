@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2A_M2PQF_C2Mkl"
-  NOTES: "v694-注意力"
+  NOTES: "v695-注意力/多样损失+双尺度"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
