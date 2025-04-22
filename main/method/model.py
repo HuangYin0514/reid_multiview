@@ -47,10 +47,6 @@ class Model(nn.Module):
         self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
-        # Guied Attention
-        self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
-        self.soft_guied_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
-
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
 
@@ -84,13 +80,6 @@ class Model(nn.Module):
             ) = self.soft_attention(copy_resnet_feature_maps)
             soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_bap_features)
             eval_features.append(soft_attention_bn_features)
-
-            # Guied attention
-            soft_guied_attention_selected_attentions, soft_guied_attention_bap_AiF_features, soft_guied_attention_bap_features = self.guide_dualscale_attention(
-                copy_resnet_feature_maps, copy_resnet_feature_maps, soft_attention_attentions
-            )
-            soft_guied_attention_bn_features, soft_guied_attention_cls_score = self.soft_guied_attention_classifier(soft_guied_attention_bap_features)
-            eval_features.append(soft_guied_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
