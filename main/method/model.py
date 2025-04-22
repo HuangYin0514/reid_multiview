@@ -47,6 +47,10 @@ class Model(nn.Module):
         self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
+        # Guied Attention
+        self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
+        self.soft_guied_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
+
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
 
@@ -55,11 +59,11 @@ class Model(nn.Module):
 
     def forward(self, x):
         if self.training:
-            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
-            return resnet_feature_maps, copy_resnet_feature_maps
+            resnet_feature_maps, copy_resnet_l3_feature_maps, copy_resnet_feature_maps = self.backbone(x)
+            return resnet_feature_maps, copy_resnet_l3_feature_maps, copy_resnet_feature_maps
         else:
             eval_features = []
-            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
+            resnet_feature_maps, copy_resnet_l3_feature_maps, copy_resnet_feature_maps = self.backbone(x)
 
             # Hard global
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
