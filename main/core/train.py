@@ -59,7 +59,7 @@ def train(base, loaders, config):
             )
             soft_guied_attention_bn_features, soft_guied_attention_cls_score = base.model.module.soft_guied_attention_classifier(soft_guied_attention_bap_features)
             soft_guied_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_guied_attention_cls_score, pids)
-            total_loss = soft_guied_attention_pid_loss
+            total_loss += soft_guied_attention_pid_loss
 
             # ------------- Multiview content branch  -----------------------
             # Positioning
