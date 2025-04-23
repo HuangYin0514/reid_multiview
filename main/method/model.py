@@ -85,6 +85,13 @@ class Model(nn.Module):
             soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_bap_features)
             eval_features.append(soft_attention_bn_features)
 
+            # Guied attention
+            soft_guied_attention_bap_AiF_features, soft_guied_attention_bap_features = self.guide_dualscale_attention(
+                copy_resnet_l3_feature_maps, copy_resnet_feature_maps, soft_attention_attentions
+            )
+            soft_guied_attention_bn_features, soft_guied_attention_cls_score = self.soft_guied_attention_classifier(soft_guied_attention_bap_features)
+            eval_features.append(soft_guied_attention_bn_features)
+
             eval_features = torch.cat(eval_features, dim=1)
 
             return eval_features
