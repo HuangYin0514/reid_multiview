@@ -47,9 +47,9 @@ class Model(nn.Module):
         self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
-        # Guied Attention
-        self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
-        self.soft_guied_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2, config.DATASET.PID_NUM)
+        # Guide Attention
+        self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
+        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
@@ -86,11 +86,14 @@ class Model(nn.Module):
             eval_features.append(soft_attention_bn_features)
 
             # Guied attention
-            soft_guied_attention_bap_AiF_features, soft_guied_attention_bap_features = self.guide_dualscale_attention(
-                copy_resnet_l3_feature_maps, copy_resnet_feature_maps, soft_attention_attentions
-            )
-            soft_guied_attention_bn_features, soft_guied_attention_cls_score = self.soft_guied_attention_classifier(soft_guied_attention_bap_features)
-            eval_features.append(soft_guied_attention_bn_features)
+            (
+                soft_guide_attention_attentions,
+                soft_guide_attention_selected_attentions,
+                soft_guide_attention_bap_AiF_features,
+                soft_guide_attention_bap_features,
+            ) = self.guide_dualscale_attention(copy_resnet_l3_feature_maps)
+            soft_guide_attention_bn_features, soft_guide_attention_cls_score = self.soft_guide_attention_classifier(soft_guide_attention_bap_features)
+            eval_features.append(soft_guide_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
