@@ -59,7 +59,7 @@ def train(base, loaders, config):
                 soft_guide_attention_selected_attentions,
                 soft_guide_attention_bap_AiF_features,
                 soft_guide_attention_bap_features,
-            ) = base.model.module.guide_dualscale_attention(copy_resnet_l3_feature_maps)
+            ) = base.model.module.guide_dualscale_attention(copy_resnet_l3_feature_maps, soft_attention_attentions)
             soft_guide_attention_bn_features, soft_guide_attention_cls_score = base.model.module.soft_guide_attention_classifier(soft_guide_attention_bap_features)
             soft_guide_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_guide_attention_cls_score, pids)
             soft_guide_attention_diversity_loss = innovation.diversity_loss(soft_guide_attention_bap_AiF_features)

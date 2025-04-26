@@ -33,6 +33,16 @@ class BasicConv2d(nn.Module):
 
 
 class Bap(nn.Module):
+    """
+    Bap: Bilinear Attention Pooling
+    主要功能是对特征图进行加权池化
+    input:
+        attentions: [batch_size, num_attention, height, width]
+        features: [batch_size, in_channels, height, width]
+    output:
+        AiF_features<List>: num_attention * [batch_size, out_dim]
+        bap_features<Tensor>: [batch_size, num_attention * out_dim]
+    """
 
     def __init__(self, input_dim, out_dim, num_attention):
         super(Bap, self).__init__()
@@ -79,21 +89,58 @@ class Dualscale_Attention(nn.Module):
         return attentions, selected_attentions, bap_AiF_features, bap_features
 
 
+# class Guide_Dualscale_Attention(nn.Module):
+#     def __init__(self, input_dim, out_dim, attention_num=2):
+#         super(Guide_Dualscale_Attention, self).__init__()
+
+#         self.attention_num = attention_num
+
+#         self.attention = BasicConv2d(input_dim, attention_num + 1)
+#         self.bap = Bap(input_dim, out_dim, attention_num)
+
+#     def select_attention(self, attention):
+#         attention = torch.softmax(attention, dim=1)  # The last one is background.
+#         return attention[:, : self.attention_num]
+
+#     def forward(self, features):
+#         attentions = self.attention(features)
+#         selected_attentions = self.select_attention(attentions)
+#         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
+#         return attentions, selected_attentions, bap_AiF_features, bap_features
+
+
 class Guide_Dualscale_Attention(nn.Module):
+    """
+    Input:
+        features: [batch_size, in_channels, height, width]
+        guide_attentions: [batch_size, num_attention+1, height, width]
+    Output:
+        new_attentions: [batch_size, num_attention+1, height, width]
+        selected_attentions: [batch_size, num_attention, height, width]
+        bap_AiF_features<List>: num_attention * [batch_size, out_dim]
+        bap_features<Tensor>: [batch_size, num_attention * out_dim]
+
+    """
+
     def __init__(self, input_dim, out_dim, attention_num=2):
         super(Guide_Dualscale_Attention, self).__init__()
 
         self.attention_num = attention_num
 
-        self.attention = BasicConv2d(input_dim, attention_num + 1)
+        self.attention_upsample = pam_up_samper.PamUpSamper(attention_num + 1, attention_num + 1, bias=False, scale=1.0)
+        self.attention = BasicConv2d(input_dim + attention_num + 1, attention_num + 1)
+
         self.bap = Bap(input_dim, out_dim, attention_num)
 
     def select_attention(self, attention):
         attention = torch.softmax(attention, dim=1)  # The last one is background.
         return attention[:, : self.attention_num]
 
-    def forward(self, features):
-        attentions = self.attention(features)
-        selected_attentions = self.select_attention(attentions)
+    def forward(self, features, guide_attentions):
+        upsample_attentions = self.attention_upsample(guide_attentions)
+        features_and_attentions = torch.cat((features, upsample_attentions), dim=1)
+        new_attentions = self.attention(features_and_attentions)
+        selected_attentions = self.select_attention(new_attentions)
+
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
-        return attentions, selected_attentions, bap_AiF_features, bap_features
+        return new_attentions, selected_attentions, bap_AiF_features, bap_features
