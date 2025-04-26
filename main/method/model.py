@@ -49,7 +49,8 @@ class Model(nn.Module):
 
         # Guide Attention
         self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
-        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
+        # self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
+        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
