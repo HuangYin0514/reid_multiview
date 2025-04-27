@@ -130,7 +130,7 @@ class Guide_Dualscale_Attention(nn.Module):
         self.attention_upsample = pam_up_samper.PamUpSamper(attention_num + 1, attention_num + 1, bias=False, scale=1.0)
         self.attention = BasicConv2d(input_dim + attention_num + 1, attention_num + 1)
 
-        self.bap = Bap(input_dim * 2, out_dim * 2, attention_num)
+        self.bap = Bap(input_dim, out_dim, attention_num)
 
     def select_attention(self, attention):
         attention = torch.softmax(attention, dim=1)  # The last one is background.

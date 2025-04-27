@@ -48,9 +48,12 @@ class Model(nn.Module):
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # Guide Attention
-        self.guide_dualscale_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
-        # self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
-        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
+        self.soft_guide_l4_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2)
+        self.soft_guide_global_pooling = module.GeneralizedMeanPoolingP()
+        self.soft_guide_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2, config.DATASET.PID_NUM)
+
+        self.soft_guide_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
+        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
