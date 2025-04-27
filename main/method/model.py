@@ -39,21 +39,21 @@ class Model(nn.Module):
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
         # ------------- soft content branch -----------------------
-        # Upstream
+        # Soft global
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
 
-        # Attention
+        # Soft global attention
         self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
-        # Guide Attention
+        # Soft guide global attention
         self.soft_guide_l4_embedding = module.embedding.Embedding(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2)
         self.soft_guide_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_guide_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2, config.DATASET.PID_NUM)
 
-        self.soft_guide_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
-        self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
+        # self.soft_guide_attention = innovation.dualscale_attention.Guide_Dualscale_Attention(BACKBONE_FEATURES_DIM // 2, BACKBONE_FEATURES_DIM // 2, ATTENTION_NUM)
+        # self.soft_guide_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM // 2 * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
@@ -79,7 +79,7 @@ class Model(nn.Module):
             soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
             eval_features.append(soft_global_bn_features)
 
-            # Global attention
+            # Soft global attention
             (
                 soft_attention_attentions,
                 soft_attention_selected_attentions,
@@ -88,16 +88,6 @@ class Model(nn.Module):
             ) = self.soft_attention(copy_resnet_feature_maps)
             soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_bap_features)
             eval_features.append(soft_attention_bn_features)
-
-            # # Guied attention
-            # (
-            #     soft_guide_attention_attentions,
-            #     soft_guide_attention_selected_attentions,
-            #     soft_guide_attention_bap_AiF_features,
-            #     soft_guide_attention_bap_features,
-            # ) = self.guide_dualscale_attention(copy_resnet_l3_feature_maps)
-            # soft_guide_attention_bn_features, soft_guide_attention_cls_score = self.soft_guide_attention_classifier(soft_guide_attention_bap_features)
-            # eval_features.append(soft_guide_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
 
