@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from .. import module
-from . import pam_up_samper
+from . import lska, pam_up_samper
 
 
 class BasicConv2d(nn.Module):
@@ -75,6 +75,7 @@ class Dualscale_Attention(nn.Module):
 
         self.attention_num = attention_num
 
+        self.attention_lska = lska.LSKA(input_dim, k_size=7)
         self.attention = BasicConv2d(input_dim, attention_num + 1)
         self.bap = Bap(input_dim, out_dim, attention_num)
 
@@ -83,30 +84,8 @@ class Dualscale_Attention(nn.Module):
         return attention[:, : self.attention_num]
 
     def forward(self, features):
+        features = self.attention_lska(features)
         attentions = self.attention(features)
         selected_attentions = self.select_attention(attentions)
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
         return attentions, selected_attentions, bap_AiF_features, bap_features
-
-
-class Guide_Dualscale_Attention(nn.Module):
-    def __init__(self, input_dim, out_dim, attention_num=2):
-        super(Guide_Dualscale_Attention, self).__init__()
-        self.attention_num = attention_num
-        self.attention_upsample = pam_up_samper.PamUpSamper(attention_num + 1, attention_num + 1, bias=False, scale=1.0)
-        self.attention = BasicConv2d(input_dim + attention_num + 1, attention_num + 1)
-        self.bap = Bap(input_dim, out_dim, attention_num)
-
-    def select_attention(self, attention):
-        attention = torch.softmax(attention, dim=1)  # The last one is background.
-        return attention[:, : self.attention_num]
-
-    def forward(self, features_l3, features_l4, attentions):
-
-        upsample_attentions = self.attention_upsample(attentions)
-        features_and_attentions = torch.cat((features_l3, upsample_attentions), dim=1)
-        new_attentions = self.attention(features_and_attentions)
-        selected_attentions = self.select_attention(new_attentions)
-
-        bap_AiF_features, bap_features = self.bap(selected_attentions, features_l4)
-        return selected_attentions, bap_AiF_features, bap_features
