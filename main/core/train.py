@@ -14,7 +14,7 @@ def train(base, loaders, config):
             total_loss = 0.0
 
             # R: Resnet
-            resnet_feature_maps, copy_resnet_l3_feature_maps, copy_resnet_feature_maps = base.model(imgs)
+            resnet_feature_maps, copy_resnet_feature_maps = base.model(imgs)
 
             # ------------- Hard content branch -----------------------
             # Global
@@ -52,24 +52,6 @@ def train(base, loaders, config):
             soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
             soft_attention_diversity_loss = innovation.diversity_loss(soft_attention_bap_AiF_features)
             total_loss += soft_attention_pid_loss + soft_attention_diversity_loss
-
-            # Soft guide global attention
-            soft_l4embedding_maps = base.model.module.soft_guide_l4_embedding(copy_resnet_l3_feature_maps)
-            soft_guide_global_pooling_features = base.model.module.soft_guide_global_pooling(soft_l4embedding_maps).squeeze()
-            soft_guide_global_bn_features, soft_guide_global_cls_score = base.model.module.soft_guide_global_classifier(soft_guide_global_pooling_features)
-            soft_guide_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_guide_global_cls_score, pids)
-            total_loss += soft_guide_global_pid_loss
-
-            # (
-            #     soft_guide_attention_attentions,
-            #     soft_guide_attention_selected_attentions,
-            #     soft_guide_attention_bap_AiF_features,
-            #     soft_guide_attention_bap_features,
-            # ) = base.model.module.soft_guide_attention(copy_resnet_l3_feature_maps, soft_l4embedding_maps, soft_attention_attentions)
-            # soft_guide_attention_bn_features, soft_guide_attention_cls_score = base.model.module.soft_guide_attention_classifier(soft_guide_attention_bap_features)
-            # soft_guide_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_guide_attention_cls_score, pids)
-            # soft_guide_attention_diversity_loss = innovation.diversity_loss(soft_guide_attention_bap_AiF_features)
-            # total_loss += soft_guide_attention_pid_loss + soft_guide_attention_diversity_loss
 
             # ------------- Multiview content branch  -----------------------
             # Positioning

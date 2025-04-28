@@ -11,8 +11,6 @@ from .. import module
 
 
 class PamUpSamper(nn.Module):
-    """ """
-
     def __init__(self, in_dim, output_dim, bias=False, scale=2):
         super(PamUpSamper, self).__init__()
 
