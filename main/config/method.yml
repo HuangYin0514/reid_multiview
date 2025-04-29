@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v710-局部+多视角+注意力+蒸馏, l3/l4注意力/lska"
+  NOTES: "v711-局部+多视角+注意力+蒸馏, 去除定位"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
