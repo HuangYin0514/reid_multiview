@@ -55,10 +55,10 @@ def train(base, loaders, config):
 
             # ------------- Multiview content branch  -----------------------
             # Positioning
-            # multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
+            multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
 
             # Quantification
-            multiview_localized_features = base.model.module.multiview_pooling(resnet_feature_maps).squeeze()
+            multiview_localized_features = base.model.module.multiview_pooling(multiview_localized_features_map).squeeze()
             _, multiview_localized_cls_score = base.model.module.global_classifier(multiview_localized_features)
             multiview_quantified_localized_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_features,
@@ -73,7 +73,7 @@ def train(base, loaders, config):
 
             # Soft Quantification
             multiview_localized_copy_features = base.model.module.multiview_pooling(multiview_localized_copy_features_map).squeeze()
-            _, multiview_localized_copy_cls_score = base.model.module.global_classifier(multiview_localized_copy_features)
+            _, multiview_localized_copy_cls_score = base.model.module.soft_global_classifier(multiview_localized_copy_features)
             multiview_quantified_localized_copy_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_copy_features,
                 multiview_localized_copy_cls_score,
