@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v713-局部+多视角+注意力+蒸馏, 去除定位"
+  NOTES: "v714-局部+多视角+注意力+蒸馏, 修复分类器bug"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
