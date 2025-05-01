@@ -33,6 +33,8 @@ class Model(nn.Module):
 
         # ------------- Multiview content branch -----------------------
         self.multiview_pooling = module.GeneralizedMeanPoolingP()
+        self.multiview_soft_pooling = module.GeneralizedMeanPoolingP()
+
         self.multiview_feature_map_location = innovation.multi_view.FeatureMapLocation()
         self.multiview_feature_quantification = innovation.multi_view.FeatureQuantification(VIEW_NUM)
         self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)

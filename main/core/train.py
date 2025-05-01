@@ -72,7 +72,7 @@ def train(base, loaders, config):
             )
 
             # Soft Quantification
-            multiview_localized_copy_features = base.model.module.soft_global_pooling(multiview_localized_copy_features_map).squeeze()
+            multiview_localized_copy_features = base.model.module.multiview_soft_pooling(multiview_localized_copy_features_map).squeeze()
             _, multiview_localized_copy_cls_score = base.model.module.soft_global_classifier(multiview_localized_copy_features)
             multiview_quantified_localized_copy_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_copy_features,
