@@ -81,7 +81,7 @@ def train(base, loaders, config):
             )
 
             # Fusion
-            fusion_multiview_quantified_localized_features = multiview_quantified_localized_features + multiview_quantified_localized_copy_features
+            fusion_multiview_quantified_localized_features = (multiview_quantified_localized_features + multiview_quantified_localized_copy_features) / 3
             multiview_fusion_features, multiview_fusion_pids = base.model.module.multiview_feature_fusion(fusion_multiview_quantified_localized_features, pids)
 
             multiview_fusion_bn_features, multiview_cls_score = base.model.module.multiview_classifier(multiview_fusion_features)
