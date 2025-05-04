@@ -10,19 +10,6 @@ class MultiviewFeatureFusion(nn.Module):
         self.view_num = view_num
 
     def forward(self, features_1, features_2, pids):
-        # size = features.size(0)
-        # chunk_size = int(size / self.view_num)  # 16
-        # C = features.size(1)
-
-        # # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
-        # fused = features.view(chunk_size, self.view_num, C)
-        # fusion_features = fused.mean(dim=1)  # or .sum(dim=1)
-
-        # # 保留每组的第一个pid [size] -> [chunk_size]
-        # fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
-
-        # return fusion_features, fusion_pids
-
         size = features_1.size(0)
         chunk_size = int(size / self.view_num)  # 16
         C = features_1.size(1)
