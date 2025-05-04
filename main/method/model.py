@@ -37,7 +37,7 @@ class Model(nn.Module):
 
         self.multiview_feature_map_location = innovation.multi_view.FeatureMapLocation()
         self.multiview_feature_quantification = innovation.multi_view.FeatureQuantification(VIEW_NUM)
-        self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM)
+        self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM, BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM)
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
         # ------------- soft content branch -----------------------
