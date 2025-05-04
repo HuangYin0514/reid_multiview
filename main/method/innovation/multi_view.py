@@ -9,37 +9,36 @@ class MultiviewFeatureFusion(nn.Module):
         super(MultiviewFeatureFusion, self).__init__()
         self.view_num = view_num
 
-    def forward(self, features, pids):
-        size = features.size(0)
-        chunk_size = int(size / self.view_num)  # 16
-        C = features.size(1)
+    def forward(self, features_1, features_2, pids):
+        # size = features.size(0)
+        # chunk_size = int(size / self.view_num)  # 16
+        # C = features.size(1)
 
+        # # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
+        # fused = features.view(chunk_size, self.view_num, C)
+        # fusion_features = fused.mean(dim=1)  # or .sum(dim=1)
+
+        # # 保留每组的第一个pid [size] -> [chunk_size]
+        # fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
+
+        # return fusion_features, fusion_pids
+
+        size = features_1.size(0)
+        chunk_size = int(size / self.view_num)  # 16
+        C = features_1.size(1)
+
+        # Features fusion
+        fused_features = (features_1 + features_2) / 2
+
+        # Views fusion
         # Reshape: [batch_size, C] -> [chunk_size, view_num, C] -> [chunk_size, C]
-        fused = features.view(chunk_size, self.view_num, C)
-        fusion_features = fused.mean(dim=1)  # or .sum(dim=1)
+        reshaped_fused_features = fused_features.view(chunk_size, self.view_num, C)
+        views_fused_features = reshaped_fused_features.mean(dim=1)  # or .sum(dim=1)
 
-        # 保留每组的第一个pid [size] -> [chunk_size]
-        fusion_pids = pids.view(chunk_size, self.view_num)[:, 0]
+        # Pids fusion
+        fused_pids = pids.view(chunk_size, self.view_num)[:, 0]
 
-        return fusion_features, fusion_pids
-
-    """
-    def forward(self, features, pids):
-        size = features.size(0)
-        chunk_size = int(size / self.view_num)  # 16
-        c = features.size(1)
-
-        integrating_features = torch.zeros([chunk_size, c]).to(features.device)
-        integrating_pids = torch.zeros([chunk_size]).to(pids.device)
-
-        for i in range(chunk_size):
-            integrating_features[i] = 1 * (
-                features[self.view_num * i] + features[self.view_num * i + 1] + features[self.view_num * i + 2] + features[self.view_num * i + 3]
-            )
-            integrating_pids[i] = pids[self.view_num * i]
-
-        return integrating_features, integrating_pids
-    """
+        return views_fused_features, fused_pids
 
 
 class FeatureQuantification(nn.Module):

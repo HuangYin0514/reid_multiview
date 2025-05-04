@@ -81,17 +81,20 @@ def train(base, loaders, config):
             )
 
             # Fusion
-            fusion_multiview_quantified_localized_features = (multiview_quantified_localized_features + multiview_quantified_localized_copy_features) / 2
-            multiview_fusion_features, multiview_fusion_pids = base.model.module.multiview_feature_fusion(fusion_multiview_quantified_localized_features, pids)
+            multiview_features, multiview_pids = base.model.module.multiview_feature_fusion(
+                multiview_quantified_localized_features,
+                multiview_quantified_localized_copy_features,
+                pids,
+            )
 
-            multiview_fusion_bn_features, multiview_cls_score = base.model.module.multiview_classifier(multiview_fusion_features)
-            multiview_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_cls_score, multiview_fusion_pids)
+            multiview_bn_features, multiview_cls_score = base.model.module.multiview_classifier(multiview_features)
+            multiview_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_cls_score, multiview_pids)
             total_loss += multiview_pid_loss
 
             # ------------- ContrastLoss  -----------------------
-            # contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_fusion_bn_features)
-            contrast_loss = base.model.module.contrast_kl_loss(global_cls_score, multiview_cls_score, global_bn_features, multiview_fusion_bn_features)
-            contrast_loss_2 = base.model.module.contrast_kl_loss(soft_global_cls_score, multiview_cls_score, soft_global_bn_features, multiview_fusion_bn_features)
+            # contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_bn_features)
+            contrast_loss = base.model.module.contrast_kl_loss(global_cls_score, multiview_cls_score, global_bn_features, multiview_bn_features)
+            contrast_loss_2 = base.model.module.contrast_kl_loss(soft_global_cls_score, multiview_cls_score, soft_global_bn_features, multiview_bn_features)
             total_loss += contrast_loss + contrast_loss_2
 
             base.model_optimizer.zero_grad()
