@@ -35,6 +35,7 @@ class MultiviewFeatureFusion(nn.Module):
                 nn.Conv1d(input_dim, out_dim, kernel_size=1),
                 nn.ReLU(),
                 nn.BatchNorm1d(out_dim),
+                nn.Conv1d(out_dim, out_dim, kernel_size=1),
             )
         )
 
