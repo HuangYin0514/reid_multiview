@@ -55,7 +55,7 @@ class MultiviewFeatureFusion(nn.Module):
         chunk_size = B // self.view_num
 
         # Feature-level fusion
-        fused = ((features_1 + features_2) / 2).unsqueeze(-1)  # [B, C, 1]
+        fused = (features_1 + features_2).unsqueeze(-1)  # [B, C, 1]
         fused = self.fusion_module(fused).squeeze(-1)  # [B, C]
 
         # View-level fusion: reshape to [chunk_size, view_num, C]
