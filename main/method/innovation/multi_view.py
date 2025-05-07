@@ -42,8 +42,8 @@ class MultiviewFeatureFusion(nn.Module):
         self.fusion_module = module.Residual(
             nn.Sequential(
                 nn.Conv1d(input_dim, out_dim, kernel_size=1),
-                nn.BatchNorm1d(out_dim),
                 nn.ReLU(),
+                nn.BatchNorm1d(out_dim),
                 nn.Conv1d(out_dim, out_dim, kernel_size=1),
             )
         )
