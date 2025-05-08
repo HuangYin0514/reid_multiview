@@ -30,21 +30,12 @@ class MultiviewFeatureFusion(nn.Module):
         super(MultiviewFeatureFusion, self).__init__()
         self.view_num = view_num
 
-        # self.fusion_module = module.Residual(
-        #     nn.Sequential(
-        #         nn.Conv1d(input_dim, out_dim, kernel_size=1),
-        #         nn.ReLU(),
-        #         nn.BatchNorm1d(out_dim),
-        #         nn.Conv1d(out_dim, out_dim, kernel_size=1),
-        #     )
-        # )
-
         self.fusion_module = module.Residual(
             nn.Sequential(
-                nn.Linear(input_dim, out_dim),
+                nn.Conv1d(input_dim, out_dim, kernel_size=1),
                 nn.ReLU(),
                 nn.BatchNorm1d(out_dim),
-                nn.Linear(out_dim, out_dim),
+                nn.Conv1d(out_dim, out_dim, kernel_size=1),
             )
         )
 
@@ -55,10 +46,8 @@ class MultiviewFeatureFusion(nn.Module):
         chunk_size = B // self.view_num
 
         # Feature-level fusion
-        # fused = (features_1 + features_2).unsqueeze(-1)  # [B, C, 1]
-        # fused = self.fusion_module(fused).squeeze(-1)  # [B, C]
-        fused = features_1 + features_2
-        fused = self.fusion_module(fused)
+        fused = (features_1 + features_2).unsqueeze(-1)  # [B, C, 1]
+        fused = self.fusion_module(fused).squeeze(-1)  # [B, C]
 
         # View-level fusion: reshape to [chunk_size, view_num, C]
         fused = fused.view(chunk_size, self.view_num, C)
