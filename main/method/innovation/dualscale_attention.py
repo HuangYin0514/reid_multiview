@@ -69,39 +69,63 @@ class Bap(nn.Module):
         return AiF_features, bap_features
 
 
+# class Multi_Granularity(nn.Module):
+#     def __init__(self, in_channels):
+#         super(Multi_Granularity, self).__init__()
+
+#         # Multi-granularity
+#         self.granularity1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+
+#         self.granularity2_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+#         # self.granularity2_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+
+#         self.granularity3_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+#         # self.granularity3_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+#         # self.granularity3_3 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+
+#         # Output
+#         self.out = nn.Conv2d(in_channels * 3, in_channels, 1, 1, 0, bias=False)
+#         self.bn = nn.BatchNorm2d(in_channels)
+
+#         self._initialize_weights()
+
+#     def forward(self, x):
+#         g1 = self.granularity1(x)
+
+#         g2 = self.granularity2_1(x)
+#         # g2 = self.granularity2_2(g2)
+
+#         g3 = self.granularity3_1(x)
+#         # g3 = self.granularity3_2(g3)
+#         # g3 = self.granularity3_3(g3)
+
+#         x = torch.cat([g1, g2, g3], dim=1)
+#         x = self.bn(self.out(x))
+#         return F.relu(x, inplace=True)
+
+
 class Multi_Granularity(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels=2048, out_channels=512, kernel_sizes=[1, 3, 5], use_bn=True):
         super(Multi_Granularity, self).__init__()
+        self.branches = nn.ModuleList()
 
-        # Multi-granularity
-        self.granularity1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+        for k in kernel_sizes:
+            padding = k // 2  # 保持尺寸
+            branch = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=k, padding=padding), nn.BatchNorm2d(out_channels) if use_bn else nn.Identity(), nn.ReLU(inplace=True)
+            )
+            self.branches.append(branch)
 
-        self.granularity2_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-        self.granularity2_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-
-        self.granularity3_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-        self.granularity3_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-        self.granularity3_3 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-
-        # Output
-        self.out = nn.Conv2d(in_channels * 3, in_channels, 1, 1, 0, bias=False)
-        self.bn = nn.BatchNorm2d(in_channels)
+        # 用于融合各个尺度的输出
+        self.fusion = nn.Sequential(nn.Conv2d(out_channels * len(kernel_sizes), in_channels, kernel_size=1), nn.BatchNorm2d(in_channels), nn.ReLU(inplace=True))
 
         self._initialize_weights()
 
     def forward(self, x):
-        g1 = self.granularity1(x)
-
-        g2 = self.granularity2_1(x)
-        g2 = self.granularity2_2(g2)
-
-        g3 = self.granularity3_1(x)
-        g3 = self.granularity3_2(g3)
-        g3 = self.granularity3_3(g3)
-
-        x = torch.cat([g1, g2, g3], dim=1)
-        x = self.bn(self.out(x))
-        return F.relu(x, inplace=True)
+        outs = [branch(x) for branch in self.branches]
+        out = torch.cat(outs, dim=1)  # 在通道维度拼接
+        out = self.fusion(out)
+        return out + x  # 残差连接（可选）
 
     def _initialize_weights(self):
         for m in self.modules():
