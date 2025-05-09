@@ -105,19 +105,38 @@ class Bap(nn.Module):
 
 
 class Multi_Granularity(nn.Module):
-    def __init__(self, in_channels=2048, out_channels=512, kernel_sizes=[1, 3, 5], use_bn=True):
+    def __init__(self, in_channels=2048, out_channels=512):
         super(Multi_Granularity, self).__init__()
-        self.branches = nn.ModuleList()
 
-        for k in kernel_sizes:
-            padding = k // 2  # 保持尺寸
-            branch = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=k, padding=padding), nn.BatchNorm2d(out_channels) if use_bn else nn.Identity(), nn.ReLU(inplace=True)
-            )
-            self.branches.append(branch)
+        k = 3
+        padding = k // 2  # 保持尺寸
+        granularity_1 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+        )
+
+        k = 3
+        padding = k // 2  # 保持尺寸
+        granularity_2 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+        )
+
+        k = 3
+        padding = k // 2  # 保持尺寸
+        granularity_3 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+        )
+
+        self.branches = nn.ModuleList([granularity_1, granularity_2, granularity_3])
 
         # 用于融合各个尺度的输出
-        self.fusion = nn.Sequential(nn.Conv2d(out_channels * len(kernel_sizes), in_channels, kernel_size=1), nn.BatchNorm2d(in_channels), nn.ReLU(inplace=True))
+        self.fusion = nn.Sequential(
+            nn.Conv2d(out_channels * 3, in_channels, kernel_size=1),
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(inplace=True),
+        )
 
         self._initialize_weights()
 
@@ -125,7 +144,8 @@ class Multi_Granularity(nn.Module):
         outs = [branch(x) for branch in self.branches]
         out = torch.cat(outs, dim=1)  # 在通道维度拼接
         out = self.fusion(out)
-        return out + x  # 残差连接（可选）
+        out = out + x  # 残差连接（可选）
+        return out
 
     def _initialize_weights(self):
         for m in self.modules():
