@@ -118,15 +118,25 @@ class Multi_Granularity(nn.Module):
         padding = k // 2  # 保持尺寸
         granularity_2 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
         )
 
         k = 3
         padding = k // 2  # 保持尺寸
         granularity_3 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
         )
 
         self.branches = nn.ModuleList([granularity_1, granularity_2, granularity_3])
