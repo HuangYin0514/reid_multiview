@@ -139,11 +139,15 @@ class Multi_Granularity(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        self.branches = nn.ModuleList([granularity_1, granularity_2, granularity_3])
+        granularity_I = nn.Sequential(
+            nn.Identity(),
+        )
+
+        self.branches = nn.ModuleList([granularity_I, granularity_1, granularity_2, granularity_3])
 
         # 用于融合各个尺度的输出
         self.fusion = nn.Sequential(
-            nn.Conv2d(out_channels * 3, in_channels, kernel_size=1),
+            nn.Conv2d(out_channels * 3 + in_channels, in_channels, kernel_size=1),
             nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
         )
