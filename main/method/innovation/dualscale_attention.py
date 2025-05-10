@@ -108,7 +108,7 @@ class Multi_Granularity(nn.Module):
     def __init__(self, in_channels=2048, out_channels=512):
         super(Multi_Granularity, self).__init__()
 
-        k = 3
+        k = 1
         padding = k // 2  # 保持尺寸
         granularity_1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
@@ -125,7 +125,7 @@ class Multi_Granularity(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        k = 3
+        k = 5
         padding = k // 2  # 保持尺寸
         granularity_3 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
