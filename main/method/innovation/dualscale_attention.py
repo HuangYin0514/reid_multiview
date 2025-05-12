@@ -69,96 +69,35 @@ class Bap(nn.Module):
         return AiF_features, bap_features
 
 
-# class Multi_Granularity(nn.Module):
-#     def __init__(self, in_channels):
-#         super(Multi_Granularity, self).__init__()
+class ASPP(nn.Module):
+    """
+    Atrous spatial pyramid pooling (ASPP)
+    """
 
-#         # Multi-granularity
-#         self.granularity1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+    def __init__(self, in_channels=2048):
+        super(ASPP, self).__init__()
 
-#         self.granularity2_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-#         # self.granularity2_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+        atrous_rates = [5, 9, 13]
+        dims = [512, 512, 512]
 
-#         self.granularity3_1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-#         # self.granularity3_2 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
-#         # self.granularity3_3 = nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False)
+        self.conv_layers = nn.ModuleList()
+        for i in range(len(atrous_rates)):
+            rate = atrous_rates[i]
+            dim = dims[i]
+            self.conv_layers.append(nn.Conv2d(in_channels, dim, 3, 1, padding=rate, dilation=rate, bias=True))
 
-#         # Output
-#         self.out = nn.Conv2d(in_channels * 3, in_channels, 1, 1, 0, bias=False)
-#         self.bn = nn.BatchNorm2d(in_channels)
-
-#         self._initialize_weights()
-
-#     def forward(self, x):
-#         g1 = self.granularity1(x)
-
-#         g2 = self.granularity2_1(x)
-#         # g2 = self.granularity2_2(g2)
-
-#         g3 = self.granularity3_1(x)
-#         # g3 = self.granularity3_2(g3)
-#         # g3 = self.granularity3_3(g3)
-
-#         x = torch.cat([g1, g2, g3], dim=1)
-#         x = self.bn(self.out(x))
-#         return F.relu(x, inplace=True)
-
-
-class Multi_Granularity(nn.Module):
-    def __init__(self, in_channels=2048, out_channels=512):
-        super(Multi_Granularity, self).__init__()
-
-        k = 1
-        padding = k // 2  # 保持尺寸
-        granularity_1 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-        )
-
-        k = 3
-        padding = k // 2  # 保持尺寸
-        granularity_2 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-        )
-
-        k = 5
-        padding = k // 2  # 保持尺寸
-        granularity_3 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=k, stride=1, padding=padding),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-        )
-
-        granularity_I = nn.Sequential(
-            nn.Identity(),
-        )
-
-        self.branches = nn.ModuleList([granularity_I, granularity_1, granularity_2, granularity_3])
-
-        # 用于融合各个尺度的输出
-        self.fusion = nn.Sequential(
-            nn.Conv2d(out_channels * 3 + in_channels, in_channels, kernel_size=1),
-            nn.BatchNorm2d(in_channels),
-            nn.ReLU(inplace=True),
-        )
+        self.conv1 = nn.Conv2d(sum(dims), in_channels, 1, 1, 0, bias=True)
 
         self._initialize_weights()
 
     def forward(self, x):
-        outs = [branch(x) for branch in self.branches]
-        out = torch.cat(outs, dim=1)  # 在通道维度拼接
-        out = self.fusion(out)
-        out = out + x  # 残差连接（可选）
+
+        out_list = []
+        for i in range(len(self.conv_layers)):
+            out_i = self.conv_layers[i](x)
+            out_list.append(out_i)
+        out = torch.cat(out_list, dim=1)
+        out = self.conv1(out)
         return out
 
     def _initialize_weights(self):
@@ -178,22 +117,22 @@ class Multi_Granularity(nn.Module):
 
 
 class Dualscale_Attention(nn.Module):
-    def __init__(self, input_dim, out_dim, attention_num=2):
+    def __init__(self, in_channels, out_channels, attention_num=2):
         super(Dualscale_Attention, self).__init__()
 
         self.attention_num = attention_num
 
-        self.multi_granularity = Multi_Granularity(input_dim)
-        self.attention = BasicConv2d(input_dim, attention_num + 1)
-        self.bap = Bap(input_dim, out_dim, attention_num)
+        self.aspp = ASPP(in_channels)
+        self.attention = BasicConv2d(in_channels, attention_num + 1)
+        self.bap = Bap(in_channels, out_channels, attention_num)
 
     def select_attention(self, attention):
         attention = torch.softmax(attention, dim=1)  # The last one is background.
         return attention[:, : self.attention_num]
 
     def forward(self, features):
-        features = self.multi_granularity(features)
-        attentions = self.attention(features)
+        aspp_features = self.aspp(features)
+        attentions = self.attention(aspp_features)
         selected_attentions = self.select_attention(attentions)
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
         return attentions, selected_attentions, bap_AiF_features, bap_features

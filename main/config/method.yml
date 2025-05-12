@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v734-局部+多视角+注意力+蒸馏, 修复多视角分支"
+  NOTES: "v736-局部+多视角+注意力+蒸馏, 修复多视角分支"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
