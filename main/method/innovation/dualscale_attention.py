@@ -77,7 +77,7 @@ class ASPP(nn.Module):
     def __init__(self, in_channels=2048):
         super(ASPP, self).__init__()
 
-        atrous_rates = [1, 2, 3]
+        atrous_rates = [1, 1, 1]
         dims = [512, 512, 512]
         kernels = [3, 3, 3]
 
