@@ -77,14 +77,16 @@ class ASPP(nn.Module):
     def __init__(self, in_channels=2048):
         super(ASPP, self).__init__()
 
-        atrous_rates = [5, 9, 13]
+        atrous_rates = [1, 2, 3]
         dims = [512, 512, 512]
+        kernels = [3, 3, 3]
 
         self.conv_layers = nn.ModuleList()
         for i in range(len(atrous_rates)):
             rate = atrous_rates[i]
             dim = dims[i]
-            self.conv_layers.append(nn.Conv2d(in_channels, dim, 3, 1, padding=rate, dilation=rate, bias=True))
+            kernel = kernels[i]
+            self.conv_layers.append(nn.Conv2d(in_channels, dim, kernel, 1, padding=rate, dilation=rate, bias=True))
 
         self.conv1 = nn.Conv2d(sum(dims), in_channels, 1, 1, 0, bias=True)
 
