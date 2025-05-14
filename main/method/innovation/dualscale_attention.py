@@ -77,29 +77,34 @@ class ASPP(nn.Module):
     def __init__(self, in_channels=2048):
         super(ASPP, self).__init__()
 
-        atrous_rates = [1, 1, 1]
-        dims = [512, 512, 512]
+        atrous_rates = [1, 2, 3]
         kernels = [3, 3, 3]
+        hidden_dim = 512
+
+        self.reduce_dim_conv_1 = nn.Conv2d(in_channels, hidden_dim, 1, 1, 0, bias=False)
 
         self.conv_layers = nn.ModuleList()
         for i in range(len(atrous_rates)):
             rate = atrous_rates[i]
-            dim = dims[i]
             kernel = kernels[i]
-            self.conv_layers.append(nn.Conv2d(in_channels, dim, kernel, 1, padding=rate, dilation=rate, bias=True))
+            self.conv_layers.append(nn.Conv2d(hidden_dim, hidden_dim, kernel, 1, padding=rate, dilation=rate, bias=True))
 
-        self.conv1 = nn.Conv2d(sum(dims), in_channels, 1, 1, 0, bias=True)
+        self.conv1 = nn.Conv2d(hidden_dim * 3, in_channels, 1, 1, 0, bias=False)
 
         self._initialize_weights()
 
     def forward(self, x):
 
+        out = self.reduce_dim_conv_1(x)
+
         out_list = []
         for i in range(len(self.conv_layers)):
-            out_i = self.conv_layers[i](x)
+            out_i = self.conv_layers[i](out)
             out_list.append(out_i)
         out = torch.cat(out_list, dim=1)
+
         out = self.conv1(out)
+
         return out
 
     def _initialize_weights(self):
