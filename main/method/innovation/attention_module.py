@@ -17,8 +17,15 @@ class Attention_Module(nn.Module):
         # Output 3x3 convs to reduce aliasing
         self.output_convs = nn.ModuleList()
         for in_cdim in in_cdim_list:
-            li = [nn.Conv2d(out_cdim, out_cdim, 3, 1, 1)]
+            li = [
+                nn.Conv2d(out_cdim, out_cdim, 3, 1, 1),
+            ]
             self.output_convs.append(nn.Sequential(*li))
+
+        self.finnal_conv = nn.Sequential(
+            nn.Conv2d(out_cdim, 2048, 1, 1, 0),
+            nn.AdaptiveAvgPool2d(1),
+        )
 
     def forward(self, inputs):
         # step 1: lateral 1x1 conv
@@ -38,7 +45,7 @@ class Attention_Module(nn.Module):
         out_features = [output_conv(f) for f, output_conv in zip(pathway_features, self.output_convs)]
 
         # step 4: fusion
-        out_features = out_features[-1]
+        out_features = self.finnal_conv(out_features[-1]).squeeze()
 
         return out_features
 

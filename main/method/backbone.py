@@ -42,6 +42,6 @@ class Backbone(nn.Module):
 
         copy_l4_out = self.copyed_resnet_layer4(l3_out)
 
-        internal_outs = [l2_out, l3_out, l4_out]
+        internal_outs = [l1_out, l2_out, l3_out]
 
         return l4_out, copy_l4_out, internal_outs
