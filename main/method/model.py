@@ -45,7 +45,7 @@ class Model(nn.Module):
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
 
-        # Soft global attention
+        # Soft attention
         self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
         self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
@@ -57,11 +57,11 @@ class Model(nn.Module):
 
     def forward(self, x):
         if self.training:
-            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
+            resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps = self.backbone(x)
             return resnet_feature_maps, copy_resnet_feature_maps
         else:
             eval_features = []
-            resnet_feature_maps, copy_resnet_feature_maps = self.backbone(x)
+            resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps = self.backbone(x)
 
             # Hard global
             global_features = self.global_pooling(resnet_feature_maps).squeeze()
@@ -73,10 +73,8 @@ class Model(nn.Module):
             soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
             eval_features.append(soft_global_bn_features)
 
-            # Soft global attention
+            # Soft attention
             (
-                soft_attention_attentions,
-                soft_attention_selected_attentions,
                 soft_attention_bap_AiF_features,
                 soft_attention_bap_features,
             ) = self.soft_attention(copy_resnet_feature_maps)

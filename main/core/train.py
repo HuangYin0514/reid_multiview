@@ -41,10 +41,8 @@ def train(base, loaders, config):
             soft_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_global_cls_score, pids)
             total_loss += soft_global_pid_loss
 
-            # Soft global attention
+            # Soft attention
             (
-                soft_attention_attentions,
-                soft_attention_selected_attentions,
                 soft_attention_bap_AiF_features,
                 soft_attention_bap_features,
             ) = base.model.module.soft_attention(copy_resnet_feature_maps)

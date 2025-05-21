@@ -77,7 +77,7 @@ class ASPP(nn.Module):
     def __init__(self, in_channels=2048):
         super(ASPP, self).__init__()
 
-        atrous_rates = [1, 2, 3]
+        atrous_rates = [1, 6, 12]
         kernels = [3, 3, 3]
         hidden_dim = 512
 
@@ -142,4 +142,4 @@ class Dualscale_Attention(nn.Module):
         attentions = self.attention(aspp_features)
         selected_attentions = self.select_attention(attentions)
         bap_AiF_features, bap_features = self.bap(selected_attentions, features)
-        return attentions, selected_attentions, bap_AiF_features, bap_features
+        return bap_AiF_features, bap_features
