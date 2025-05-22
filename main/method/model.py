@@ -14,6 +14,7 @@ class Model(nn.Module):
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
+        ATTENTION_NUM = config.MODEL.ATTENTION_NUM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
@@ -45,9 +46,10 @@ class Model(nn.Module):
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
 
         # Soft attention
-        # self.soft_attention = innovation.dualscale_attention.Dualscale_Attention(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM, ATTENTION_NUM)
-        self.soft_attention = innovation.attention_module.Attention_Module(in_cdim_list=[256, 512, 1024, 2048], out_cdim=512)
-        self.soft_attention_classifier = module.Classifier(2048, config.DATASET.PID_NUM)
+        self.soft_attention = innovation.attention_module.Attention_Module(
+            in_cdim_list=[512, 1024, 2048], out_cdim=BACKBONE_FEATURES_DIM, internal_cdim=512, attention_num=ATTENTION_NUM
+        )
+        self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
@@ -72,11 +74,6 @@ class Model(nn.Module):
             soft_global_pooling_features = self.soft_global_pooling(copy_resnet_feature_maps).squeeze()
             soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
             eval_features.append(soft_global_bn_features)
-
-            # Soft attention
-            soft_attention_features = self.soft_attention(resnet_internal_feature_maps + [copy_resnet_feature_maps])
-            soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_features)
-            eval_features.append(soft_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
             return eval_features
