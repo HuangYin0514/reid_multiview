@@ -47,10 +47,10 @@ class Attention_Module(nn.Module):
             pathway_features_list[i] = f_in + f_i
 
         # step 3: final 3x3 conv
-        out_features_list = [output_conv(f) for f, output_conv in zip(pathway_features_list, self.output_convs)]
+        # out_features_list = [output_conv(f) for f, output_conv in zip(pathway_features_list, self.output_convs)]
 
         # step 4: fusion
-        out_features = out_features_list[-1]
+        out_features = pathway_features_list[-1]
         out_features = self.finnal_conv(out_features)
         AiF_features, attention_features = self.attention_layer(out_features)
         return AiF_features, attention_features
