@@ -74,7 +74,9 @@ class Model(nn.Module):
             eval_features.append(soft_global_bn_features)
 
             # Soft attention
+            soft_attention_features = self.soft_attention(resnet_internal_feature_maps + [copy_resnet_feature_maps])
+            soft_attention_bn_features, soft_attention_cls_score = self.soft_attention_classifier(soft_attention_features)
+            eval_features.append(soft_attention_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
-
             return eval_features
