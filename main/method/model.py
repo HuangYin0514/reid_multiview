@@ -45,12 +45,6 @@ class Model(nn.Module):
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
         self.soft_global_classifier = module.Classifier(BACKBONE_FEATURES_DIM, config.DATASET.PID_NUM)
 
-        # Soft attention
-        self.soft_attention = innovation.attention_module.Attention_Module(
-            in_cdim_list=[512, 1024, 2048], out_cdim=BACKBONE_FEATURES_DIM, internal_cdim=512, attention_num=ATTENTION_NUM
-        )
-        self.soft_attention_classifier = module.Classifier(BACKBONE_FEATURES_DIM * ATTENTION_NUM, config.DATASET.PID_NUM)
-
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
 
