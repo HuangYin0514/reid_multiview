@@ -103,13 +103,13 @@ class Feature_Pyramid_Network(nn.Module):
         cdim_1, cdim_2, cdim_3 = in_cdim_list
 
         self.patch_embedding_1 = Patch_Embedding(in_cdim=cdim_1, out_cdim=cdim_1)
-        self.attention_1 = Transformer(cdim_1, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=1)
+        self.attention_1 = Transformer(cdim_1, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=2)
 
         self.patch_embedding_2 = Patch_Embedding(in_cdim=cdim_1 + cdim_2, out_cdim=cdim_1 + cdim_2)
-        self.attention_2 = Transformer(cdim_1 + cdim_2, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=1)
+        self.attention_2 = Transformer(cdim_1 + cdim_2, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=2)
 
         self.patch_embedding_3 = Patch_Embedding(in_cdim=cdim_1 + cdim_2 + cdim_3, out_cdim=cdim_1 + cdim_2 + cdim_3)
-        self.attention_3 = Transformer(cdim_1 + cdim_2 + cdim_3, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=1)
+        self.attention_3 = Transformer(cdim_1 + cdim_2 + cdim_3, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=2)
 
     def forward(self, input_list):
         # feature_maps_1: (B, C, H, W) -> (B, 256, 64, 32)
