@@ -122,7 +122,7 @@ class Feature_Pyramid_Network(nn.Module):
             nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False),
             nn.BatchNorm2d(cdim_4),
             nn.ReLU(inplace=True),
-            nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False),
+            nn.Conv2d(cdim_4, cdim_4, 1, 1, 0, bias=False),
         )
 
     def forward(self, input_list):
