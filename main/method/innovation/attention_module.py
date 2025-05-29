@@ -118,7 +118,12 @@ class Feature_Pyramid_Network(nn.Module):
         self.patch_embedding_4 = Patch_Embedding(in_cdim=cdim_4, out_cdim=cdim_4)
         self.attention_4 = Transformer(in_cdim_H=cdim_4, in_cdim_i=cdim_4, heads=8, head_dim=64, dropout=0.1, mlp_dim=2048, depth=1)
 
-        self.to_outs = nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False)
+        self.to_outs = nn.Sequential(
+            nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(cdim_4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False),
+        )
 
     def forward(self, input_list):
         # feature_maps_1: (B, C, H, W) -> (B, 256, 64, 32)
