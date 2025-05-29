@@ -121,7 +121,7 @@ class Feature_Pyramid_Network(nn.Module):
         self.to_outs = nn.Sequential(
             nn.Conv2d(cdim_4 * 4, cdim_4, 1, 1, 0, bias=False),
             nn.BatchNorm2d(cdim_4),
-            nn.ReLU(inplace=True),
+            nn.GELU(),
             nn.Conv2d(cdim_4, cdim_4, 1, 1, 0, bias=False),
         )
 
