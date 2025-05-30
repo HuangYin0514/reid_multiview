@@ -130,8 +130,8 @@ class Feature_Pyramid_Network(nn.Module):
         feature_maps_1, feature_maps_2, feature_maps_3, feature_maps_4 = input_list
 
         token_4 = self.patch_embedding_4(feature_maps_4)
-        token_4 = self.attention_4(token_4, token_4)
-        feature_maps_4 = Sequence_2_Image(token_4, h=16, w=8)
+        token_4_attention = self.attention_4(token_4, token_4)
+        feature_maps_4 = Sequence_2_Image(token_4_attention, h=16, w=8)
 
         feature_maps_1 = F.interpolate(feature_maps_1, size=(16, 8), mode="bilinear")
         token_1 = self.patch_embedding_1(feature_maps_1)
