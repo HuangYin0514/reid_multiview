@@ -50,28 +50,31 @@ def train(base, loaders, config):
 
             # ------------- Multiview content branch  -----------------------
             # Positioning
-            multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
+            # multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
 
             # Quantification
-            multiview_localized_features = base.model.module.multiview_pooling(multiview_localized_features_map).squeeze()
+            multiview_localized_features = base.model.module.multiview_pooling(resnet_feature_maps).squeeze()
             _, multiview_localized_cls_score = base.model.module.global_classifier(multiview_localized_features)
+
+            # Soft Positioning
+            # multiview_localized_copy_features_map = base.model.module.multiview_feature_map_location(
+            #     copy_resnet_feature_maps, pids, base.model.module.soft_global_classifier
+            # )
+
+            # Soft Quantification
+            multiview_localized_copy_features = base.model.module.multiview_soft_pooling(copy_resnet_feature_maps).squeeze()
+            _, multiview_localized_copy_cls_score = base.model.module.soft_global_classifier(multiview_localized_copy_features)
+
+            multiview_localized_cls_score_all = (multiview_localized_cls_score + multiview_localized_copy_cls_score) / 2
             multiview_quantified_localized_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_features,
-                multiview_localized_cls_score,
+                multiview_localized_cls_score_all,
                 pids,
             )
 
-            # Soft Positioning
-            multiview_localized_copy_features_map = base.model.module.multiview_feature_map_location(
-                copy_resnet_feature_maps, pids, base.model.module.soft_global_classifier
-            )
-
-            # Soft Quantification
-            multiview_localized_copy_features = base.model.module.multiview_soft_pooling(multiview_localized_copy_features_map).squeeze()
-            _, multiview_localized_copy_cls_score = base.model.module.soft_global_classifier(multiview_localized_copy_features)
             multiview_quantified_localized_copy_features = base.model.module.multiview_feature_quantification(
                 multiview_localized_copy_features,
-                multiview_localized_copy_cls_score,
+                multiview_localized_cls_score_all,
                 pids,
             )
 
