@@ -5,52 +5,39 @@ from torch.nn import functional as F
 from .. import module
 
 
-class MultiviewFeatureFusion(nn.Module):
-    """
-    多视图特征融合模块，用于将多个视图的特征进行融合。
+class Featuremap_Fusion(nn.Module):
 
-    该模块包含两个核心功能：
-    1. 特征融合：将两个输入特征进行平均融合。
-    2. 视图融合：将融合后的特征按照视图进行平均或求和。
+    def __init__(self, input_dim, out_dim):
+        super(Featuremap_Fusion, self).__init__()
 
-    参数:
-    - view_num (int): 视图数量。
-    - input_dim (int): 输入特征的维度。
-    - out_dim (int): 输出特征的维度。
-
-    示例:
-    >>> model = MultiviewFeatureFusion(view_num=2, input_dim=128, out_dim=64)
-    >>> features_1 = torch.randn(32, 128)
-    >>> features_2 = torch.randn(32, 128)
-    >>> pids = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
-    >>> fused_features, fused_pids = model(features_1, features_2, pids)
-    """
-
-    def __init__(self, view_num, input_dim, out_dim):
-        super(MultiviewFeatureFusion, self).__init__()
-        self.view_num = view_num
-
-        self.fusion_module = module.Residual(
+        self.fusion_layer = module.Residual(
             nn.Sequential(
-                nn.Conv1d(input_dim, out_dim, kernel_size=1),
+                nn.Conv2d(input_dim, out_dim, 1, 1, 0),
                 nn.ReLU(),
-                nn.BatchNorm1d(out_dim),
-                nn.Conv1d(out_dim, out_dim, kernel_size=1),
+                nn.BatchNorm2d(out_dim),
+                nn.Conv2d(out_dim, out_dim, 1, 1, 0),
             )
         )
+        self.fusion_layer.apply(module.weights_init_kaiming)
 
-        self._initialize_weights()
+    def forward(self, features_1, features_2):
+        fused = (features_1 + features_2) / 2
+        fused = self.fusion_layer(fused)
+        return fused
 
-    def forward(self, features_1, features_2, pids):
-        B, C = features_1.shape  # batch size, channels
+
+class View_Fusion(nn.Module):
+
+    def __init__(self, view_num):
+        super(View_Fusion, self).__init__()
+        self.view_num = view_num
+
+    def forward(self, features, pids):
+        B, C = features.shape  # batch size, channels
         chunk_size = B // self.view_num
 
-        # Feature-level fusion
-        fused = (features_1 + features_2).unsqueeze(-1)  # [B, C, 1]
-        fused = self.fusion_module(fused).squeeze(-1)  # [B, C]
-
         # View-level fusion: reshape to [chunk_size, view_num, C]
-        fused = fused.view(chunk_size, self.view_num, C)
+        fused = features.view(chunk_size, self.view_num, C)
         fused = fused.mean(dim=1)  # [chunk_size, C]
 
         # PID-level fusion: assume same identity across views
@@ -58,26 +45,11 @@ class MultiviewFeatureFusion(nn.Module):
 
         return fused, fused_pids
 
-    def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, (nn.Conv1d, nn.Conv2d, nn.Conv3d)):
-                nn.init.kaiming_normal_(m.weight, mode="fan_in")
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out")
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
-                if m.affine:
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
 
-
-class FeatureQuantification(nn.Module):
+class Feature_Quantification(nn.Module):
 
     def __init__(self, view_num):
-        super(FeatureQuantification, self).__init__()
+        super(Feature_Quantification, self).__init__()
         self.view_num = view_num
 
     def forward(self, features, cls_scores, pids):
@@ -87,35 +59,6 @@ class FeatureQuantification(nn.Module):
         weights = torch.softmax(probs.view(-1, self.view_num), dim=1).view(-1).clone().detach()
         quantified_features = weights.unsqueeze(1) * features  #  注意：调整weight的维度
         return quantified_features
-
-
-class FeatureMapLocation(nn.Module):
-
-    def __init__(self):
-        super(FeatureMapLocation, self).__init__()
-
-    def forward(self, features_map, pids, classifier):
-        size, c, h, w = features_map.size()
-
-        # 提前提取分类器最后一层的权重
-        with torch.no_grad():
-            classifier_weight = list(classifier.parameters())[-1]  # shape: [num_classes, c]
-            selected_weights = classifier_weight[pids]  # shape: [batch_size, c]
-
-            # 计算热力图
-            features_map_flat = features_map.view(size, c, h * w)  # [batch, c, h*w]
-            heatmaps = torch.bmm(selected_weights.unsqueeze(1), features_map_flat)  # [batch, 1, h*w]
-            heatmaps = heatmaps.view(size, h, w)
-
-            # 归一化
-            heatmaps_min = heatmaps.view(size, -1).min(dim=1, keepdim=True)[0].view(size, 1, 1)
-            heatmaps_max = heatmaps.view(size, -1).max(dim=1, keepdim=True)[0].view(size, 1, 1)
-            heatmaps = (heatmaps - heatmaps_min) / (heatmaps_max - heatmaps_min + 1e-6)  # 避免除以0
-
-        # 应用热力图
-        localized_features_map = features_map * heatmaps.unsqueeze(1)
-
-        return localized_features_map
 
 
 class ContrastLoss(nn.Module):

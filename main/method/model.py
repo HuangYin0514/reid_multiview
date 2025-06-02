@@ -31,15 +31,6 @@ class Model(nn.Module):
             self.hard_part_pooling.append(module.GeneralizedMeanPoolingP())
             self.hard_part_classifier.append(module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM))
 
-        # ------------- Multiview content branch -----------------------
-        self.multiview_pooling = module.GeneralizedMeanPoolingP()
-        self.multiview_soft_pooling = module.GeneralizedMeanPoolingP()
-
-        self.multiview_feature_map_location = innovation.multi_view.FeatureMapLocation()
-        self.multiview_feature_quantification = innovation.multi_view.FeatureQuantification(VIEW_NUM)
-        self.multiview_feature_fusion = innovation.multi_view.MultiviewFeatureFusion(VIEW_NUM, BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM)
-        self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
-
         # ------------- soft content branch -----------------------
         # Soft global
         self.soft_global_pooling = module.GeneralizedMeanPoolingP()
@@ -48,6 +39,27 @@ class Model(nn.Module):
         self.soft_attention = innovation.attention_module.Feature_Pyramid_Network(in_cdim_list=[256, 512, 1024, 2048])
         self.soft_attention_pooling = module.GeneralizedMeanPoolingP()
         self.soft_attention_classifier = module.Classifier(2048, config.DATASET.PID_NUM)
+
+        # ------------- Multiview content branch -----------------------
+        # TODO: 1.innovation.multi_view.Featuremap_Fusion 修改为高级融合方式/concat融合
+        # TODO: 2.multiview_pooling 池化部署在不同位置
+        # TODO: 3.quantification权重之前加入Softmax
+        # Postion
+        self.multiview_hard_CAM = innovation.cam.CAM()
+        self.multiview_soft_CAM = innovation.cam.CAM()
+
+        # Featuremaps fusion
+        self.multiview_featuremap_fusion = innovation.multi_view.Featuremap_Fusion(BACKBONE_FEATURES_DIM, BACKBONE_FEATURES_DIM)
+
+        # Feature quantification
+        self.multiview_feature_quantification = innovation.multi_view.Feature_Quantification(VIEW_NUM)
+
+        # View fusion
+        self.multiview_view_fusion = innovation.multi_view.View_Fusion(VIEW_NUM)
+
+        # Classification
+        self.multiview_pooling = module.GeneralizedMeanPoolingP()
+        self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
         # ------------- Contrast  Module -----------------------
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)

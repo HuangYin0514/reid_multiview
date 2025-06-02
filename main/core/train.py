@@ -14,18 +14,18 @@ def train(base, loaders, config):
             total_loss = 0.0
 
             # R: Resnet
-            resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps = base.model(imgs)
+            resnet_featuremaps, copy_resnet_featuremaps, resnet_internal_featuremaps = base.model(imgs)
 
             # ------------- Hard content branch -----------------------
             # Global
-            global_features = base.model.module.global_pooling(resnet_feature_maps).squeeze()
+            global_features = base.model.module.global_pooling(resnet_featuremaps).squeeze()
             global_bn_features, global_cls_score = base.model.module.global_classifier(global_features)
             global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(global_cls_score, pids)
             total_loss += global_pid_loss
 
             # Part
             PART_NUM = config.MODEL.PART_NUM
-            hard_part_chunk_features = torch.chunk(resnet_feature_maps, PART_NUM, dim=2)
+            hard_part_chunk_features = torch.chunk(resnet_featuremaps, PART_NUM, dim=2)
             hard_part_pid_loss = 0.0
             for i in range(PART_NUM):
                 hard_part_chunk_feature_item = hard_part_chunk_features[i]
@@ -36,55 +36,37 @@ def train(base, loaders, config):
 
             # ------------- Soft content branch -----------------------
             # Soft global
-            soft_global_pooling_features = base.model.module.soft_global_pooling(copy_resnet_feature_maps).squeeze()
+            soft_global_pooling_features = base.model.module.soft_global_pooling(copy_resnet_featuremaps).squeeze()
             soft_global_bn_features, soft_global_cls_score = base.model.module.soft_global_classifier(soft_global_pooling_features)
             soft_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_global_cls_score, pids)
             total_loss += soft_global_pid_loss
 
             # Soft attention
-            soft_attention_feature_maps = base.model.module.soft_attention(resnet_internal_feature_maps + [copy_resnet_feature_maps])
-            soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_feature_maps).squeeze()
+            soft_attention_featuremaps = base.model.module.soft_attention(resnet_internal_featuremaps + [copy_resnet_featuremaps])
+            soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_featuremaps).squeeze()
             soft_attention_bn_features, soft_attention_cls_score = base.model.module.soft_attention_classifier(soft_attention_features)
             soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
             total_loss += soft_attention_pid_loss
 
             # ------------- Multiview content branch  -----------------------
-            # Positioning
-            # multiview_localized_features_map = base.model.module.multiview_feature_map_location(resnet_feature_maps, pids, base.model.module.global_classifier)
+            # Position
+            multiview_hard_CAM_featuremaps = base.model.module.multiview_hard_CAM(resnet_featuremaps, pids, base.model.module.global_classifier)
+            multiview_soft_CAM_featuremaps = base.model.module.multiview_soft_CAM(copy_resnet_featuremaps, pids, base.model.module.soft_global_classifier)
+
+            # Featuremaps fusion
+            multiview_featuremaps = base.model.module.multiview_featuremap_fusion(multiview_hard_CAM_featuremaps, multiview_soft_CAM_featuremaps)
 
             # Quantification
-            multiview_localized_features = base.model.module.multiview_pooling(resnet_feature_maps).squeeze()
-            _, multiview_localized_cls_score = base.model.module.global_classifier(multiview_localized_features)
+            multiview_features = base.model.module.multiview_pooling(multiview_featuremaps).squeeze()
+            _, multiview_hard_cls_score = base.model.module.global_classifier(multiview_features)
+            _, multiview_soft_cls_score = base.model.module.soft_global_classifier(multiview_features)
+            multiview_quantification_cls_score = (multiview_hard_cls_score + multiview_soft_cls_score) / 2
+            multiview_features = base.model.module.multiview_feature_quantification(multiview_features, multiview_quantification_cls_score, pids)
 
-            # Soft Positioning
-            # multiview_localized_copy_features_map = base.model.module.multiview_feature_map_location(
-            #     copy_resnet_feature_maps, pids, base.model.module.soft_global_classifier
-            # )
+            # View fusion
+            multiview_features, multiview_pids = base.model.module.multiview_view_fusion(multiview_features, pids)
 
-            # Soft Quantification
-            multiview_localized_copy_features = base.model.module.multiview_soft_pooling(copy_resnet_feature_maps).squeeze()
-            _, multiview_localized_copy_cls_score = base.model.module.soft_global_classifier(multiview_localized_copy_features)
-
-            multiview_localized_cls_score_all = (multiview_localized_cls_score + multiview_localized_copy_cls_score) / 2
-            multiview_quantified_localized_features = base.model.module.multiview_feature_quantification(
-                multiview_localized_features,
-                multiview_localized_cls_score_all,
-                pids,
-            )
-
-            multiview_quantified_localized_copy_features = base.model.module.multiview_feature_quantification(
-                multiview_localized_copy_features,
-                multiview_localized_cls_score_all,
-                pids,
-            )
-
-            # Fusion
-            multiview_features, multiview_pids = base.model.module.multiview_feature_fusion(
-                multiview_quantified_localized_features,
-                multiview_quantified_localized_copy_features,
-                pids,
-            )
-
+            # Classification
             multiview_bn_features, multiview_cls_score = base.model.module.multiview_classifier(multiview_features)
             multiview_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(multiview_cls_score, multiview_pids)
             total_loss += multiview_pid_loss
