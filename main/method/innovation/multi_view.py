@@ -10,18 +10,24 @@ class Featuremap_Fusion(nn.Module):
     def __init__(self, input_dim, out_dim):
         super(Featuremap_Fusion, self).__init__()
 
-        self.fusion_layer = module.Residual(
-            nn.Sequential(
-                nn.Conv2d(input_dim, out_dim, 1, 1, 0),
-                nn.ReLU(),
-                nn.BatchNorm2d(out_dim),
-                nn.Conv2d(out_dim, out_dim, 1, 1, 0),
-            )
+        # self.fusion_layer = module.Residual(
+        #     nn.Sequential(
+        #         nn.Conv2d(input_dim, out_dim, 1, 1, 0),
+        #         nn.ReLU(),
+        #         nn.BatchNorm2d(out_dim),
+        #         nn.Conv2d(out_dim, out_dim, 1, 1, 0),
+        #     )
+        # )
+        self.fusion_layer = nn.Sequential(
+            nn.Conv2d(input_dim * 2, out_dim, 1, 1, 0),
+            nn.ReLU(),
+            nn.BatchNorm2d(out_dim),
+            nn.Conv2d(out_dim, out_dim, 1, 1, 0),
         )
         self.fusion_layer.apply(module.weights_init_kaiming)
 
     def forward(self, features_1, features_2):
-        fused = (features_1 + features_2) / 2
+        fused = torch.cat([features_1, features_2], dim=1)
         fused = self.fusion_layer(fused)
         return fused
 
