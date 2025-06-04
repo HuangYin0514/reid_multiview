@@ -41,7 +41,7 @@ class Model(nn.Module):
         self.soft_attention_classifier = module.Classifier(2048, config.DATASET.PID_NUM)
 
         # ------------- Multiview content branch -----------------------
-        # TODO: 1.innovation.multi_view.Featuremap_Fusion 修改为高级融合方式/concat融合
+        # TODO: 1.innovation.multi_view.Featuremap_Fusion 修改为高级融合方式/concat融合/11conv
         # TODO: 2.multiview_pooling 池化部署在不同位置
         # TODO: 3.quantification权重之前加入Softmax
         # Postion

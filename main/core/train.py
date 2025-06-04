@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from method import innovation, loss_function, module
 from tools import MultiItemAverageMeter
 from tqdm import tqdm
@@ -61,6 +62,7 @@ def train(base, loaders, config):
             _, multiview_hard_cls_score = base.model.module.global_classifier(multiview_features)
             _, multiview_soft_cls_score = base.model.module.soft_global_classifier(multiview_features)
             multiview_quantification_cls_score = (multiview_hard_cls_score + multiview_soft_cls_score) / 2
+            multiview_quantification_cls_score = F.softmax(multiview_quantification_cls_score, dim=1)
             multiview_features = base.model.module.multiview_feature_quantification(multiview_features, multiview_quantification_cls_score, pids)
 
             # View fusion
