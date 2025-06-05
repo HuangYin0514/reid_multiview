@@ -43,7 +43,6 @@ class Model(nn.Module):
         # ------------- Multiview content branch -----------------------
         # TODO: 1.innovation.multi_view.Featuremap_Fusion 修改为高级融合方式/concat融合/11conv
         # TODO: 2.multiview_pooling 池化部署在不同位置
-        # TODO: 3.quantification权重之前加入Softmax
         # Postion
         self.multiview_hard_CAM = innovation.cam.CAM()
         self.multiview_soft_CAM = innovation.cam.CAM()

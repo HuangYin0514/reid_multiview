@@ -21,7 +21,7 @@ class Featuremap_Fusion(nn.Module):
         self.fusion_layer = nn.Sequential(
             nn.Conv2d(input_dim * 2, out_dim, 1, 1, 0),
             nn.BatchNorm2d(out_dim),
-            nn.GELU(),
+            nn.ReLU(),
         )
         self.residual_layer = module.Residual(
             nn.Sequential(
