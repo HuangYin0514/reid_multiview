@@ -78,11 +78,7 @@ def train(base, loaders, config):
             # contrast_loss = base.model.module.contrast_loss(global_bn_features, multiview_bn_features)
             contrast_loss = base.model.module.contrast_kl_loss(global_cls_score, multiview_cls_score, global_bn_features, multiview_bn_features)
             contrast_loss_2 = base.model.module.contrast_kl_loss(soft_global_cls_score, multiview_cls_score, soft_global_bn_features, multiview_bn_features)
-            if epoch % 2 == 0:
-                total_loss += contrast_loss
-            else:
-                total_loss += contrast_loss_2
-            # total_loss += contrast_loss + contrast_loss_2
+            total_loss += 0.1 * (contrast_loss + contrast_loss_2)
 
             base.model_optimizer.zero_grad()
             total_loss.backward()
