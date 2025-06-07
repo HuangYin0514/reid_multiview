@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v773-局部+多视角+注意力+蒸馏, 蒸馏权重"
+  NOTES: "v774-局部+多视角+注意力+蒸馏, 推理特征"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
