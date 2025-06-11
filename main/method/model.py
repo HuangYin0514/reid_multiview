@@ -30,7 +30,13 @@ class Model(nn.Module):
         self.hard_part_classifier = nn.ModuleList()
         for i in range(PART_NUM):
             self.hard_part_pooling.append(module.GeneralizedMeanPoolingP())
-            self.hard_part_projection.append(nn.Conv1d(BACKBONE_FEATURES_DIM, 512, 1, 1, 0))
+            self.hard_part_projection.append(
+                nn.Sequential(
+                    nn.Conv1d(BACKBONE_FEATURES_DIM, 512, 1, 1, 0),
+                    nn.BatchNorm1d(512),
+                    nn.ReLU(),
+                )
+            )
             self.hard_part_classifier.append(module.Classifier(512, PID_NUM))
 
         # ------------- soft content branch -----------------------
