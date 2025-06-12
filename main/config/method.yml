@@ -24,7 +24,7 @@ MODEL:
 DATASET:
   TRAIN_DATASET: "market"
   TRAIN_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
-  PID_NUM: 702
+  PID_NUM: 751
   TEST_DATASET: "market"
   TEST_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
 
