@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v778-局部+多视角+注意力+蒸馏, 复现"
+  NOTES: "v779-局部+多视角+注意力+蒸馏, 复现"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
