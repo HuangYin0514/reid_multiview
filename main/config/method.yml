@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v779-局部+多视角+注意力+蒸馏, 复现"
+  NOTES: "v780-局部+多视角+注意力+蒸馏, market评估"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -14,12 +14,19 @@ MODEL:
   ATTENTION_NUM: 2
 
 
+# DATASET:
+#   TRAIN_DATASET: "occluded_duke"
+#   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+#   PID_NUM: 702
+#   TEST_DATASET: "occluded_duke"
+#   TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+
 DATASET:
-  TRAIN_DATASET: "occluded_duke"
-  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+  TRAIN_DATASET: "market"
+  TRAIN_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
   PID_NUM: 702
-  TEST_DATASET: "occluded_duke"
-  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+  TEST_DATASET: "market"
+  TEST_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
 
 
 DATALOADER:
