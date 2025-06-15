@@ -37,10 +37,10 @@ MODEL:
 
 DATASET:
   TRAIN_DATASET: "partial_duke"
-  TRAIN_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/"
+  TRAIN_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/format/"
   PID_NUM: 665
   TEST_DATASET: "partial_duke"
-  TEST_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/"
+  TEST_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/format/"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
