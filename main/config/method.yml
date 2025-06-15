@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v783-局部+多视角+注意力+蒸馏, duke评估"
+  NOTES: "v784-局部+多视角+注意力+蒸馏, partial_duke评估"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -28,12 +28,19 @@ MODEL:
 #   TEST_DATASET: "market"
 #   TEST_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
 
+# DATASET:
+#   TRAIN_DATASET: "duke"
+#   TRAIN_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+#   PID_NUM: 702
+#   TEST_DATASET: "duke"
+#   TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+
 DATASET:
-  TRAIN_DATASET: "duke"
-  TRAIN_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
-  PID_NUM: 702
-  TEST_DATASET: "duke"
-  TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+  TRAIN_DATASET: "partial_duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/"
+  PID_NUM: 665
+  TEST_DATASET: "partial_duke"
+  TEST_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
