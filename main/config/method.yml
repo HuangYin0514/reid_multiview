@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v788-局部+多视角+注意力+蒸馏, 多视图数量对精度对影响/8"
+  NOTES: "v789-局部+多视角+注意力+蒸馏, 多视图数量对精度对影响/2"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -9,7 +9,7 @@ TASK:
 MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
-  VIEW_NUM: 8
+  VIEW_NUM: 2
   PART_NUM: 2
   ATTENTION_NUM: 2
 
