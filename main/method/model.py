@@ -14,7 +14,6 @@ class Model(nn.Module):
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
-        ATTENTION_NUM = config.MODEL.ATTENTION_NUM
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone()
