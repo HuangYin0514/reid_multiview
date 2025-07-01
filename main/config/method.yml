@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v790-局部+多视角+注意力+蒸馏, 局部分支数量对精度的影响/3"
+  NOTES: "v791-局部+多视角+注意力+蒸馏, occluded_reid"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -10,16 +10,16 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 3
+  PART_NUM: 2
   # ATTENTION_NUM: 2
 
 
-DATASET:
-  TRAIN_DATASET: "occluded_duke"
-  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
-  PID_NUM: 702
-  TEST_DATASET: "occluded_duke"
-  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+# DATASET:
+#   TRAIN_DATASET: "occluded_duke"
+#   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+#   PID_NUM: 702
+#   TEST_DATASET: "occluded_duke"
+#   TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
 
 # DATASET:
 #   TRAIN_DATASET: "market"
@@ -41,6 +41,13 @@ DATASET:
 #   PID_NUM: 665
 #   TEST_DATASET: "partial_duke"
 #   TEST_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/format/"
+
+DATASET:
+  TRAIN_DATASET: "occluded_reid"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/1"
+  PID_NUM: 100
+  TEST_DATASET: "occluded_reid"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/1"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
