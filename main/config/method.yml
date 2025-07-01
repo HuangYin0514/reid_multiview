@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v792-局部+多视角+注意力+蒸馏, occluded_reid/2"
+  NOTES: "v793-局部+多视角+注意力+蒸馏, occluded_reid/3"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -44,10 +44,10 @@ MODEL:
 
 DATASET:
   TRAIN_DATASET: "occluded_reid"
-  TRAIN_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/2"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/3"
   PID_NUM: 100
   TEST_DATASET: "occluded_reid"
-  TEST_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/2"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/3"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
