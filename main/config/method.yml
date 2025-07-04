@@ -14,12 +14,12 @@ MODEL:
   # ATTENTION_NUM: 2
 
 
-# DATASET:
-#   TRAIN_DATASET: "occluded_duke"
-#   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
-#   PID_NUM: 702
-#   TEST_DATASET: "occluded_duke"
-#   TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+DATASET:
+  TRAIN_DATASET: "occluded_duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+  PID_NUM: 702
+  TEST_DATASET: "occluded_duke"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
 
 # DATASET:
 #   TRAIN_DATASET: "market"
@@ -42,12 +42,12 @@ MODEL:
 #   TEST_DATASET: "partial_duke"
 #   TEST_DATASET_PATH: "/kaggle/input/p-dukemtmc-reid/P-DukeMTMC-reid/format/"
 
-DATASET:
-  TRAIN_DATASET: "occluded_reid"
-  TRAIN_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/0"
-  PID_NUM: 100
-  TEST_DATASET: "occluded_reid"
-  TEST_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/0"
+# DATASET:
+#   TRAIN_DATASET: "occluded_reid"
+#   TRAIN_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/0"
+#   PID_NUM: 100
+#   TEST_DATASET: "occluded_reid"
+#   TEST_DATASET_PATH: "/kaggle/input/occluded-reid/occluded_reid/format_dataset/0"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
