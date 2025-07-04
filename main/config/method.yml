@@ -6,6 +6,7 @@ TASK:
   DEVICE: "cuda"  
   SEED: 1
 
+
 MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
