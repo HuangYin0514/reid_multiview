@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v805-局部+多视角+注意力+蒸馏, PART_NUM: 8"
+  NOTES: "v806-局部+多视角+注意力+蒸馏, PART_NUM: 16"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -10,7 +10,7 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 8
+  PART_NUM: 16
   # ATTENTION_NUM: 2
 
 
