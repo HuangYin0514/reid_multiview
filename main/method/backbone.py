@@ -7,11 +7,14 @@ from .module import resnet50, resnet50_ibn_a
 
 
 class Backbone(nn.Module):
-    def __init__(self):
+    def __init__(self, BACKBONE_TYPE):
         super(Backbone, self).__init__()
-        resnet = resnet50(pretrained=True)
-        # resnet = resnet50_ibn_a(pretrained=True)
         # resnet = torchvision.models.resnet50(pretrained=True)
+        resnet = None
+        if BACKBONE_TYPE == "resnet50":
+            resnet = resnet50(pretrained=True)
+        elif BACKBONE_TYPE == "resnet50_ibn_a":
+            resnet = resnet50_ibn_a(pretrained=True)
 
         # Modifiy backbone
         resnet.layer4[0].downsample[0].stride = (1, 1)

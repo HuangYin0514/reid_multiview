@@ -14,9 +14,10 @@ class Model(nn.Module):
         VIEW_NUM = config.MODEL.VIEW_NUM
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
+        BACKBONE_TYPE = config.MODEL.BACKBONE_TYPE
 
         # ------------- Backbone -----------------------
-        self.backbone = Backbone()
+        self.backbone = Backbone(BACKBONE_TYPE)
 
         # ------------- Hard content branch -----------------------
         # Global
