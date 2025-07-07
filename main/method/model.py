@@ -80,10 +80,10 @@ class Model(nn.Module):
             global_bn_features, global_cls_score = self.global_classifier(global_features)
             eval_features.append(global_bn_features)
 
-            # Soft global
-            soft_global_pooling_features = self.soft_global_pooling(copy_resnet_feature_maps).squeeze()
-            soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
-            eval_features.append(soft_global_bn_features)
+            # # Soft global
+            # soft_global_pooling_features = self.soft_global_pooling(copy_resnet_feature_maps).squeeze()
+            # soft_global_bn_features, soft_global_cls_score = self.soft_global_classifier(soft_global_pooling_features)
+            # eval_features.append(soft_global_bn_features)
 
             eval_features = torch.cat(eval_features, dim=1)
             return eval_features
