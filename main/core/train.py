@@ -87,7 +87,7 @@ def train(base, loaders, config):
             meter.update(
                 {
                     "global_pid_loss": global_pid_loss.data,
-                    "hard_part_pid_loss": hard_part_pid_loss.data,
+                    # "hard_part_pid_loss": hard_part_pid_loss.data,
                     # "multiview_pid_loss": multiview_pid_loss.data,
                     # "contrast_loss": contrast_loss.data,
                 }
