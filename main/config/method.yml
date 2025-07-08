@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v809-局部+多视角+注意力+蒸馏, Hard/GP1P2"
+  NOTES: "v810-局部+多视角+注意力+蒸馏, Hard/G"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  

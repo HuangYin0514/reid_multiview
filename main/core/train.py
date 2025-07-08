@@ -25,15 +25,15 @@ def train(base, loaders, config):
             total_loss += global_pid_loss
 
             # Part
-            PART_NUM = config.MODEL.PART_NUM
-            hard_part_chunk_features = torch.chunk(resnet_featuremaps, PART_NUM, dim=2)
-            hard_part_pid_loss = 0.0
-            for i in range(PART_NUM):
-                hard_part_chunk_feature_item = hard_part_chunk_features[i]
-                hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_chunk_feature_item).squeeze()
-                hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
-                hard_part_pid_loss += (1 / PART_NUM) * loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
-            total_loss += hard_part_pid_loss
+            # PART_NUM = config.MODEL.PART_NUM
+            # hard_part_chunk_features = torch.chunk(resnet_featuremaps, PART_NUM, dim=2)
+            # hard_part_pid_loss = 0.0
+            # for i in range(PART_NUM):
+            #     hard_part_chunk_feature_item = hard_part_chunk_features[i]
+            #     hard_part_pooling_features = base.model.module.hard_part_pooling[i](hard_part_chunk_feature_item).squeeze()
+            #     hard_part_bn_features, hard_part_cls_score = base.model.module.hard_part_classifier[i](hard_part_pooling_features)
+            #     hard_part_pid_loss += (1 / PART_NUM) * loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
+            # total_loss += hard_part_pid_loss
 
             # # ------------- Soft content branch -----------------------
             # # Soft global
