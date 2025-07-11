@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v817_kl03"
+  NOTES: "v818_kl04"
   TAGS: ["dev", "occluded_duke"] 
   MODE: "train"  
   DEVICE: "cuda"  
@@ -12,6 +12,7 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
   PART_NUM: 2
+  MKL_WEIGHT: 0.4
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"

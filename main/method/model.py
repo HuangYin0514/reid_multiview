@@ -15,6 +15,7 @@ class Model(nn.Module):
         PID_NUM = config.DATASET.PID_NUM
         PART_NUM = config.MODEL.PART_NUM
         BACKBONE_TYPE = config.MODEL.BACKBONE_TYPE
+        MKL_WEIGHT = config.MODEL.MKL_WEIGHT
 
         # ------------- Backbone -----------------------
         self.backbone = Backbone(BACKBONE_TYPE)
@@ -62,7 +63,7 @@ class Model(nn.Module):
         self.multiview_classifier = module.Classifier(BACKBONE_FEATURES_DIM, PID_NUM)
 
         # ------------- Contrast  Module -----------------------
-        self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM)
+        self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM, MKL_WEIGHT)
 
     def heatmap(self, x):
         return None
