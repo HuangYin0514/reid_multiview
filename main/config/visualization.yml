@@ -1,8 +1,8 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v828_kl07_retrain"
-  TAGS: ["dev", "train"] 
-  MODE: "train"  
+  NOTES: "v827_visualization"
+  TAGS: ["dev", "visualization"] 
+  MODE: "visualization"  
   DEVICE: "cuda"  
   SEED: 1
 
@@ -12,7 +12,7 @@ MODEL:
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
   PART_NUM: 2
-  MKL_WEIGHT: 0.7
+  MKL_WEIGHT: 1.3
 
 DATASET:
   TRAIN_DATASET: "occluded_duke"

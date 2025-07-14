@@ -12,16 +12,240 @@ from tools import CatMeter, time_now
 from torch.nn import functional as F
 
 
-class Visualization_CAM:
+def visualization(config, base, loader):
+    visualization_heatmap(config, base, loader)
+    visualization_rank(config, base, loader)
+    visualization_tsne(config, base, loader)
+
+
+def visualization_heatmap(config, base, loader):
+    print(time_now(), "CAM start")
+    base.set_eval()
+    cam_loader = loader.visualization_train_loader
+    heatmap_core = Heatmap_Core(config)
+    with torch.no_grad():
+        for index, data in enumerate(cam_loader):
+            print(time_now(), "CAM: {}/{}".format(index, len(cam_loader)))
+            images, pids, cids = data
+            images = images.to(base.device)
+            heatmap_core.__call__(images, base.model, base.model.module.global_classifier, pids)
+            break
+    print(time_now(), "CAM done.")
+
+
+def visualization_rank(config, base, loader):
+    print(time_now(), "Visualization_ranked_results start")
+    base.set_eval()
+    loaders = [loader.visualization_query_loader, loader.visualization_gallery_loader]
+    # ------------------------------------------------
+    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    with torch.no_grad():
+        for loader_id, loader_i in enumerate(loaders):
+            for data in loader_i:
+                images, pids, cids, path = data
+                bn_features = base.model(images)
+                flip_images = torch.flip(images, [3])
+                flip_bn_features = base.model(flip_images)
+                bn_features = bn_features + flip_bn_features
+                if loader_id == 0:
+                    query_features_meter.update(bn_features.data)
+                    query_pids_meter.update(pids)
+                    query_cids_meter.update(cids)
+                elif loader_id == 1:
+                    gallery_features_meter.update(bn_features.data)
+                    gallery_pids_meter.update(pids)
+                    gallery_cids_meter.update(cids)
+
+    query_features = query_features_meter.get_val_numpy()
+    gallery_features = gallery_features_meter.get_val_numpy()
+
+    mAP, CMC = evaluation.ReIDEvaluator(dist="cosine", mode=config.TEST.TEST_MODE).evaluate(
+        query_features,
+        query_pids_meter.get_val_numpy(),
+        query_cids_meter.get_val_numpy(),
+        gallery_features,
+        gallery_pids_meter.get_val_numpy(),
+        gallery_cids_meter.get_val_numpy(),
+    )
+
+    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
+
+    # ------------------------------------------------
+    # t_dir = os.path.join(config.output_path, "tmp")
+    # if not os.path.exists(t_dir):
+    #     os.makedirs(t_dir)
+    #     print("Successfully make dirs: {}".format(dir))
+
+    # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+
+    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+
+    # ------------------------------------------------
+    def cos_sim(x, y):
+        def normalize(x):
+            norm = np.tile(np.sqrt(np.sum(np.square(x), axis=1, keepdims=True)), [1, x.shape[1]])
+            return x / norm
+
+        x = normalize(x)
+        y = normalize(y)
+        return np.matmul(x, y.transpose([1, 0]))
+
+    dist = cos_sim(query_features, gallery_features)
+    rank_core = Rank_Core(config)
+    rank_core.__call__(dist, [loaders[0].dataset, loaders[1].dataset])
+    print(time_now(), "Visualization_ranked_results done.")
+    return
+
+
+def visualization_tsne(config, base, loader):
+    print(time_now(), "t-SNE start")
+    base.set_eval()
+    loaders = [loader.visualization_query_loader, loader.visualization_gallery_loader]
+    # ------------------------------------------------
+    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+    with torch.no_grad():
+        for loader_id, loader_i in enumerate(loaders):
+            for data in loader_i:
+                images, pids, cids, path = data
+                bn_features = base.model(images)
+                flip_images = torch.flip(images, [3])
+                flip_bn_features = base.model(flip_images)
+                bn_features = bn_features + flip_bn_features
+                if loader_id == 0:
+                    query_features_meter.update(bn_features.data)
+                    query_pids_meter.update(pids)
+                    query_cids_meter.update(cids)
+                elif loader_id == 1:
+                    gallery_features_meter.update(bn_features.data)
+                    gallery_pids_meter.update(pids)
+                    gallery_cids_meter.update(cids)
+
+    query_features = query_features_meter.get_val_numpy()
+    gallery_features = gallery_features_meter.get_val_numpy()
+    query_pids_features = query_pids_meter.get_val_numpy()
+    gallery_pids_features = gallery_pids_meter.get_val_numpy()
+
+    mAP, CMC = evaluation.ReIDEvaluator(dist="cosine", mode=config.TEST.TEST_MODE).evaluate(
+        query_features,
+        query_pids_meter.get_val_numpy(),
+        query_cids_meter.get_val_numpy(),
+        gallery_features,
+        gallery_pids_meter.get_val_numpy(),
+        gallery_cids_meter.get_val_numpy(),
+    )
+
+    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
+    # # ------------------------------------------------
+    # t_dir = os.path.join(config.output_path, "tmp")
+    # if not os.path.exists(t_dir):
+    #     os.makedirs(t_dir)
+    #     print("Successfully make dirs: {}".format(dir))
+
+    # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+    # torch.save(query_pids_features, os.path.join(config.output_path, "tmp", "query_pids_features" + ".pt"))
+    # torch.save(gallery_pids_features, os.path.join(config.output_path, "tmp", "gallery_pids_features" + ".pt"))
+
+    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
+    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
+    # query_pids_features = torch.load(os.path.join(config.output_path, "tmp", "query_pids_features" + ".pt"))
+    # gallery_pids_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_pids_features" + ".pt"))
+    # ------------------------------------------------
+
+    t_dir = os.path.join(config.SAVE.OUTPUT_PATH, "tSNE")
+    if not os.path.exists(t_dir):
+        os.makedirs(t_dir)
+        print("Successfully make dirs: {}".format(dir))
+
+    print("query_features shape:", query_features.shape)
+    print("gallery_features shape:", gallery_features.shape)
+    print("query_pids_features shape:", query_pids_features.shape)
+    print("gallery_pids_features shape:", gallery_pids_features.shape)
+
+    # ------------------------------------------------
+    # query 可视化结果
+    # tsne = TSNE(n_components=2, random_state=42)
+    # X_tsne = tsne.fit_transform(query_features)
+    # plt.figure(figsize=(8, 5))
+    # for idx, pid in enumerate(np.unique(query_pids_features)):
+    #     if pid not in [577, 479, 4272, 834]:
+    #         continue
+    #     plt.scatter(X_tsne[query_pids_features == pid, 0], X_tsne[query_pids_features == pid, 1], label=f"Class {pid}")
+    # plt.title("t-SNE Visualization of Simulated Data with Numpy")
+    # plt.xlabel("Component 1")
+    # plt.ylabel("Component 2")
+    # plt.legend()
+    # plt.savefig(os.path.join(t_dir, "query_tsne.png"))  # 保存图像
+    # plt.show()
+    # print(time_now(), "t-SNE done.")
+
+    # ------------------------------------------------
+    # # gallery 可视化结果
+    # tsne = TSNE(n_components=2, random_state=42)
+    # X_tsne = tsne.fit_transform(gallery_features)
+    # plt.figure(figsize=(8, 5))
+    # for idx, pid in enumerate(np.unique(gallery_pids_features)):
+    #     if pid not in [577, 479, 4272, 834]:
+    #         continue
+    #     plt.scatter(X_tsne[gallery_pids_features == pid, 0], X_tsne[gallery_pids_features == pid, 1], label=f"Class {pid}")
+    # plt.title("t-SNE Visualization of Simulated Data with Numpy")
+    # plt.xlabel("Component 1")
+    # plt.ylabel("Component 2")
+    # plt.legend()
+    # plt.savefig(os.path.join(t_dir, "gallery_tsne.png"))  # 保存图像
+    # plt.show()
+    # print(time_now(), "t-SNE done.")
+
+    # ------------------------------------------------
+    # all 可视化结果(查询模式)
+    all_features = np.concatenate((query_features, gallery_features), axis=0)
+    all_pids_features = np.concatenate((query_pids_features, gallery_pids_features), axis=0)
+    tsne = TSNE(n_components=2, random_state=42, perplexity=min(len(all_pids_features) - 1, 30))
+    X_tsne = tsne.fit_transform(all_features)
+    plt.figure(figsize=(10, 10), dpi=300)
+
+    # plot_list = [19, 21, 31, 33, 83]
+    plot_list = list(set(all_pids_features))
+    plot_list = random.sample(plot_list, min(5, len(plot_list)))
+
+    for idx, pid in enumerate(np.unique(all_pids_features)):
+        if pid not in plot_list:
+            continue
+        plt.scatter(X_tsne[all_pids_features == pid, 0], X_tsne[all_pids_features == pid, 1], label=f"Class {pid}")
+
+    # Query Marked
+    query_features_len = query_features.shape[0]
+    mask = np.isin(query_pids_features, plot_list)
+    plt.scatter(X_tsne[:query_features_len][mask, 0], X_tsne[:query_features_len][mask, 1], s=100, c="red", marker="x", alpha=0.8, label="Query Marked")
+
+    plt.title("t-SNE Visualization of Simulated Data with Numpy")
+    plt.xlabel("Component 1")
+    plt.ylabel("Component 2")
+    plt.legend()
+    plt.savefig(os.path.join(t_dir, "all_tsne.png"))
+    # plt.show()
+    print(time_now(), "t-SNE done.")
+
+
+##########################################################
+# Core
+##########################################################
+
+
+class Heatmap_Core:
     def __init__(self, config):
-        super(Visualization_CAM, self).__init__()
+        super(Heatmap_Core, self).__init__()
         self.config = config
 
         self.IMAGENET_MEAN = [0.485, 0.456, 0.406]
         self.IMAGENET_STD = [0.229, 0.224, 0.225]
         self.GRID_SPACING = 10
 
-        self.actmap_dir = os.path.join(config.output_path, "actmap/")
+        self.actmap_dir = os.path.join(config.SAVE.OUTPUT_PATH, "actmap/")
         if not os.path.exists(self.actmap_dir):
             os.makedirs(self.actmap_dir)
             print("Successfully make dirs: {}".format(dir))
@@ -36,7 +260,7 @@ class Visualization_CAM:
 
         # CAM
         classifier_params = [param for name, param in classifier.named_parameters()]
-        heatmaps = torch.zeros((bs, h, w), device="cuda")
+        heatmaps = torch.zeros((bs, h, w))
         for i in range(bs):
             heatmap_i = torch.matmul(classifier_params[-1][pids[i]].unsqueeze(0), features_map[i].unsqueeze(0).reshape(c, h * w)).detach()
             if heatmap_i.max() != 0:
@@ -95,7 +319,7 @@ class Visualization_CAM:
         # classifier.train()
 
 
-class Visualization_ranked_results:
+class Rank_Core:
     def __init__(self, config):
         self.config = config
 
@@ -110,7 +334,7 @@ class Visualization_ranked_results:
         self.topk = 10
         self.data_type = "image"
 
-        self.ranked_dir = os.path.join(config.output_path, "ranked_results/")
+        self.ranked_dir = os.path.join(config.SAVE.OUTPUT_PATH, "rank/")
         if not os.path.exists(self.ranked_dir):
             os.makedirs(self.ranked_dir)
             print("Successfully make dirs: {}".format(dir))
@@ -188,204 +412,3 @@ class Visualization_ranked_results:
         )
         # model.train()
         # classifier.train()
-
-
-def visualization(config, base, loader):
-    # ###########################################################################################
-    # # CMA (heat map)
-    # ###########################################################################################
-    print(time_now(), "CAM start")
-    base.set_eval()
-    cam_loader = loader.loader
-    # cam_loader = loader.query_loader
-    Visualization_CAM_fn = Visualization_CAM(config)
-    with torch.no_grad():
-        for index, data in enumerate(cam_loader):
-            print(time_now(), "CAM: {}/{}".format(index, len(cam_loader)))
-            images, pids, cids = data
-            images = images.to(base.device)
-            Visualization_CAM_fn.__call__(images, base.model, base.model.module.classifier, pids)
-            break
-    print(time_now(), "CAM done.")
-
-    # ###########################################################################################
-    # # ranked list
-    # ###########################################################################################
-    print(time_now(), "Visualization_ranked_results start")
-    base.set_eval()
-    loaders = [loader.query_loader, loader.gallery_loader]
-    # ------------------------------------------------
-    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    with torch.no_grad():
-        for loader_id, loader_i in enumerate(loaders):
-            for data in loader_i:
-                images, pids, cids, path = data
-                bn_features = base.model(images)
-                flip_images = torch.flip(images, [3])
-                flip_bn_features = base.model(flip_images)
-                bn_features = bn_features + flip_bn_features
-                if loader_id == 0:
-                    query_features_meter.update(bn_features.data)
-                    query_pids_meter.update(pids)
-                    query_cids_meter.update(cids)
-                elif loader_id == 1:
-                    gallery_features_meter.update(bn_features.data)
-                    gallery_pids_meter.update(pids)
-                    gallery_cids_meter.update(cids)
-
-    query_features = query_features_meter.get_val_numpy()
-    gallery_features = gallery_features_meter.get_val_numpy()
-
-    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
-
-    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
-
-    # ------------------------------------------------
-    # t_dir = os.path.join(config.output_path, "tmp")
-    # if not os.path.exists(t_dir):
-    #     os.makedirs(t_dir)
-    #     print("Successfully make dirs: {}".format(dir))
-
-    # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
-
-    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
-
-    # ------------------------------------------------
-    def cos_sim(x, y):
-        def normalize(x):
-            norm = np.tile(np.sqrt(np.sum(np.square(x), axis=1, keepdims=True)), [1, x.shape[1]])
-            return x / norm
-
-        x = normalize(x)
-        y = normalize(y)
-        return np.matmul(x, y.transpose([1, 0]))
-
-    dist = cos_sim(query_features, gallery_features)
-    Visualization_ranked_results_fn = Visualization_ranked_results(config)
-    Visualization_ranked_results_fn.__call__(dist, [loaders[0].dataset, loaders[1].dataset])
-    print(time_now(), "Visualization_ranked_results done.")
-
-    ###########################################################################################
-    # t-SNE
-    ###########################################################################################
-    print(time_now(), "t-SNE start")
-    base.set_eval()
-    loaders = [loader.query_loader, loader.gallery_loader]
-    # ------------------------------------------------
-    query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
-    with torch.no_grad():
-        for loader_id, loader_i in enumerate(loaders):
-            for data in loader_i:
-                images, pids, cids, path = data
-                bn_features = base.model(images)
-                flip_images = torch.flip(images, [3])
-                flip_bn_features = base.model(flip_images)
-                bn_features = bn_features + flip_bn_features
-                if loader_id == 0:
-                    query_features_meter.update(bn_features.data)
-                    query_pids_meter.update(pids)
-                    query_cids_meter.update(cids)
-                elif loader_id == 1:
-                    gallery_features_meter.update(bn_features.data)
-                    gallery_pids_meter.update(pids)
-                    gallery_cids_meter.update(cids)
-
-    query_features = query_features_meter.get_val_numpy()
-    gallery_features = gallery_features_meter.get_val_numpy()
-    query_pids_features = query_pids_meter.get_val_numpy()
-    gallery_pids_features = gallery_pids_meter.get_val_numpy()
-
-    mAP, CMC = ReIDEvaluator(dist="cosine", mode=config.test_mode).evaluate(query_features, query_pids_meter.get_val_numpy(), query_cids_meter.get_val_numpy(), gallery_features, gallery_pids_meter.get_val_numpy(), gallery_cids_meter.get_val_numpy())
-
-    print("mAP: {:.2%}\t , CMC:{:.2%}".format(mAP, CMC[0]))
-    # # ------------------------------------------------
-    # t_dir = os.path.join(config.output_path, "tmp")
-    # if not os.path.exists(t_dir):
-    #     os.makedirs(t_dir)
-    #     print("Successfully make dirs: {}".format(dir))
-
-    # torch.save(query_features, os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    # torch.save(gallery_features, os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
-    # torch.save(query_pids_features, os.path.join(config.output_path, "tmp", "query_pids_features" + ".pt"))
-    # torch.save(gallery_pids_features, os.path.join(config.output_path, "tmp", "gallery_pids_features" + ".pt"))
-
-    # query_features = torch.load(os.path.join(config.output_path, "tmp", "query_features" + ".pt"))
-    # gallery_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_features" + ".pt"))
-    # query_pids_features = torch.load(os.path.join(config.output_path, "tmp", "query_pids_features" + ".pt"))
-    # gallery_pids_features = torch.load(os.path.join(config.output_path, "tmp", "gallery_pids_features" + ".pt"))
-    # ------------------------------------------------
-
-    t_dir = os.path.join(config.output_path, "tSNE")
-    if not os.path.exists(t_dir):
-        os.makedirs(t_dir)
-        print("Successfully make dirs: {}".format(dir))
-
-    print("query_features shape:", query_features.shape)
-    print("gallery_features shape:", gallery_features.shape)
-    print("query_pids_features shape:", query_pids_features.shape)
-    print("gallery_pids_features shape:", gallery_pids_features.shape)
-
-    # ------------------------------------------------
-    # query 可视化结果
-    # tsne = TSNE(n_components=2, random_state=42)
-    # X_tsne = tsne.fit_transform(query_features)
-    # plt.figure(figsize=(8, 5))
-    # for idx, pid in enumerate(np.unique(query_pids_features)):
-    #     if pid not in [577, 479, 4272, 834]:
-    #         continue
-    #     plt.scatter(X_tsne[query_pids_features == pid, 0], X_tsne[query_pids_features == pid, 1], label=f"Class {pid}")
-    # plt.title("t-SNE Visualization of Simulated Data with Numpy")
-    # plt.xlabel("Component 1")
-    # plt.ylabel("Component 2")
-    # plt.legend()
-    # plt.savefig(os.path.join(t_dir, "query_tsne.png"))  # 保存图像
-    # plt.show()
-    # print(time_now(), "t-SNE done.")
-
-    # ------------------------------------------------
-    # # gallery 可视化结果
-    # tsne = TSNE(n_components=2, random_state=42)
-    # X_tsne = tsne.fit_transform(gallery_features)
-    # plt.figure(figsize=(8, 5))
-    # for idx, pid in enumerate(np.unique(gallery_pids_features)):
-    #     if pid not in [577, 479, 4272, 834]:
-    #         continue
-    #     plt.scatter(X_tsne[gallery_pids_features == pid, 0], X_tsne[gallery_pids_features == pid, 1], label=f"Class {pid}")
-    # plt.title("t-SNE Visualization of Simulated Data with Numpy")
-    # plt.xlabel("Component 1")
-    # plt.ylabel("Component 2")
-    # plt.legend()
-    # plt.savefig(os.path.join(t_dir, "gallery_tsne.png"))  # 保存图像
-    # plt.show()
-    # print(time_now(), "t-SNE done.")
-
-    # ------------------------------------------------
-    # all 可视化结果(查询模式)
-    tsne = TSNE(n_components=2, random_state=42)
-    all_features = np.concatenate((query_features, gallery_features), axis=0)
-    all_pids_features = np.concatenate((query_pids_features, gallery_pids_features), axis=0)
-    X_tsne = tsne.fit_transform(all_features)
-    plt.figure(figsize=(10, 10), dpi=300)
-
-    plot_list = [19, 21, 31, 33, 83]
-
-    for idx, pid in enumerate(np.unique(all_pids_features)):
-        if pid not in plot_list:
-            continue
-        plt.scatter(X_tsne[all_pids_features == pid, 0], X_tsne[all_pids_features == pid, 1], label=f"Class {pid}")
-
-    query_features_len = query_features.shape[0]
-    mask = np.isin(query_pids_features, plot_list)
-    plt.scatter(X_tsne[:query_features_len][mask, 0], X_tsne[:query_features_len][mask, 1], s=100, c="red", marker="x", alpha=0.8, label="Query Marked")
-
-    plt.title("t-SNE Visualization of Simulated Data with Numpy")
-    plt.xlabel("Component 1")
-    plt.ylabel("Component 2")
-    plt.legend()
-    plt.savefig(os.path.join(t_dir, "all_tsne.png"))
-    plt.show()
-    print(time_now(), "t-SNE done.")

@@ -25,7 +25,12 @@ from torch.utils.data import DataLoader
 class Loader:
 
     def __init__(self, config):
-        transform_train = [transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3), transforms.RandomHorizontalFlip(p=0.5), transforms.Pad(10), transforms.RandomCrop(config.DATALOADER.IMAGE_SIZE)]
+        transform_train = [
+            transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.Pad(10),
+            transforms.RandomCrop(config.DATALOADER.IMAGE_SIZE),
+        ]
         if config.DATALOADER.USE_COLORJITOR:
             transform_train.append(transforms.ColorJitter(brightness=0.25, contrast=0.15, saturation=0.25, hue=0))
         transform_train.extend([transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -33,7 +38,13 @@ class Loader:
             transform_train.append(RandomErasing(probability=0.5, mean=[0.485, 0.456, 0.406]))
         self.transform_train = transforms.Compose(transform_train)
 
-        self.transform_test = transforms.Compose([transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+        self.transform_test = transforms.Compose(
+            [
+                transforms.Resize(config.DATALOADER.IMAGE_SIZE, interpolation=3),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
 
         self.train_dataset = config.DATASET.TRAIN_DATASET
         self.test_dataset = config.DATASET.TEST_DATASET
@@ -43,17 +54,20 @@ class Loader:
         self.batchsize = config.DATALOADER.BATCHSIZE
         self.num_instances = config.DATALOADER.NUM_INSTANCES
 
-        self._load()
+        if config.TASK.MODE == "train":
+            self._load()
+        elif config.TASK.MODE == "visualization":
+            self._visualization_load()
 
     def _load(self):
-        samples = self._get_samples(self.train_dataset)
+        samples = self._get_samples(self.train_dataset).samples
         self.train_loader = self._get_train_loader(samples, self.transform_train, self.batchsize)
         query_samples, gallery_samples = self._get_test_samples(self.test_dataset)
         self.query_loader = self._get_test_loader(query_samples, self.transform_test, 128)
         self.gallery_loader = self._get_test_loader(gallery_samples, self.transform_test, 128)
 
     def _get_train_loader(self, samples, transform, batchsize):
-        dataset = Dataset(samples.samples, transform=transform)
+        dataset = Dataset(samples, transform=transform)
         loader = DataLoader(dataset, batch_size=batchsize, sampler=TripletSampler(dataset.samples, batchsize, self.num_instances), num_workers=8)
         return loader
 
@@ -63,11 +77,11 @@ class Loader:
         return loader
 
     def _visualization_load(self):
-        samples = self._get_samples(self.train_dataset)
-        self.train_loader = self._get_train_loader(samples, self.transform_train, self.batchsize)
+        samples = self._get_samples(self.train_dataset).samples
+        self.visualization_train_loader = self._get_visualization_loader(samples, self.transform_test, self.batchsize)
         query_samples, gallery_samples = self._get_test_samples(self.test_dataset)
-        self.query_loader = self._get_visualization_loader(query_samples, self.transform_test, 128)
-        self.gallery_loader = self._get_visualization_loader(gallery_samples, self.transform_test, 128)
+        self.visualization_query_loader = self._get_visualization_loader(query_samples, self.transform_test, 128)
+        self.visualization_gallery_loader = self._get_visualization_loader(gallery_samples, self.transform_test, 128)
 
     def _get_visualization_loader(self, samples, transform, batch_size):
         dataset = VisualizationDataset(samples, transform=transform)

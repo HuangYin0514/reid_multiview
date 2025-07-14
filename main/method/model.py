@@ -66,7 +66,8 @@ class Model(nn.Module):
         self.contrast_kl_loss = innovation.multi_view.MVDistillKL(VIEW_NUM, MKL_WEIGHT)
 
     def heatmap(self, x):
-        return None
+        resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps = self.backbone(x)
+        return (resnet_feature_maps + copy_resnet_feature_maps) / 2
 
     def forward(self, x):
         if self.training:

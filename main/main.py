@@ -88,20 +88,20 @@ def main(config):
             logger("Best model is: epoch: {}, rank1: {}, mAP: {}".format(best_epoch, best_rank1, best_mAP))
             logger("=" * 50)
 
-    elif config.mode == "test":
+    elif config.TASK.MODE == "test":
         ########################################################
         # 测试
         ########################################################
-        model.resume_model(config.resume_test_model)
+        model.resume_model(config.TEST.RESUME_TEST_MODEL)
         mAP, CMC = test(config, model, loaders)
         logger("Time: {}; Test on Dataset: {}, \nmAP: {} \n Rank: {}".format(time_now(), config.test_dataset, mAP, CMC))
 
-    elif config.mode == "visualization":
+    elif config.TASK.MODE == "visualization":
         ########################################################
         # 可视化
         ########################################################
         loaders._visualization_load()
-        model.resume_model(config.resume_test_model)
+        model.resume_model(config.TEST.RESUME_TEST_MODEL)
         visualization(config, model, loaders)
 
 
