@@ -1,8 +1,8 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v82xxxx_visualization"
-  TAGS: ["dev", "visualization"] 
-  MODE: "visualization"  
+  NOTES: "visualization"
+  TAGS: ["dev", "visualization"]  
+  MODE: "visualization"  # train / visualization
   DEVICE: "cuda"  
   SEED: 1
 
