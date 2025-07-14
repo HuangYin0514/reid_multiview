@@ -26,7 +26,7 @@ def visualization_heatmap(config, base, loader):
     with torch.no_grad():
         for index, data in enumerate(cam_loader):
             print(time_now(), "CAM: {}/{}".format(index, len(cam_loader)))
-            images, pids, cids = data
+            images, pids, cids, path = data
             images = images.to(base.device)
             heatmap_core.__call__(images, base.model, base.model.module.global_classifier, pids)
             break
