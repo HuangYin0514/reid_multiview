@@ -29,7 +29,7 @@ def visualization_heatmap(config, base, loader):
             images, pids, cids, path = data
             images = images.to(base.device)
             heatmap_core.__call__(images, base.model, base.model.module.global_classifier, pids)
-            break
+            # break
     print(time_now(), "CAM done.")
 
 
