@@ -14,8 +14,8 @@ from torch.nn import functional as F
 
 def visualization(config, base, loader):
     visualization_heatmap(config, base, loader)
-    visualization_rank(config, base, loader)
-    visualization_tsne(config, base, loader)
+    # visualization_rank(config, base, loader)
+    # visualization_tsne(config, base, loader)
 
 
 def visualization_heatmap(config, base, loader):
