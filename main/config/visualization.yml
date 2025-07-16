@@ -36,7 +36,7 @@ SOLVER:
   EVAL_EPOCH: 5
 
 TEST:
-  RESUME_TEST_MODEL: 119  
+  RESUME_TEST_MODEL: 114  
   TEST_MODE: "inter-camera"  # inter-camera, intra-camera, all
 
 SAVE:
