@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v833_VIEW_NUM2"
+  NOTES: "v834_VIEW_NUM8"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
@@ -10,7 +10,7 @@ MODEL:
   MODULE: "Lucky"  
   BACKBONE_TYPE: "resnet50_ibn_a"
   BACKBONE_FEATURES_DIM: 2048
-  VIEW_NUM: 2
+  VIEW_NUM: 8
   PART_NUM: 2
   MKL_WEIGHT: 0.7
 
