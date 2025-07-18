@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v837_PART_NUM4"
+  NOTES: "v838_PART_NUM8"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
@@ -11,7 +11,7 @@ MODEL:
   BACKBONE_TYPE: "resnet50_ibn_a"
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 4
+  PART_NUM: 8
   MKL_WEIGHT: 0.7
 
 DATASET:
