@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v840_market"
+  NOTES: "v841_PART_NUM16"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
@@ -11,16 +11,15 @@ MODEL:
   BACKBONE_TYPE: "resnet50_ibn_a"
   BACKBONE_FEATURES_DIM: 2048
   VIEW_NUM: 4
-  PART_NUM: 2
+  PART_NUM: 16
   MKL_WEIGHT: 0.7
 
 DATASET:
-  TRAIN_DATASET: "market"
-  TRAIN_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
-  PID_NUM: 751
-  TEST_DATASET: "market"
-  TEST_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
-
+  TRAIN_DATASET: "occluded_duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+  PID_NUM: 702
+  TEST_DATASET: "occluded_duke"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
@@ -62,14 +61,6 @@ SAVE:
 #   PID_NUM: 702
 #   TEST_DATASET: "duke"
 #   TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
-
-
-# DATASET:
-#   TRAIN_DATASET: "occluded_duke"
-#   TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
-#   PID_NUM: 702
-#   TEST_DATASET: "occluded_duke"
-#   TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
 
 # DATASET:
 #   TRAIN_DATASET: "partial_duke"
