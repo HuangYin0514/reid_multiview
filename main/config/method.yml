@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v843_market"
+  NOTES: "v844_duke"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
@@ -15,12 +15,11 @@ MODEL:
   MKL_WEIGHT: 0.7
 
 DATASET:
-  TRAIN_DATASET: "market"
-  TRAIN_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
-  PID_NUM: 751
-  TEST_DATASET: "market"
-  TEST_DATASET_PATH: "/kaggle/input/market1501/Market-1501-v15.09.15/"
-
+  TRAIN_DATASET: "duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+  PID_NUM: 702
+  TEST_DATASET: "duke"
+  TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
