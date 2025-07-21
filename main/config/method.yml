@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v847_duke"
+  NOTES: "v848_R_H2GP_S2GA"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
@@ -15,11 +15,12 @@ MODEL:
   MKL_WEIGHT: 0.7
 
 DATASET:
-  TRAIN_DATASET: "duke"
-  TRAIN_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+  TRAIN_DATASET: "occluded_duke"
+  TRAIN_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
   PID_NUM: 702
-  TEST_DATASET: "duke"
-  TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
+  TEST_DATASET: "occluded_duke"
+  TEST_DATASET_PATH: "/kaggle/input/occluded-duke/Occluded_Duke"
+
 
 DATALOADER:
   IMAGE_SIZE: [256, 128]
@@ -61,7 +62,6 @@ SAVE:
 #   PID_NUM: 702
 #   TEST_DATASET: "duke"
 #   TEST_DATASET_PATH: "/kaggle/input/dukemtmc-reid/DukeMTMC-reID/"
-
 
 # DATASET:
 #   TRAIN_DATASET: "occluded_duke"
