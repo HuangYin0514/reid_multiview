@@ -35,19 +35,19 @@ def train(base, loaders, config):
                 hard_part_pid_loss += (1 / PART_NUM) * loss_function.CrossEntropyLabelSmooth().forward(hard_part_cls_score, pids)
             total_loss += hard_part_pid_loss
 
-            # ------------- Soft content branch -----------------------
-            # Soft global
-            soft_global_pooling_features = base.model.module.soft_global_pooling(copy_resnet_featuremaps).squeeze()
-            soft_global_bn_features, soft_global_cls_score = base.model.module.soft_global_classifier(soft_global_pooling_features)
-            soft_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_global_cls_score, pids)
-            total_loss += soft_global_pid_loss
+            # # ------------- Soft content branch -----------------------
+            # # Soft global
+            # soft_global_pooling_features = base.model.module.soft_global_pooling(copy_resnet_featuremaps).squeeze()
+            # soft_global_bn_features, soft_global_cls_score = base.model.module.soft_global_classifier(soft_global_pooling_features)
+            # soft_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_global_cls_score, pids)
+            # total_loss += soft_global_pid_loss
 
-            # Soft attention
-            soft_attention_featuremaps = base.model.module.soft_attention(resnet_internal_featuremaps + [copy_resnet_featuremaps])
-            soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_featuremaps).squeeze()
-            soft_attention_bn_features, soft_attention_cls_score = base.model.module.soft_attention_classifier(soft_attention_features)
-            soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
-            total_loss += soft_attention_pid_loss
+            # # Soft attention
+            # soft_attention_featuremaps = base.model.module.soft_attention(resnet_internal_featuremaps + [copy_resnet_featuremaps])
+            # soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_featuremaps).squeeze()
+            # soft_attention_bn_features, soft_attention_cls_score = base.model.module.soft_attention_classifier(soft_attention_features)
+            # soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
+            # total_loss += soft_attention_pid_loss
 
             # # ------------- Multiview content branch  -----------------------
             # # Position
