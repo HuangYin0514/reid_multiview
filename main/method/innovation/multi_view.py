@@ -117,6 +117,7 @@ class MVDistillKL(nn.Module):
 
         loss = 0.0
         new_features_2_logits = torch.repeat_interleave(features_2_logits, self.view_num, dim=0)  # [batch_size, c] -> [batch_size * view_num]
-        kl_loss = self.mkl_weight * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
+        # kl_loss = self.mkl_weight * (self.distillKL(features_1_logits, new_features_2_logits) + self.distillKL(new_features_2_logits, features_1_logits))
+        kl_loss = self.mkl_weight * (self.distillKL(features_1_logits, new_features_2_logits))
         loss += kl_loss
         return loss
