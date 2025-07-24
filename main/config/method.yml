@@ -1,6 +1,6 @@
 TASK:
   NAME: "R_H2GP_S2GA_M2PQF_C2Mkl"
-  NOTES: "v854_V2HS"
+  NOTES: "v855_HS2V"
   TAGS: ["dev", "train"]  
   MODE: "train"  # train / visualization
   DEVICE: "cuda"  
