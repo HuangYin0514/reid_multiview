@@ -42,12 +42,12 @@ def train(base, loaders, config):
             soft_global_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_global_cls_score, pids)
             total_loss += soft_global_pid_loss
 
-            # # Soft attention
-            # soft_attention_featuremaps = base.model.module.soft_attention(resnet_internal_featuremaps + [copy_resnet_featuremaps])
-            # soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_featuremaps).squeeze()
-            # soft_attention_bn_features, soft_attention_cls_score = base.model.module.soft_attention_classifier(soft_attention_features)
-            # soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
-            # total_loss += soft_attention_pid_loss
+            # Soft attention
+            soft_attention_featuremaps = base.model.module.soft_attention(resnet_internal_featuremaps + [copy_resnet_featuremaps])
+            soft_attention_features = base.model.module.soft_attention_pooling(soft_attention_featuremaps).squeeze()
+            soft_attention_bn_features, soft_attention_cls_score = base.model.module.soft_attention_classifier(soft_attention_features)
+            soft_attention_pid_loss = loss_function.CrossEntropyLabelSmooth().forward(soft_attention_cls_score, pids)
+            total_loss += soft_attention_pid_loss
 
             # ------------- Multiview content branch  -----------------------
             # Position
@@ -89,7 +89,7 @@ def train(base, loaders, config):
                     "global_pid_loss": global_pid_loss.data,
                     "hard_part_pid_loss": hard_part_pid_loss.data,
                     "soft_global_pid_loss": soft_global_pid_loss.data,
-                    # "soft_attention_pid_loss": soft_attention_pid_loss.data,
+                    "soft_attention_pid_loss": soft_attention_pid_loss.data,
                     "multiview_pid_loss": multiview_pid_loss.data,
                     "contrast_loss": contrast_loss.data,
                 }
