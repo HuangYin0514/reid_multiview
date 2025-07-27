@@ -10,11 +10,9 @@ wandb login c74133df8c2cf575304acf8a99fe03ab74b6fe6a
 
 # python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Baseline
 
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.PART_NUM=5
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.PART_NUM=6
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.PART_NUM=7
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.PART_NUM=9
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.PART_NUM=10
+python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v859_PART_NUM_5 MODEL.MODULE=Lucky MODEL.PART_NUM=5
+python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v859_PART_NUM_6 MODEL.MODULE=Lucky MODEL.PART_NUM=6
+
 
 # python main.py --config_file "config/occluded_reid/0.yml" 
 
