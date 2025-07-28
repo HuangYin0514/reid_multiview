@@ -21,7 +21,7 @@ def visualization(config, base, loader):
 def visualization_heatmap(config, base, loader):
     print(time_now(), "CAM start")
     base.set_eval()
-    cam_loader = loader.visualization_train_loader
+    cam_loader = loader.visualization_query_loader  # visualization_query_loader/visualization_gallery_loader
     heatmap_core = Heatmap_Core(config)
     with torch.no_grad():
         for index, data in enumerate(cam_loader):
