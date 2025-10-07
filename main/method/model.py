@@ -1,5 +1,3 @@
-import time
-
 import torch
 import torch.nn as nn
 
@@ -76,7 +74,6 @@ class Model(nn.Module):
             resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps = self.backbone(x)
             return resnet_feature_maps, copy_resnet_feature_maps, resnet_internal_feature_maps
         else:
-            start_time = time.time()  # 记录开始时间
 
             eval_features = []
 
@@ -93,7 +90,4 @@ class Model(nn.Module):
             eval_features.append(soft_global_bn_features)
             eval_features = torch.cat(eval_features, dim=1)
 
-            end_time = time.time()  # 记录结束时间
-            elapsed_time_ms = (end_time - start_time) * 1000  # 转换为毫秒
-            print(f"time per batch: {elapsed_time_ms:.2f} ms, time per image: {elapsed_time_ms / x.size(0):.2f} ms")
             return eval_features
