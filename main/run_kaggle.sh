@@ -20,7 +20,7 @@ mkdir -p results/outputs/models
 # python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
 
 
-gdown -O results/occluded_duke/models/model_114.pth 1hvEDtWCBcrRx66x-a0oZEoOuu11tC4WL
+gdown -O results/outputs/models/model_114.pth 1hvEDtWCBcrRx66x-a0oZEoOuu11tC4WL
 python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
 
 tar -czf results.tar.gz results
