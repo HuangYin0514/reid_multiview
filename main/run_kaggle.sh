@@ -19,8 +19,10 @@ mkdir -p results/outputs/models
 # # python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v862_Baseline_visualization TASK.MODE=visualization MODEL.MODULE=Baseline TEST.RESUME_TEST_MODEL=114 
 # python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
 
-
-gdown -O results/outputs/models/model_114.pth 1hvEDtWCBcrRx66x-a0oZEoOuu11tC4WL
+# method
+# gdown -O results/outputs/models/model_114.pth 1hvEDtWCBcrRx66x-a0oZEoOuu11tC4WL 
+# Baseline
+gdown -O results/outputs/models/model_114.pth 1VwUiNab-jqJk8Ejk0ozRGNcK9yTkmtt6
 python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
 
 tar -czf results.tar.gz results
