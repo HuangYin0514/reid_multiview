@@ -30,18 +30,25 @@ wandb login c74133df8c2cf575304acf8a99fe03ab74b6fe6a
 # Visualize rank
 ###########################################################
 # mkdir -p results/outputs/models
+# gdown -O results/outputs/models/model_114.pth 1hvEDtWCBcrRx66x-a0oZEoOuu11tC4WL 
 # python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
-# tar -czf results.tar.gz results
-# rm -rf results/outputs/actmap results/outputs/rank results/outputs/tSNE 
+# tar -czf results_method.tar.gz results
+# rm -rf results/
+
+# mkdir -p results/outputs/models
+# gdown -O results/outputs/models/model_114.pth 1VwUiNab-jqJk8Ejk0ozRGNcK9yTkmtt6
+# python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
+# tar -czf results_baseline.tar.gz results
+# rm -rf results/
 
 
 ###########################################################
 # Visualize Martket
 ###########################################################
-python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Lucky DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM:=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
-# python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Baseline DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM:=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
-mkdir -p results/outputs/models
-python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 
+# mkdir -p results/outputs/models
+# gdown -O results/outputs/models/model_79.pth 1O44ill010FoRIrpdgZLXjkWEV0A77kyF
+# python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=79 DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM:=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
+# tar -czf results_method_market.tar.gz results
+# rm -rf results/
 
-tar -czf results.tar.gz results
-rm -rf results/outputs/actmap results/outputs/rank results/outputs/tSNE 
+python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Baseline DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM:=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
