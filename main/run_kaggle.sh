@@ -52,8 +52,8 @@ tar -czf results_method_market.tar.gz results
 rm -rf results/
 
 mkdir -p results/outputs/models
-gdown -O results/outputs/models/model_114.pth 1SbAIlBIJtKfIFhwdCQ-CAcMz7szhtEcq
-python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=114 DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
+gdown -O results/outputs/models/model_69.pth 1SbAIlBIJtKfIFhwdCQ-CAcMz7szhtEcq
+python main.py --config_file "config/method.yml" TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl TASK.NOTES=v863_Lucky_visualization TASK.MODE=visualization MODEL.MODULE=Lucky TEST.RESUME_TEST_MODEL=69 DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ 
 tar -czf results_baseline_market.tar.gz results
 rm -rf results/
 
