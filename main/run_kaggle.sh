@@ -51,4 +51,5 @@ wandb login c74133df8c2cf575304acf8a99fe03ab74b6fe6a
 # tar -czf results_method_market.tar.gz results
 # rm -rf results/
 
-python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Baseline DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/
+python main.py --config_file "config/method.yml" TASK.NOTES=v859_visualization TASK.NAME=R_H2GP_S2GA_M2PQF_C2Mkl MODEL.MODULE=Baseline MODEL.BACKBONE_TYPE=resnet50 DATASET.TRAIN_DATASET=market DATASET.TRAIN_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/ DATASET.PID_NUM=751 DATASET.TEST_DATASET=market DATASET.TEST_DATASET_PATH=/kaggle/input/market1501/Market-1501-v15.09.15/
+
